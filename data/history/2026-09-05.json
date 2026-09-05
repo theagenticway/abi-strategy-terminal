@@ -1,0 +1,226 @@
+{
+  "macro_breadth": {
+    "date": "2026-09-05",
+    "timestamp": "2026-09-05 23:25:22",
+    "total_alerts": 0,
+    "reclaims": 0,
+    "confirmed": 0,
+    "below": 0,
+    "dead": 0,
+    "retrace_ote": 0,
+    "retrace_db": 0,
+    "retrace_ema50": 0,
+    "retrace_ma150": 0,
+    "beta_lt_1": 0,
+    "beta_1_to_1_5": 0,
+    "beta_gt_1_5": 0,
+    "top_sectors": "FINANCIALS, TECH, ENERGY",
+    "macro_ratio": 0.0,
+    "regime": "MIXED"
+  },
+  "top_candidates": [],
+  "all_qualified": [],
+  "sector_momentum": [
+    {
+      "etf": "GDX",
+      "sector": "Gold Miners",
+      "type": "DEFENSIVE",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "IBB",
+      "sector": "Biotech",
+      "type": "GROWTH",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XBI",
+      "sector": "Biotech Small Cap",
+      "type": "GROWTH",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XLE",
+      "sector": "Energy",
+      "type": "CYCLICAL",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "IGV",
+      "sector": "Tech Software",
+      "type": "GROWTH",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XLF",
+      "sector": "Financials",
+      "type": "CYCLICAL",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XLK",
+      "sector": "Technology",
+      "type": "GROWTH",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "IHAK",
+      "sector": "Cybersecurity",
+      "type": "GROWTH",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XLB",
+      "sector": "Materials",
+      "type": "CYCLICAL",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "QQQ",
+      "sector": "Nasdaq 100",
+      "type": "GROWTH",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "KRE",
+      "sector": "Regional Banks",
+      "type": "CYCLICAL",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XLC",
+      "sector": "Comm Services",
+      "type": "GROWTH",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "SMH",
+      "sector": "Semiconductors",
+      "type": "GROWTH",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XRT",
+      "sector": "Retail",
+      "type": "CYCLICAL",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XLP",
+      "sector": "Consumer Staples",
+      "type": "DEFENSIVE",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XLY",
+      "sector": "Consumer Disc",
+      "type": "GROWTH",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XLRE",
+      "sector": "Real Estate",
+      "type": "DEFENSIVE",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "IYT",
+      "sector": "Transportation",
+      "type": "CYCLICAL",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XLU",
+      "sector": "Utilities",
+      "type": "DEFENSIVE",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    },
+    {
+      "etf": "XLI",
+      "sector": "Industrials",
+      "type": "CYCLICAL",
+      "status": "\u2605 OUTPERFORMING",
+      "vs_ema50": "+2.50%",
+      "mom5d": "+0.80%",
+      "mom20d": "+4.20%",
+      "signal": "\u2605 HOT \u2014 Sector leading"
+    }
+  ],
+  "tickers": []
+}
