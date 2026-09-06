@@ -1,5 +1,24 @@
 [
   {
+    "date": "2026-09-06",
+    "timestamp": "2026-09-06 00:14:04",
+    "total_alerts": 0,
+    "reclaims": 0,
+    "confirmed": 0,
+    "below": 0,
+    "dead": 0,
+    "retrace_ote": 0,
+    "retrace_db": 0,
+    "retrace_ema50": 0,
+    "retrace_ma150": 0,
+    "beta_lt_1": 0,
+    "beta_1_to_1_5": 0,
+    "beta_gt_1_5": 0,
+    "top_sectors": "FINANCIALS, TECH, ENERGY",
+    "macro_ratio": 0.0,
+    "regime": "MIXED"
+  },
+  {
     "date": "2026-09-04",
     "total_alerts": 24,
     "reclaims": 4,

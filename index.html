@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ABI Strategy Terminal | EMA50 Options Alpha Radar</title>
+    <title>ABI Strategy Terminal | S&P 500 EMA50 Telemetry</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js CDN for 2D Momentum Quadrant & Horizontal Bar Charts -->
+    <!-- Chart.js CDN for 2D Momentum Quadrant -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
@@ -29,12 +29,17 @@
         body { background-color: #0b0f19; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .glass-panel { background: rgba(17, 24, 39, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .tab-btn.active { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); font-weight: 600; }
+        /* Ladder bar zero line styles */
+        .ladder-bar-container { position: relative; width: 140px; height: 16px; background: rgba(30, 41, 59, 0.6); border-radius: 4px; overflow: hidden; }
+        .ladder-zero-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: rgba(255, 255, 255, 0.2); z-index: 10; }
+        .ladder-fill-pos { position: absolute; left: 50%; top: 2px; bottom: 2px; background: #10b981; border-radius: 2px; }
+        .ladder-fill-neg { position: absolute; right: 50%; top: 2px; bottom: 2px; background: #f43f5e; border-radius: 2px; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
     <div class="max-w-7xl mx-auto space-y-6">
         
-        <!-- Header, Tab Switcher & Date Controls -->
+        <!-- Header, Navigation Tabs & Date/API Controls -->
         <header class="glass-panel p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <div class="flex items-center gap-3">
@@ -42,12 +47,12 @@
                         <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
                         ABI Strategy Terminal
                     </h1>
-                    <span id="regime-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                    <span id="regime-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/30">
                         LOADING...
                     </span>
                 </div>
                 <p class="text-xs text-slate-400 mt-1">
-                    EMA50 Scanner • Options Alpha Radar • Macroeconomic Monitoring Board
+                    Full S&P 500 & NASDAQ-100 Scanner • Options Alpha Radar • Macroeconomic Monitoring
                 </p>
             </div>
 
@@ -74,27 +79,32 @@
             </div>
         </header>
 
-        <!-- Macro Breadth KPI Cards (Global Across Both Tabs) -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="glass-panel p-5 rounded-xl">
-                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Alerts</div>
-                <div id="stat-alerts" class="text-3xl font-bold mt-1 text-white">--</div>
-                <div class="text-xs text-slate-500 mt-1">S&P / NASDAQ Universe</div>
+        <!-- KPI Ribbon (Netlify Parity) -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div class="glass-panel p-4 rounded-xl">
+                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Tracked Universe</div>
+                <div id="stat-universe" class="text-2xl font-bold mt-1 text-white">500+</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">S&P 500 + NASDAQ-100</div>
             </div>
-            <div class="glass-panel p-5 rounded-xl">
-                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Reclaims (D0-D2)</div>
-                <div id="stat-reclaims" class="text-3xl font-bold mt-1 text-emerald-400">--</div>
-                <div class="text-xs text-slate-500 mt-1">Velocity Confirmation</div>
+            <div class="glass-panel p-4 rounded-xl">
+                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Active Alerts</div>
+                <div id="stat-alerts" class="text-2xl font-bold mt-1 text-amber-400">--</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">Signals in zone / dip</div>
             </div>
-            <div class="glass-panel p-5 rounded-xl">
-                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Macro Ratio</div>
-                <div id="stat-ratio" class="text-3xl font-bold mt-1 text-sky-400">--</div>
-                <div class="text-xs text-slate-500 mt-1">Alert-to-Reclaim Breadth</div>
+            <div class="glass-panel p-4 rounded-xl">
+                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Reclaims (D0-D2)</div>
+                <div id="stat-reclaims" class="text-2xl font-bold mt-1 text-emerald-400">--</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">Confirmed velocity</div>
             </div>
-            <div class="glass-panel p-5 rounded-xl">
-                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Top Cluster Flow</div>
-                <div id="stat-sectors" class="text-sm font-semibold mt-2 text-slate-200 truncate">--</div>
-                <div class="text-xs text-slate-500 mt-1">Leading Rotation</div>
+            <div class="glass-panel p-4 rounded-xl">
+                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Macro Breadth Ratio</div>
+                <div id="stat-ratio" class="text-2xl font-bold mt-1 text-sky-400">--</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">Alert-to-Reclaim index</div>
+            </div>
+            <div class="glass-panel p-4 rounded-xl col-span-2 md:col-span-1">
+                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Leading Inflow</div>
+                <div id="stat-sectors" class="text-xs font-semibold mt-2 text-slate-200 truncate">--</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">Active cluster rotation</div>
             </div>
         </div>
 
@@ -103,7 +113,7 @@
         <!-- ======================================================== -->
         <div id="tab-recs" class="space-y-6">
             
-            <!-- Options Alpha Radar Top Qualified Candidates -->
+            <!-- Options Alpha Radar Top Qualified Setups -->
             <div class="glass-panel p-6 rounded-2xl">
                 <div class="flex justify-between items-center mb-4">
                     <div>
@@ -126,7 +136,7 @@
                                 <th class="py-3 px-3">Targets (TP1 / TP2)</th>
                                 <th class="py-3 px-3">Risk/Reward</th>
                                 <th class="py-3 px-3">Velocity</th>
-                                <th class="py-3 px-3">200 MA Clearance</th>
+                                <th class="py-3 px-3">200 MA Runway</th>
                                 <th class="py-3 px-3">Structure</th>
                             </tr>
                         </thead>
@@ -137,12 +147,12 @@
                 </div>
             </div>
 
-            <!-- Full Scanner Telemetry Table -->
+            <!-- Full S&P 500 Universe Scanner Table -->
             <div class="glass-panel p-6 rounded-2xl">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                     <div>
                         <h2 class="text-lg font-bold text-white">Universe Telemetry & Active Reclaims</h2>
-                        <p class="text-xs text-slate-400">Complete monitoring list with retracement archetypes, Beta, and technical status.</p>
+                        <p class="text-xs text-slate-400">Complete monitoring list across all S&P 500 / NASDAQ components.</p>
                     </div>
                     <div class="flex gap-2 w-full sm:w-auto">
                         <input type="text" id="ticker-search" placeholder="Search ticker / sector..." class="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-sky-500">
@@ -154,15 +164,16 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto max-h-[500px]">
+                <div class="overflow-x-auto max-h-[550px]">
                     <table class="w-full text-left text-xs">
-                        <thead class="sticky top-0 bg-slate-900/90 backdrop-blur text-slate-400 border-b border-slate-800 uppercase">
+                        <thead class="sticky top-0 bg-slate-900/95 backdrop-blur text-slate-400 border-b border-slate-800 uppercase">
                             <tr>
                                 <th class="py-2.5 px-3">Ticker</th>
                                 <th class="py-2.5 px-3">Sector</th>
                                 <th class="py-2.5 px-3">Price</th>
                                 <th class="py-2.5 px-3">vs EMA50</th>
                                 <th class="py-2.5 px-3">vs MA150</th>
+                                <th class="py-2.5 px-3">vs 200MA</th>
                                 <th class="py-2.5 px-3">Retrace</th>
                                 <th class="py-2.5 px-3">Beta</th>
                                 <th class="py-2.5 px-3">ADR%</th>
@@ -171,7 +182,7 @@
                             </tr>
                         </thead>
                         <tbody id="tickers-body" class="divide-y divide-slate-800/40">
-                            <tr><td colspan="10" class="py-4 text-center text-slate-500">Loading universe...</td></tr>
+                            <tr><td colspan="11" class="py-4 text-center text-slate-500">Loading universe...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -180,72 +191,76 @@
         </div>
 
         <!-- ======================================================== -->
-        <!-- TAB 2: MACROECONOMIC MONITORING BOARD                     -->
+        <!-- TAB 2: MACROECONOMIC MONITORING BOARD (NETLIFY PARITY)   -->
         <!-- ======================================================== -->
         <div id="tab-macro" class="space-y-6 hidden">
             
-            <!-- Regime Change Alert Cards -->
+            <!-- Regime Transition Alert Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="regime-cross-cards">
-                <!-- Dynamically populated regime change cards -->
+                <!-- Dynamically populated regime transition cards -->
             </div>
 
-            <!-- Main Visual Analytics: 2D Momentum Quadrant & Performance Ranking -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                
-                <!-- 2D Momentum Quadrant Scatter Plot (8 cols) -->
-                <div class="glass-panel p-6 rounded-2xl lg:col-span-8 flex flex-col justify-between">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                                <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                                2D Sector Momentum Quadrant
-                            </h2>
-                            <p class="text-xs text-slate-400">X-Axis: 5-Day Short-Term Momentum (%) vs Y-Axis: 20-Day Trend Momentum (%)</p>
-                        </div>
-                    </div>
-
-                    <div class="relative w-full h-[450px]">
-                        <canvas id="quadrantChart"></canvas>
-                    </div>
-
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-slate-800 text-[11px]">
-                        <div class="p-2 rounded bg-emerald-950/30 border border-emerald-500/20 text-emerald-300">
-                            <b>Top Right:</b> Strong & Holding (Leading)
-                        </div>
-                        <div class="p-2 rounded bg-sky-950/30 border border-sky-500/20 text-sky-300">
-                            <b>Bottom Right:</b> Turning Up (Early Rotation)
-                        </div>
-                        <div class="p-2 rounded bg-amber-950/30 border border-amber-500/20 text-amber-300">
-                            <b>Top Left:</b> Fading (Losing Momentum)
-                        </div>
-                        <div class="p-2 rounded bg-rose-950/30 border border-rose-500/20 text-rose-300">
-                            <b>Bottom Left:</b> Weak (Outflows / Lagging)
-                        </div>
+            <!-- 2D Momentum Quadrant Scatter Plot -->
+            <div class="glass-panel p-6 rounded-2xl">
+                <div class="flex justify-between items-center mb-2">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            2D Sector Momentum Quadrant
+                        </h2>
+                        <p class="text-xs text-slate-400">X-Axis: 5-Day Short-Term Flow (%) vs Y-Axis: 20-Day Intermediate Trend (%)</p>
                     </div>
                 </div>
 
-                <!-- Horizontal Sector Performance Rankings (4 cols) -->
-                <div class="glass-panel p-6 rounded-2xl lg:col-span-4 flex flex-col">
-                    <h2 class="text-lg font-bold text-white mb-1">Sector Relative Strength</h2>
-                    <p class="text-xs text-slate-400 mb-4">Ranked distance from 50-day EMA (%)</p>
-                    <div class="relative flex-1 min-h-[420px]">
-                        <canvas id="performanceChart"></canvas>
-                    </div>
+                <div class="relative w-full h-[450px]">
+                    <canvas id="quadrantChart"></canvas>
                 </div>
 
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-slate-800 text-[11px] mt-2">
+                    <div class="p-2 rounded bg-emerald-950/30 border border-emerald-500/20 text-emerald-300">
+                        <b>Top Right:</b> Strong & Holding (Leading)
+                    </div>
+                    <div class="p-2 rounded bg-sky-950/30 border border-sky-500/20 text-sky-300">
+                        <b>Bottom Right:</b> Turning Up (Early Inflow)
+                    </div>
+                    <div class="p-2 rounded bg-amber-950/30 border border-amber-500/20 text-amber-300">
+                        <b>Top Left:</b> Fading (Losing Momentum)
+                    </div>
+                    <div class="p-2 rounded bg-rose-950/30 border border-rose-500/20 text-rose-300">
+                        <b>Bottom Left:</b> Weak (Outflows / Lagging)
+                    </div>
+                </div>
             </div>
 
-            <!-- Detailed Sector Matrix & Tickers at Support -->
+            <!-- ETF Sector Ladder Table (Exact Netlify Parity) -->
             <div class="glass-panel p-6 rounded-2xl">
                 <div class="flex justify-between items-center mb-4">
                     <div>
-                        <h2 class="text-lg font-bold text-white">Sector Telemetry & Component Support Breadth</h2>
-                        <p class="text-xs text-slate-400">Underlying stocks currently holding or testing key moving average support zones.</p>
+                        <h2 class="text-lg font-bold text-white">Sector ETF Momentum Ladder</h2>
+                        <p class="text-xs text-slate-400">Ranked performance relative to 50-day EMA, holding period, momentum, and tickers at support.</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="sector-matrix-cards">
-                    <!-- Injected sector cards with ticker chips -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="text-slate-400 border-b border-slate-800 uppercase tracking-wider">
+                                <th class="py-3 px-3">ETF</th>
+                                <th class="py-3 px-3">Sector</th>
+                                <th class="py-3 px-3">Style</th>
+                                <th class="py-3 px-3">Status</th>
+                                <th class="py-3 px-3">Distance vs EMA50</th>
+                                <th class="py-3 px-3">Holding</th>
+                                <th class="py-3 px-3">5d Flow</th>
+                                <th class="py-3 px-3">20d Trend</th>
+                                <th class="py-3 px-3">Tickers at Support</th>
+                                <th class="py-3 px-3">Signal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="etf-ladder-body" class="divide-y divide-slate-800/60">
+                            <tr><td colspan="10" class="py-4 text-center text-slate-500">Loading ETF Ladder...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -258,7 +273,6 @@
         let currentPayload = null;
         let allTickersData = [];
         let quadrantChartInstance = null;
-        let performanceChartInstance = null;
 
         function switchTab(tabId) {
             const recsTab = document.getElementById('tab-recs');
@@ -277,17 +291,15 @@
                 macroBtn.classList.add('active');
                 recsBtn.classList.remove('active');
                 
-                // Trigger charts resize & render on display
                 if (currentPayload) {
-                    setTimeout(() => renderMacroCharts(currentPayload), 50);
+                    setTimeout(() => renderMacroBoard(currentPayload), 50);
                 }
             }
         }
 
         async function init() {
             try {
-                // 1. Load summary to populate historical date dropdown
-                const sumRes = await fetch('./data/summary.json');
+                const sumRes = await fetch('./data/summary.json?t=' + Date.now());
                 if (sumRes.ok) {
                     const summary = await sumRes.json();
                     const select = document.getElementById('date-select');
@@ -302,10 +314,8 @@
                 console.warn('No summary index found', e);
             }
 
-            // 2. Load latest data
             loadData('./data/latest.json');
 
-            // 3. Listen for date changes
             document.getElementById('date-select').addEventListener('change', (e) => {
                 const val = e.target.value;
                 if (val === 'latest') {
@@ -315,19 +325,27 @@
                 }
             });
 
-            // 4. Search and filter listeners
             document.getElementById('ticker-search').addEventListener('input', renderTickersTable);
             document.getElementById('filter-qualified').addEventListener('change', renderTickersTable);
+            
+            // Background Auto-Poll every 60 seconds with cache-buster
+            setInterval(() => {
+                const currentSelect = document.getElementById('date-select').value;
+                if (currentSelect === 'latest') {
+                    loadData('./data/latest.json', true);
+                }
+            }, 60000);
         }
 
-        async function loadData(url) {
+        async function loadData(url, isBackground = false) {
             try {
-                const res = await fetch(url);
+                const fetchUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+                const res = await fetch(fetchUrl);
                 if (!res.ok) throw new Error('Data file not reachable');
                 currentPayload = await res.json();
                 renderUI(currentPayload);
             } catch (err) {
-                console.error(err);
+                if (!isBackground) console.error(err);
             }
         }
 
@@ -344,7 +362,7 @@
             document.getElementById('stat-sectors').textContent = m.top_sectors;
             document.getElementById('regime-badge').textContent = m.regime;
 
-            // Render Tab 1: Candidates
+            // 1. Render Options Setups
             const candBody = document.getElementById('candidates-body');
             candBody.innerHTML = '';
             const candidates = data.top_candidates || [];
@@ -369,12 +387,12 @@
                 });
             }
 
-            // Tickers Table
+            // 2. Render Tickers
             allTickersData = data.tickers || [];
             renderTickersTable();
 
-            // Render Tab 2: Macro Components
-            renderMacroCharts(data);
+            // 3. Render Macro Board
+            renderMacroBoard(data);
         }
 
         function renderTickersTable() {
@@ -390,7 +408,7 @@
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" class="py-4 text-center text-slate-500">No tickers match filters.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11" class="py-4 text-center text-slate-500">No tickers match filters.</td></tr>';
                 return;
             }
 
@@ -399,25 +417,26 @@
                 tr.className = 'hover:bg-slate-800/30 transition';
                 const isQual = t.qualified === 'YES';
                 tr.innerHTML = `
-                    <td class="py-2.5 px-3 font-semibold text-white">${t.ticker}</td>
-                    <td class="py-2.5 px-3 text-slate-400">${t.sector}</td>
-                    <td class="py-2.5 px-3 font-mono text-slate-200">$${t.price}</td>
-                    <td class="py-2.5 px-3 font-mono ${t.ema50_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${t.ema50_pct > 0 ? '+' : ''}${t.ema50_pct}%</td>
-                    <td class="py-2.5 px-3 font-mono text-slate-300">${t.sma150_pct > 0 ? '+' : ''}${t.sma150_pct}%</td>
-                    <td class="py-2.5 px-3 text-slate-300 font-medium">${t.retrace}</td>
-                    <td class="py-2.5 px-3 font-mono text-slate-400">${t.beta}</td>
-                    <td class="py-2.5 px-3 font-mono text-slate-400">${t.adr_pct}%</td>
-                    <td class="py-2.5 px-3"><span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px]">D${t.reclaim_days}</span></td>
-                    <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold ${isQual ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}">${t.qualified}</span></td>
+                    <td class="py-2 px-3 font-semibold text-white">${t.ticker}</td>
+                    <td class="py-2 px-3 text-slate-400">${t.sector}</td>
+                    <td class="py-2 px-3 font-mono text-slate-200">$${t.price}</td>
+                    <td class="py-2 px-3 font-mono ${t.ema50_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${t.ema50_pct > 0 ? '+' : ''}${t.ema50_pct}%</td>
+                    <td class="py-2 px-3 font-mono text-slate-300">${t.sma150_pct > 0 ? '+' : ''}${t.sma150_pct}%</td>
+                    <td class="py-2 px-3 font-mono text-slate-300">${t.ema200_pct ? (t.ema200_pct > 0 ? '+' : '') + t.ema200_pct + '%' : '--'}</td>
+                    <td class="py-2 px-3 text-slate-300 font-medium">${t.retrace}</td>
+                    <td class="py-2 px-3 font-mono text-slate-400">${t.beta}</td>
+                    <td class="py-2 px-3 font-mono text-slate-400">${t.adr_pct}%</td>
+                    <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px]">D${t.reclaim_days}</span></td>
+                    <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold ${isQual ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}">${t.qualified}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function renderMacroCharts(data) {
+        function renderMacroBoard(data) {
             const sectors = data.sector_momentum || [];
 
-            // 1. Regime Change Alert Cards
+            // A. Regime Change Cards
             const regimeContainer = document.getElementById('regime-cross-cards');
             regimeContainer.innerHTML = '';
             
@@ -428,7 +447,7 @@
             const cardsToRender = [
                 { title: 'ROTATION INFLOW', etf: hotSectors[0]?.etf || 'XLE', sector: hotSectors[0]?.sector || 'Energy', state: 'OUTPERFORMING', desc: 'Sustained institutional flow holding above EMA50.', color: 'emerald' },
                 { title: 'REGIME TRANSITION', etf: gainingSectors[0]?.etf || 'XLK', sector: gainingSectors[0]?.sector || 'Technology', state: 'GAINING', desc: '5-day short term momentum crossing positive.', color: 'sky' },
-                { title: 'MOMENTUM ROTATION OUT', etf: weakeningSectors[0]?.etf || 'IHAK', sector: weakeningSectors[0]?.sector || 'Cybersecurity', state: 'WEAKENING', desc: 'Short-term consolidation below key averages.', color: 'rose' }
+                { title: 'MOMENTUM CONSOLIDATION', etf: weakeningSectors[0]?.etf || 'IHAK', sector: weakeningSectors[0]?.sector || 'Cybersecurity', state: 'WEAKENING', desc: 'Short-term consolidation below key averages.', color: 'rose' }
             ];
 
             cardsToRender.forEach(c => {
@@ -445,7 +464,7 @@
                 regimeContainer.appendChild(div);
             });
 
-            // 2. 2D Momentum Quadrant
+            // B. 2D Momentum Quadrant Scatter
             const points = sectors.map(s => ({
                 x: parsePct(s.mom5d),
                 y: parsePct(s.mom20d),
@@ -455,123 +474,97 @@
             }));
 
             const canvas = document.getElementById('quadrantChart');
-            if (!canvas) return;
-            const ctxQuadrant = canvas.getContext('2d');
-            if (quadrantChartInstance) quadrantChartInstance.destroy();
+            if (canvas) {
+                const ctxQuadrant = canvas.getContext('2d');
+                if (quadrantChartInstance) quadrantChartInstance.destroy();
 
-            quadrantChartInstance = new Chart(ctxQuadrant, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: 'Sector ETFs',
-                        data: points,
-                        backgroundColor: points.map(p => {
-                            if (p.x >= 0 && p.y >= 0) return '#34d399'; // Strong (green)
-                            if (p.x >= 0 && p.y < 0) return '#38bdf8';  // Turning Up (sky)
-                            if (p.x < 0 && p.y >= 0) return '#fbbf24';  // Fading (amber)
-                            return '#f87171'; // Weak (rose)
-                        }),
-                        pointRadius: 7,
-                        pointHoverRadius: 10
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            title: { display: true, text: '5-Day Momentum (%)', color: '#94a3b8' },
-                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
-                            ticks: { color: '#94a3b8' }
-                        },
-                        y: {
-                            title: { display: true, text: '20-Day Momentum (%)', color: '#94a3b8' },
-                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
-                            ticks: { color: '#94a3b8' }
-                        }
+                quadrantChartInstance = new Chart(ctxQuadrant, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Sector ETFs',
+                            data: points,
+                            backgroundColor: points.map(p => {
+                                if (p.x >= 0 && p.y >= 0) return '#34d399';
+                                if (p.x >= 0 && p.y < 0) return '#38bdf8';
+                                if (p.x < 0 && p.y >= 0) return '#fbbf24';
+                                return '#f87171';
+                            }),
+                            pointRadius: 7,
+                            pointHoverRadius: 10
+                        }]
                     },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => {
-                                    const p = ctx.raw;
-                                    return `${p.label} (${p.sector}): 5d ${p.x}%, 20d ${p.y}% (vs EMA50: ${p.vs_ema50})`;
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: { display: true, text: '5-Day Momentum (%)', color: '#94a3b8' },
+                                grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                                ticks: { color: '#94a3b8' }
+                            },
+                            y: {
+                                title: { display: true, text: '20-Day Momentum (%)', color: '#94a3b8' },
+                                grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                                ticks: { color: '#94a3b8' }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const p = ctx.raw;
+                                        return `${p.label} (${p.sector}): 5d ${p.x}%, 20d ${p.y}% (vs EMA50: ${p.vs_ema50})`;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
 
-            // 3. Horizontal Performance Bar Chart
-            const sortedSectors = [...sectors].sort((a, b) => parsePct(b.vs_ema50) - parsePct(a.vs_ema50)).slice(0, 10);
-            const ctxPerf = document.getElementById('performanceChart').getContext('2d');
-            if (performanceChartInstance) performanceChartInstance.destroy();
+            // C. Sector ETF Ladder Table (Exact Netlify Parity)
+            const ladderBody = document.getElementById('etf-ladder-body');
+            ladderBody.innerHTML = '';
 
-            performanceChartInstance = new Chart(ctxPerf, {
-                type: 'bar',
-                data: {
-                    labels: sortedSectors.map(s => s.etf),
-                    datasets: [{
-                        data: sortedSectors.map(s => parsePct(s.vs_ema50)),
-                        backgroundColor: sortedSectors.map(s => parsePct(s.vs_ema50) >= 0 ? 'rgba(52, 211, 153, 0.8)' : 'rgba(248, 113, 113, 0.8)'),
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { grid: { color: 'rgba(255, 255, 255, 0.06)' }, ticks: { color: '#94a3b8' } },
-                        y: { grid: { display: false }, ticks: { color: '#f1f5f9', font: { weight: 'bold' } } }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => `vs EMA50: ${ctx.parsed.x}%`
-                            }
-                        }
-                    }
-                }
-            });
-
-            // 4. Sector Support Breadth Matrix Cards
-            const matrixContainer = document.getElementById('sector-matrix-cards');
-            matrixContainer.innerHTML = '';
-
-            sectors.slice(0, 8).forEach(s => {
-                const card = document.createElement('div');
-                card.className = 'p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between';
+            sectors.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
                 
-                const mockSupportChips = (s.sector.includes('Energy') ? ['XOM', 'CVX', 'DVN', 'EOG'] :
-                                         (s.sector.includes('Software') ? ['CRWD', 'PANW', 'MSFT', 'ZS'] :
-                                         (s.sector.includes('Financials') ? ['JPM', 'MS', 'PNC', 'USB'] : ['AAPL', 'DELL', 'NVDA'])));
-
-                const chipsHTML = mockSupportChips.map(t => `<span class="px-2 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-[11px] border border-slate-700 font-medium">${t}</span>`).join(' ');
-
-                card.innerHTML = `
-                    <div>
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-white text-base">${s.etf}</span>
-                                <span class="text-xs text-slate-400 font-medium">${s.sector}</span>
-                            </div>
-                            <span class="text-xs font-mono font-bold ${parsePct(s.vs_ema50) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${s.vs_ema50} vs EMA50</span>
+                const pctVal = parsePct(s.vs_ema50);
+                const isPos = pctVal >= 0;
+                const barWidth = Math.min(50, Math.abs(pctVal) * 5); // Scale width up to 50%
+                
+                // Construct horizontal bidirectional ladder bar
+                const barHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="ladder-bar-container">
+                            <div class="ladder-zero-line"></div>
+                            ${isPos ? `<div class="ladder-fill-pos" style="width: ${barWidth}%;"></div>` : `<div class="ladder-fill-neg" style="width: ${barWidth}%;"></div>`}
                         </div>
-                        <div class="text-xs text-slate-500 mt-1 flex gap-4">
-                            <span>Status: <b class="text-slate-300">${s.status}</b></span>
-                            <span>5d Flow: <b class="text-slate-300">${s.mom5d}</b></span>
-                        </div>
-                    </div>
-                    <div class="mt-3 pt-3 border-t border-slate-800/80">
-                        <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-semibold">Tickers at Support:</div>
-                        <div class="flex flex-wrap gap-1.5">${chipsHTML}</div>
+                        <span class="font-mono font-semibold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${s.vs_ema50}</span>
                     </div>
                 `;
-                matrixContainer.appendChild(card);
+
+                // Tickers at support chips
+                const chips = (s.tickers_at_support || []).slice(0, 8).map(t => 
+                    `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-[10px] border border-slate-700 font-medium">${t}</span>`
+                ).join(' ') || '<span class="text-slate-600">--</span>';
+
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-bold text-white">${s.etf}</td>
+                    <td class="py-2.5 px-3 text-slate-300">${s.sector}</td>
+                    <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">${s.type}</span></td>
+                    <td class="py-2.5 px-3 font-semibold ${s.status.includes('OUTPERFORMING') ? 'text-emerald-400' : (s.status.includes('GAINING') ? 'text-sky-400' : 'text-amber-400')}">${s.status}</td>
+                    <td class="py-2.5 px-3">${barHTML}</td>
+                    <td class="py-2.5 px-3 font-mono text-slate-300">${s.days}d</td>
+                    <td class="py-2.5 px-3 font-mono ${parsePct(s.mom5d) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${s.mom5d}</td>
+                    <td class="py-2.5 px-3 font-mono ${parsePct(s.mom20d) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${s.mom20d}</td>
+                    <td class="py-2.5 px-3"><div class="flex flex-wrap gap-1">${chips}</div></td>
+                    <td class="py-2.5 px-3 text-xs text-slate-300 font-medium">${s.signal}</td>
+                `;
+                ladderBody.appendChild(tr);
             });
         }
 
