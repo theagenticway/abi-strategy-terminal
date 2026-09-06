@@ -521,10 +521,53 @@ def save_payloads(payload: dict):
     # 4. Prune files in history/ older than 365 days
     prune_old_history()
 
+
+def run_backfill(raw_data, days=30):
+    """
+    Performs an instant in-memory backfill across the last N business days.
+    Uses the downloaded 6-month dataset, slicing by date to avoid repeated network calls.
+    """
+    if raw_data is None:
+        print("[!] Cannot backfill without market data.")
+        return
+        
+    print(f"[*] Starting {days}-day in-memory historical backfill...")
+    
+    # Get all trading dates available in the dataset
+    dates = raw_data.index
+    if len(dates) == 0:
+        print("[!] No dates found in market data.")
+        return
+        
+    target_dates = [d.strftime('%Y-%m-%d') for d in dates[-days:]]
+    print(f"[*] Generating historical snapshots from {target_dates[0]} to {target_dates[-1]} ({len(target_dates)} days)...")
+    
+    for dt_str in target_dates:
+        try:
+            # Slice up to that historical date
+            sliced_df = raw_data.loc[:dt_str]
+            payload = process_universe(sliced_df, sample_date_str=dt_str)
+            save_payloads(payload)
+            print(f"    -> Backfilled {dt_str} ({len(payload.get('tickers', []))} tickers)")
+        except Exception as e:
+            print(f"    [!] Error backfilling {dt_str}: {e}")
+            
+    print(f"[✓] Successfully backfilled {len(target_dates)} historical days!")
+
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="ABI Strategy Scanner & Telemetry Engine")
+    parser.add_argument("--backfill", type=int, default=0, help="Number of historical days to backfill (e.g. 30)")
+    args = parser.parse_args()
+
     print("[*] Running ABI Strategy Scanner Engine...")
     universe = get_full_universe()
     data = fetch_market_data(universe)
-    payload = process_universe(data)
-    save_payloads(payload)
-    print("[✓] Complete scan finished.")
+    
+    if args.backfill > 0:
+        run_backfill(data, days=args.backfill)
+    else:
+        payload = process_universe(data)
+        save_payloads(payload)
+        
+    print("[✓] Complete execution finished.")
