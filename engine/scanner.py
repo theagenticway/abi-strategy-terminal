@@ -425,6 +425,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             "subsector": sub,
             "sector": data_sub["sector"],
             "str": f"{score}/10",
+            "score": score,
             "win": f"{win}%",
             "ret": f"{ret:+.2f}%"
         })

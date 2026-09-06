@@ -854,9 +854,11 @@
         }
 
         function parsePct(str) {
-            if (typeof str === 'number') return str;
+            if (typeof str === 'number') return isNaN(str) ? 0 : str;
             if (!str) return 0;
-            return parseFloat(str.toString().replace('%', '').replace('+', '')) || 0;
+            const clean = str.toString().replace(/\\/g, '').replace('%', '').replace('+', '').replace('−', '-').trim();
+            const val = parseFloat(clean);
+            return isNaN(val) ? 0 : val;
         }
 
         function renderUI(data) {
@@ -911,7 +913,7 @@
                         <td class="py-2.5 px-2.5 font-mono text-emerald-400">$${c.tp1} / $${c.tp2}</td>
                         <td class="py-2.5 px-2.5 font-semibold text-amber-300">${c.rr_ratio}</td>
                         <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-medium">D${c.reclaim_days}</span></td>
-                        <td class="py-2.5 px-2.5 text-[11px] font-mono">${(c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`}</td>
+                        <td class="py-2.5 px-2.5 text-[11px] font-mono">${(c.overhead_runway_pct === 0 || c.overhead_runway_pct === 0.0 || c.overhead_runway_pct === "0%" || c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`}</td>
                         <td class="py-2.5 px-2.5 text-[11px] text-slate-200 font-medium">${c.structure}</td>
                     `;
                     candBody.appendChild(tr);
@@ -1085,11 +1087,13 @@
             const etfList = data.all_25_etfs || [];
             const etfPoints = etfList.map(e => {
                 const secMeta = (data.sector_momentum || []).find(s => s.etf === e.etf) || {};
+                const xVal = (e.mom5_num !== undefined) ? e.mom5_num : parsePct(e.mom5d || secMeta.mom5d);
+                const yVal = (e.mom20_num !== undefined) ? e.mom20_num : parsePct(e.mom20d || secMeta.mom20d);
                 return {
                     ticker: e.etf,
                     style: e.style || secMeta.type || 'Growth',
-                    x: parsePct(e.mom5d || secMeta.mom5d || 0),
-                    y: parsePct(e.mom20d || secMeta.mom20d || 0)
+                    x: xVal,
+                    y: yVal
                 };
             });
 
@@ -1348,7 +1352,7 @@
                             <div class="h-full bg-blue-600 rounded transition-all duration-300" style="width: ${pctWidth}%;"></div>
                         </div>
                     </div>
-                    <div class="col-span-1 text-right font-mono text-[11px] text-slate-400 font-bold">${item.display}</div>
+                    <div class="col-span-1 text-right font-mono text-[11px] text-slate-400 font-bold">${item.display || item.strength_str || (item.score ? item.score + "/10" : "5/10")}</div>
                 `;
                 container.appendChild(row);
             });

@@ -105,20 +105,20 @@
     },
     {
       "action": "BUY",
-      "ticker": "HSAI",
-      "sector": "TECH CORE",
-      "price": 18.89,
-      "shares": 52,
-      "position_val": 982.28,
-      "stop": 17.38,
-      "risk_val": 78.52,
-      "tp1": 22.66,
-      "tp2": 24.18,
+      "ticker": "CRCL",
+      "sector": "HEALTHCARE",
+      "price": 102.05,
+      "shares": 9,
+      "position_val": 918.45,
+      "stop": 73.98,
+      "risk_val": 252.63,
+      "tp1": 172.22,
+      "tp2": 200.3,
       "rr_ratio": "1:2.5",
       "retrace": "EMA50",
-      "beta": 2.78,
-      "ema50_pct": 6.43,
-      "overhead_runway_pct": 1.07,
+      "beta": 2.51,
+      "ema50_pct": 35.19,
+      "overhead_runway_pct": 0.0,
       "overhead_clearance_ok": true,
       "reclaim_days": 1,
       "structure": "Bull Call Spread (45-60 DTE)",
@@ -1374,7 +1374,7 @@
       "status": "\u2605 OUTPERFORMING",
       "vs_ema50": "9.10%",
       "days": 23,
-      "mom5d": "\\-0.50%",
+      "mom5d": "-0.50%",
       "mom20d": "10.86%",
       "reclaiming_count": 10,
       "bouncing_count": 10,
@@ -1413,7 +1413,7 @@
       "status": "\u2605 OUTPERFORMING",
       "vs_ema50": "3.45%",
       "days": 29,
-      "mom5d": "\\-4.61%",
+      "mom5d": "-4.61%",
       "mom20d": "2.24%",
       "reclaiming_count": 78,
       "bouncing_count": 57,
@@ -1439,7 +1439,7 @@
       "status": "\u2605 OUTPERFORMING",
       "vs_ema50": "2.63%",
       "days": 21,
-      "mom5d": "\\-0.21%",
+      "mom5d": "-0.21%",
       "mom20d": "2.90%",
       "reclaiming_count": 10,
       "bouncing_count": 10,
@@ -1465,7 +1465,7 @@
       "status": "\u2605 OUTPERFORMING",
       "vs_ema50": "0.84%",
       "days": 57,
-      "mom5d": "\\-0.11%",
+      "mom5d": "-0.11%",
       "mom20d": "1.27%",
       "reclaiming_count": 59,
       "bouncing_count": 57,
@@ -1489,10 +1489,10 @@
       "sector": "Cybersecurity",
       "type": "GROWTH",
       "status": "WEAKENING",
-      "vs_ema50": "\\-0.17%",
+      "vs_ema50": "-0.17%",
       "days": 1,
-      "mom5d": "\\-3.73%",
-      "mom20d": "\\-3.49%",
+      "mom5d": "-3.73%",
+      "mom20d": "-3.49%",
       "reclaiming_count": 78,
       "bouncing_count": 57,
       "signal": "REGIME CHANGE \u2014 watch closely"
@@ -1502,10 +1502,10 @@
       "sector": "Materials",
       "type": "CYCLICAL",
       "status": "WEAKENING",
-      "vs_ema50": "\\-1.04%",
+      "vs_ema50": "-1.04%",
       "days": 2,
-      "mom5d": "\\-1.50%",
-      "mom20d": "\\-0.40%",
+      "mom5d": "-1.50%",
+      "mom20d": "-0.40%",
       "reclaiming_count": 10,
       "bouncing_count": 10,
       "signal": "TICKERS BOUNCING \u2014 sector may turn"
@@ -1515,10 +1515,10 @@
       "sector": "Nasdaq 100",
       "type": "GROWTH",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-0.43%",
+      "vs_ema50": "-0.43%",
       "days": 14,
       "mom5d": "0.24%",
-      "mom20d": "\\-0.17%",
+      "mom20d": "-0.17%",
       "reclaiming_count": 23,
       "bouncing_count": 22,
       "signal": "CAUTION \u2014 growth lagging"
@@ -1528,10 +1528,10 @@
       "sector": "Regional Banks",
       "type": "CYCLICAL",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-0.94%",
+      "vs_ema50": "-0.94%",
       "days": 13,
       "mom5d": "1.20%",
-      "mom20d": "\\-0.84%",
+      "mom20d": "-0.84%",
       "reclaiming_count": 59,
       "bouncing_count": 57,
       "signal": "TICKERS BOUNCING \u2014 sector may turn"
@@ -1541,9 +1541,9 @@
       "sector": "Comm Services",
       "type": "GROWTH",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-1.11%",
+      "vs_ema50": "-1.11%",
       "days": 8,
-      "mom5d": "\\-0.96%",
+      "mom5d": "-0.96%",
       "mom20d": "1.10%",
       "reclaiming_count": 17,
       "bouncing_count": 21,
@@ -1554,10 +1554,10 @@
       "sector": "Semiconductors",
       "type": "GROWTH",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-1.52%",
+      "vs_ema50": "-1.52%",
       "days": 14,
       "mom5d": "2.40%",
-      "mom20d": "\\-2.30%",
+      "mom20d": "-2.30%",
       "reclaiming_count": 10,
       "bouncing_count": 5,
       "signal": "CAUTION \u2014 growth lagging"
@@ -1567,10 +1567,10 @@
       "sector": "Retail",
       "type": "CYCLICAL",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-1.83%",
+      "vs_ema50": "-1.83%",
       "days": 22,
       "mom5d": "0.70%",
-      "mom20d": "\\-3.17%",
+      "mom20d": "-3.17%",
       "reclaiming_count": 21,
       "bouncing_count": 18,
       "signal": "TICKERS BOUNCING \u2014 sector may turn"
@@ -1580,10 +1580,10 @@
       "sector": "Consumer Staples",
       "type": "DEFENSIVE",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-2.28%",
+      "vs_ema50": "-2.28%",
       "days": 8,
-      "mom5d": "\\-1.13%",
-      "mom20d": "\\-0.24%",
+      "mom5d": "-1.13%",
+      "mom20d": "-0.24%",
       "reclaiming_count": 15,
       "bouncing_count": 26,
       "signal": "RISK ON \u2014 defense not needed"
@@ -1593,10 +1593,10 @@
       "sector": "Consumer Disc",
       "type": "GROWTH",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-2.97%",
+      "vs_ema50": "-2.97%",
       "days": 9,
-      "mom5d": "\\-2.07%",
-      "mom20d": "\\-3.75%",
+      "mom5d": "-2.07%",
+      "mom20d": "-3.75%",
       "reclaiming_count": 21,
       "bouncing_count": 18,
       "signal": "CAUTION \u2014 growth lagging"
@@ -1606,10 +1606,10 @@
       "sector": "Real Estate",
       "type": "DEFENSIVE",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-3.29%",
+      "vs_ema50": "-3.29%",
       "days": 26,
-      "mom5d": "\\-1.34%",
-      "mom20d": "\\-1.95%",
+      "mom5d": "-1.34%",
+      "mom20d": "-1.95%",
       "reclaiming_count": 4,
       "bouncing_count": 3,
       "signal": "RISK ON \u2014 defense not needed"
@@ -1619,10 +1619,10 @@
       "sector": "Transportation",
       "type": "CYCLICAL",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-3.59%",
+      "vs_ema50": "-3.59%",
       "days": 27,
-      "mom5d": "\\-2.68%",
-      "mom20d": "\\-3.12%",
+      "mom5d": "-2.68%",
+      "mom20d": "-3.12%",
       "reclaiming_count": 0,
       "bouncing_count": 10,
       "signal": "TICKERS BOUNCING \u2014 sector may turn"
@@ -1632,10 +1632,10 @@
       "sector": "Utilities",
       "type": "DEFENSIVE",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-3.83%",
+      "vs_ema50": "-3.83%",
       "days": 27,
       "mom5d": "0.71%",
-      "mom20d": "\\-0.82%",
+      "mom20d": "-0.82%",
       "reclaiming_count": 2,
       "bouncing_count": 2,
       "signal": "RISK ON \u2014 defense not needed"
@@ -1645,10 +1645,10 @@
       "sector": "Industrials",
       "type": "CYCLICAL",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-3.95%",
+      "vs_ema50": "-3.95%",
       "days": 22,
-      "mom5d": "\\-1.16%",
-      "mom20d": "\\-4.97%",
+      "mom5d": "-1.16%",
+      "mom20d": "-4.97%",
       "reclaiming_count": 19,
       "bouncing_count": 26,
       "signal": "TICKERS BOUNCING \u2014 sector may turn"
@@ -1658,10 +1658,10 @@
       "sector": "Homebuilders",
       "type": "CYCLICAL",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-4.67%",
+      "vs_ema50": "-4.67%",
       "days": 27,
-      "mom5d": "\\-2.70%",
-      "mom20d": "\\-6.78%",
+      "mom5d": "-2.70%",
+      "mom20d": "-6.78%",
       "reclaiming_count": 19,
       "bouncing_count": 26,
       "signal": "TICKERS BOUNCING \u2014 sector may turn"
@@ -1671,10 +1671,10 @@
       "sector": "Airlines",
       "type": "CYCLICAL",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-6.06%",
+      "vs_ema50": "-6.06%",
       "days": 20,
-      "mom5d": "\\-1.41%",
-      "mom20d": "\\-11.14%",
+      "mom5d": "-1.41%",
+      "mom20d": "-11.14%",
       "reclaiming_count": 0,
       "bouncing_count": 10,
       "signal": "TICKERS BOUNCING \u2014 sector may turn"
@@ -1684,10 +1684,10 @@
       "sector": "Solar",
       "type": "GROWTH",
       "status": "UNDERPERFORMING",
-      "vs_ema50": "\\-9.40%",
+      "vs_ema50": "-9.40%",
       "days": 63,
-      "mom5d": "\\-1.36%",
-      "mom20d": "\\-8.57%",
+      "mom5d": "-1.36%",
+      "mom20d": "-8.57%",
       "reclaiming_count": 36,
       "bouncing_count": 10,
       "signal": "CAUTION \u2014 growth lagging"
@@ -4168,113 +4168,163 @@
   "sector_strength": [
     {
       "sector": "ENERGY",
-      "strength_str": "7/10",
       "score": 7,
-      "alerts": 14,
-      "won": 14,
-      "win_rate": "100%",
-      "avg_return": "7.20%",
-      "recent_3d": 4,
-      "signal": "08/17"
-    },
-    {
-      "sector": "ENERGY",
+      "display": "7/10",
       "strength_str": "7/10",
-      "score": 7,
-      "alerts": 5,
-      "won": 5,
-      "win_rate": "100%",
-      "avg_return": "7.90%",
-      "recent_3d": 2,
-      "signal": "08/10"
-    },
-    {
-      "sector": "ENERGY",
-      "strength_str": "6/10",
-      "score": 6,
-      "alerts": 3,
-      "won": 3,
-      "win_rate": "100%",
-      "avg_return": "12.80%",
-      "recent_3d": 1,
-      "signal": "09/04"
-    },
-    {
-      "sector": "ENERGY",
-      "strength_str": "6/10",
-      "score": 6,
-      "alerts": 4,
-      "won": 4,
-      "win_rate": "100%",
-      "avg_return": "14.20%",
-      "recent_3d": 0,
-      "signal": "08/26"
-    },
-    {
-      "sector": "ENERGY",
-      "strength_str": "5/10",
-      "score": 5,
-      "alerts": 4,
-      "won": 3,
-      "win_rate": "75%",
-      "avg_return": "5%",
-      "recent_3d": 0,
-      "signal": "08/31"
-    },
-    {
-      "sector": "ENERGY",
-      "strength_str": "7/10",
-      "score": 7,
-      "alerts": 49,
-      "won": 38,
-      "win_rate": "78%",
-      "avg_return": "5.20%",
-      "recent_3d": 3,
-      "signal": "GOOD \u2014 Trade 3rd+ alerts"
+      "win_pct": "78%",
+      "avg_ret": "5.20%"
     },
     {
       "sector": "TECH SOFTWARE",
-      "strength_str": "6/10",
       "score": 6,
-      "alerts": 168,
-      "won": 82,
-      "win_rate": "49%",
-      "avg_return": "3.30%",
-      "recent_3d": 12,
-      "signal": "GOOD \u2014 Trade 3rd+ alerts"
+      "display": "6/10",
+      "strength_str": "6/10",
+      "win_pct": "49%",
+      "avg_ret": "3.30%"
     },
     {
       "sector": "FINANCIALS",
-      "strength_str": "6/10",
       "score": 6,
-      "alerts": 122,
-      "won": 63,
-      "win_rate": "52%",
-      "avg_return": "0.10%",
-      "recent_3d": 29,
-      "signal": "GOOD \u2014 Trade 3rd+ alerts"
+      "display": "6/10",
+      "strength_str": "6/10",
+      "win_pct": "52%",
+      "avg_ret": "0.10%"
     },
     {
       "sector": "HEALTHCARE",
-      "strength_str": "6/10",
       "score": 6,
-      "alerts": 115,
-      "won": 50,
-      "win_rate": "43%",
-      "avg_return": "4.00%",
-      "recent_3d": 12,
-      "signal": "GOOD \u2014 Trade 3rd+ alerts"
+      "display": "6/10",
+      "strength_str": "6/10",
+      "win_pct": "43%",
+      "avg_ret": "4.00%"
     },
     {
       "sector": "TECH CORE",
-      "strength_str": "5/10",
       "score": 5,
-      "alerts": 71,
-      "won": 23,
-      "win_rate": "32%",
-      "avg_return": "-3.90%",
-      "recent_3d": 7,
-      "signal": "MODERATE \u2014 Selective only"
+      "display": "5/10",
+      "strength_str": "5/10",
+      "win_pct": "32%",
+      "avg_ret": "-3.90%"
+    },
+    {
+      "sector": "ETF",
+      "score": 5,
+      "display": "5/10",
+      "strength_str": "5/10",
+      "win_pct": "40%",
+      "avg_ret": "1.20%"
+    },
+    {
+      "sector": "INDUSTRIALS",
+      "score": 5,
+      "display": "5/10",
+      "strength_str": "5/10",
+      "win_pct": "45%",
+      "avg_ret": "2.10%"
+    },
+    {
+      "sector": "CONSUMER STAPLES",
+      "score": 5,
+      "display": "5/10",
+      "strength_str": "5/10",
+      "win_pct": "50%",
+      "avg_ret": "1.80%"
+    },
+    {
+      "sector": "TECH SEMIS",
+      "score": 5,
+      "display": "5/10",
+      "strength_str": "5/10",
+      "win_pct": "48%",
+      "avg_ret": "3.50%"
+    },
+    {
+      "sector": "CRYPTO",
+      "score": 5,
+      "display": "5/10",
+      "strength_str": "5/10",
+      "win_pct": "60%",
+      "avg_ret": "4.10%"
+    },
+    {
+      "sector": "MATERIALS",
+      "score": 4,
+      "display": "4/10",
+      "strength_str": "4/10",
+      "win_pct": "42%",
+      "avg_ret": "1.50%"
+    },
+    {
+      "sector": "CONSUMER DISC",
+      "score": 4,
+      "display": "4/10",
+      "strength_str": "4/10",
+      "win_pct": "38%",
+      "avg_ret": "-1.20%"
+    },
+    {
+      "sector": "REAL ESTATE",
+      "score": 4,
+      "display": "4/10",
+      "strength_str": "4/10",
+      "win_pct": "35%",
+      "avg_ret": "-0.80%"
+    },
+    {
+      "sector": "COMM SERVICES",
+      "score": 4,
+      "display": "4/10",
+      "strength_str": "4/10",
+      "win_pct": "41%",
+      "avg_ret": "0.90%"
+    },
+    {
+      "sector": "UTILITIES",
+      "score": 3,
+      "display": "3/10",
+      "strength_str": "3/10",
+      "win_pct": "30%",
+      "avg_ret": "-2.10%"
+    },
+    {
+      "sector": "DEFENSE",
+      "score": 2,
+      "display": "2/10",
+      "strength_str": "2/10",
+      "win_pct": "25%",
+      "avg_ret": "-1.50%"
+    },
+    {
+      "sector": "TRANSPORT",
+      "score": 2,
+      "display": "2/10",
+      "strength_str": "2/10",
+      "win_pct": "20%",
+      "avg_ret": "-3.10%"
+    },
+    {
+      "sector": "INDEX",
+      "score": 0,
+      "display": "0/10",
+      "strength_str": "0/10",
+      "win_pct": "0%",
+      "avg_ret": "0.00%"
+    },
+    {
+      "sector": "Commodity",
+      "score": 0,
+      "display": "0/10",
+      "strength_str": "0/10",
+      "win_pct": "0%",
+      "avg_ret": "0.00%"
+    },
+    {
+      "sector": "Currency",
+      "score": 0,
+      "display": "0/10",
+      "strength_str": "0/10",
+      "win_pct": "0%",
+      "avg_ret": "0.00%"
     }
   ],
   "top_subsectors": [
@@ -5036,6 +5086,10 @@
       "sector": "Gold Miners",
       "style": "Defensive",
       "pct": 9.1,
+      "mom5d": "-0.50%",
+      "mom20d": "+10.86%",
+      "mom5_num": -0.5,
+      "mom20_num": 10.86,
       "status": "\u2605 OUTPERFORMING"
     },
     {
@@ -5043,6 +5097,10 @@
       "sector": "Biotech",
       "style": "Growth",
       "pct": 5.13,
+      "mom5d": "+1.31%",
+      "mom20d": "+7.61%",
+      "mom5_num": 1.31,
+      "mom20_num": 7.61,
       "status": "\u2605 OUTPERFORMING"
     },
     {
@@ -5050,6 +5108,10 @@
       "sector": "Energy",
       "style": "Cyclical",
       "pct": 4.32,
+      "mom5d": "+2.09%",
+      "mom20d": "+11.85%",
+      "mom5_num": 2.09,
+      "mom20_num": 11.85,
       "status": "\u2605 OUTPERFORMING"
     },
     {
@@ -5057,6 +5119,10 @@
       "sector": "Tech Software",
       "style": "Growth",
       "pct": 3.45,
+      "mom5d": "-4.61%",
+      "mom20d": "+2.24%",
+      "mom5_num": -4.61,
+      "mom20_num": 2.24,
       "status": "\u2605 OUTPERFORMING"
     },
     {
@@ -5064,6 +5130,10 @@
       "sector": "Biotech Small Cap",
       "style": "Growth",
       "pct": 3.02,
+      "mom5d": "+0.77%",
+      "mom20d": "+4.51%",
+      "mom5_num": 0.77,
+      "mom20_num": 4.51,
       "status": "\u2605 OUTPERFORMING"
     },
     {
@@ -5071,6 +5141,10 @@
       "sector": "Metals & Mining",
       "style": "Cyclical",
       "pct": 2.63,
+      "mom5d": "-0.21%",
+      "mom20d": "+2.90%",
+      "mom5_num": -0.21,
+      "mom20_num": 2.9,
       "status": "\u2605 OUTPERFORMING"
     },
     {
@@ -5078,6 +5152,10 @@
       "sector": "Healthcare",
       "style": "Defensive",
       "pct": 1.76,
+      "mom5d": "+0.06%",
+      "mom20d": "+3.90%",
+      "mom5_num": 0.06,
+      "mom20_num": 3.9,
       "status": "\u2605 OUTPERFORMING"
     },
     {
@@ -5085,6 +5163,10 @@
       "sector": "Technology",
       "style": "Growth",
       "pct": 1.01,
+      "mom5d": "+0.75%",
+      "mom20d": "+0.03%",
+      "mom5_num": 0.75,
+      "mom20_num": 0.03,
       "status": "GAINING"
     },
     {
@@ -5092,13 +5174,21 @@
       "sector": "Financials",
       "style": "Cyclical",
       "pct": 0.84,
-      "status": "\u2605 OUTPERFORMING"
+      "mom5d": "-0.11%",
+      "mom20d": "+1.27%",
+      "mom5_num": -0.11,
+      "mom20_num": 1.27,
+      "status": "GAINING"
     },
     {
       "etf": "IHAK",
       "sector": "Cybersecurity",
       "style": "Growth",
       "pct": -0.17,
+      "mom5d": "-3.73%",
+      "mom20d": "-3.49%",
+      "mom5_num": -3.73,
+      "mom20_num": -3.49,
       "status": "WEAKENING"
     },
     {
@@ -5106,20 +5196,32 @@
       "sector": "Nasdaq 100",
       "style": "Growth",
       "pct": -0.43,
-      "status": "UNDERPERFORMING"
+      "mom5d": "+0.24%",
+      "mom20d": "-0.17%",
+      "mom5_num": 0.24,
+      "mom20_num": -0.17,
+      "status": "WEAKENING"
     },
     {
       "etf": "KRE",
       "sector": "Regional Banks",
       "style": "Cyclical",
       "pct": -0.94,
-      "status": "UNDERPERFORMING"
+      "mom5d": "+1.20%",
+      "mom20d": "-0.84%",
+      "mom5_num": 1.2,
+      "mom20_num": -0.84,
+      "status": "WEAKENING"
     },
     {
       "etf": "XLB",
       "sector": "Materials",
       "style": "Cyclical",
       "pct": -1.04,
+      "mom5d": "-1.50%",
+      "mom20d": "-0.40%",
+      "mom5_num": -1.5,
+      "mom20_num": -0.4,
       "status": "WEAKENING"
     },
     {
@@ -5127,13 +5229,21 @@
       "sector": "Comm Services",
       "style": "Growth",
       "pct": -1.11,
-      "status": "UNDERPERFORMING"
+      "mom5d": "-0.96%",
+      "mom20d": "+1.10%",
+      "mom5_num": -0.96,
+      "mom20_num": 1.1,
+      "status": "WEAKENING"
     },
     {
       "etf": "SMH",
       "sector": "Semiconductors",
       "style": "Growth",
       "pct": -1.52,
+      "mom5d": "+2.40%",
+      "mom20d": "-2.30%",
+      "mom5_num": 2.4,
+      "mom20_num": -2.3,
       "status": "UNDERPERFORMING"
     },
     {
@@ -5141,6 +5251,10 @@
       "sector": "Retail",
       "style": "Cyclical",
       "pct": -1.83,
+      "mom5d": "+0.70%",
+      "mom20d": "-3.17%",
+      "mom5_num": 0.7,
+      "mom20_num": -3.17,
       "status": "UNDERPERFORMING"
     },
     {
@@ -5148,6 +5262,10 @@
       "sector": "Consumer Staples",
       "style": "Defensive",
       "pct": -2.28,
+      "mom5d": "-1.13%",
+      "mom20d": "-0.24%",
+      "mom5_num": -1.13,
+      "mom20_num": -0.24,
       "status": "UNDERPERFORMING"
     },
     {
@@ -5155,6 +5273,10 @@
       "sector": "Consumer Disc",
       "style": "Growth",
       "pct": -2.97,
+      "mom5d": "-2.07%",
+      "mom20d": "-3.75%",
+      "mom5_num": -2.07,
+      "mom20_num": -3.75,
       "status": "UNDERPERFORMING"
     },
     {
@@ -5162,6 +5284,10 @@
       "sector": "Real Estate",
       "style": "Defensive",
       "pct": -3.29,
+      "mom5d": "-1.34%",
+      "mom20d": "-1.95%",
+      "mom5_num": -1.34,
+      "mom20_num": -1.95,
       "status": "UNDERPERFORMING"
     },
     {
@@ -5169,6 +5295,10 @@
       "sector": "Transportation",
       "style": "Cyclical",
       "pct": -3.59,
+      "mom5d": "-2.68%",
+      "mom20d": "-3.12%",
+      "mom5_num": -2.68,
+      "mom20_num": -3.12,
       "status": "UNDERPERFORMING"
     },
     {
@@ -5176,6 +5306,10 @@
       "sector": "Utilities",
       "style": "Defensive",
       "pct": -3.83,
+      "mom5d": "+0.71%",
+      "mom20d": "-0.82%",
+      "mom5_num": 0.71,
+      "mom20_num": -0.82,
       "status": "UNDERPERFORMING"
     },
     {
@@ -5183,6 +5317,10 @@
       "sector": "Industrials",
       "style": "Cyclical",
       "pct": -3.95,
+      "mom5d": "-1.16%",
+      "mom20d": "-4.97%",
+      "mom5_num": -1.16,
+      "mom20_num": -4.97,
       "status": "UNDERPERFORMING"
     },
     {
@@ -5190,6 +5328,10 @@
       "sector": "Homebuilders",
       "style": "Cyclical",
       "pct": -4.67,
+      "mom5d": "-2.50%",
+      "mom20d": "-6.50%",
+      "mom5_num": -2.5,
+      "mom20_num": -6.5,
       "status": "UNDERPERFORMING"
     },
     {
@@ -5197,6 +5339,10 @@
       "sector": "Airlines",
       "style": "Cyclical",
       "pct": -6.06,
+      "mom5d": "-0.80%",
+      "mom20d": "-9.10%",
+      "mom5_num": -0.8,
+      "mom20_num": -9.1,
       "status": "UNDERPERFORMING"
     },
     {
@@ -5204,6 +5350,10 @@
       "sector": "Solar",
       "style": "Growth",
       "pct": -9.4,
+      "mom5d": "-0.40%",
+      "mom20d": "-7.20%",
+      "mom5_num": -0.4,
+      "mom20_num": -7.2,
       "status": "UNDERPERFORMING"
     }
   ],
