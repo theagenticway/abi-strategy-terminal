@@ -993,7 +993,7 @@
             const sectors = data.sector_momentum || [];
 
             // 20 primary tracking sectors matching Netlify
-            const totalSec = 20;
+            const totalSec = data.sector_strength && data.sector_strength.length > 0 ? data.sector_strength.length : (data.sector_momentum ? data.sector_momentum.length : 20);
             const hotSec = sectors.filter(s => s.status.includes('OUTPERFORMING') || s.signal.includes('HOT')).length || 8;
             const alertsCount = m.total_alerts || 968;
             const reclaimsCount = m.reclaims || 47;
