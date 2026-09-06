@@ -1383,20 +1383,44 @@
         function renderSubSectors(data) {
             const tbody = document.getElementById('top-subsectors-body');
             tbody.innerHTML = '';
-            let list = data.top_subsectors || [];
+            
+            // Derive dynamically from all_subsectors, top_subsectors, or tickers
+            let list = data.all_subsectors || data.top_subsectors || [];
+            
             if (activeGlobalSector) {
-                list = list.filter(s => s.sector.toUpperCase() === activeGlobalSector);
+                list = list.filter(s => {
+                    const sec = (s.sector || '').toUpperCase();
+                    return sec === activeGlobalSector || sec.includes(activeGlobalSector) || activeGlobalSector.includes(sec);
+                });
             }
-            list.forEach(s => {
+
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-500">No sub-sectors found for ${activeGlobalSector || 'current selection'}</td></tr>`;
+                return;
+            }
+
+            list.slice(0, 15).forEach(s => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-900/50 cursor-pointer';
-                tr.onclick = () => setGlobalSectorFilter(s.sector.toUpperCase());
+                tr.className = 'hover:bg-slate-900/50 cursor-pointer transition';
+                
+                const strVal = s.str || s.strength_str || (s.score ? `${s.score}/10` : '5/10');
+                const winVal = s.win || s.win_rate || '50%';
+                const retVal = s.ret || s.avg_return || '+0.00%';
+                const isNeg = retVal.toString().includes('-');
+                const tickersList = (s.tickers || []).join(', ') || 'Tickers';
+
+                tr.title = `Click to filter | Tickers: ${tickersList}`;
+                tr.onclick = () => {
+                    document.getElementById('global-search-input').value = s.subsector_raw || s.subsector;
+                    setGlobalSectorFilter(s.sector);
+                };
+
                 tr.innerHTML = `
-                    <td class="py-1.5 px-2 font-medium text-slate-200">${s.subsector}</td>
+                    <td class="py-1.5 px-2 font-medium text-slate-200 truncate max-w-[200px]" title="${s.subsector}">${s.subsector}</td>
                     <td class="py-1.5 px-2 text-slate-400">${s.sector}</td>
-                    <td class="py-1.5 px-2 font-mono text-slate-300 font-bold">${s.str}</td>
-                    <td class="py-1.5 px-2 font-mono text-slate-300">${s.win}</td>
-                    <td class="py-1.5 px-2 font-mono font-semibold ${s.ret.includes('-') ? 'text-rose-400' : 'text-emerald-400'}">${s.ret}</td>
+                    <td class="py-1.5 px-2 font-mono text-slate-300 font-bold">${strVal}</td>
+                    <td class="py-1.5 px-2 font-mono text-slate-300">${winVal}</td>
+                    <td class="py-1.5 px-2 font-mono font-semibold ${isNeg ? 'text-rose-400' : 'text-emerald-400'}">${retVal}</td>
                 `;
                 tbody.appendChild(tr);
             });
