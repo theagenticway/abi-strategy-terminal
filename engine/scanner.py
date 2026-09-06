@@ -1,9 +1,9 @@
 """
 Complete Production Scanner for ABI Strategy Terminal & Options Alpha Radar.
-- Scans full S&P 500 + NASDAQ-100 universe + 20 Sector ETFs.
-- Computes complete moving averages (EMA 10/21/50, SMA 150, EMA/SMA 200 Clearance), RSI, MACD, ADR%, Beta.
-- Computes Netlify Macro Board parity: ETF Ladder, Regime Transitions, Tickers at Support, 2D Quadrant.
-- Automatically flushes/prunes historical JSON files older than 365 days.
+- Robust multi-level extraction for yfinance MultiIndex columns (handles both (Price, Ticker) and (Ticker, Price)).
+- Batched downloading to prevent Yahoo Finance HTTP 429 rate limiting.
+- Circuit breaker: Never overwrites latest.json with empty data.
+- Strict 365-day historical retention flush.
 """
 
 import os
@@ -48,16 +48,74 @@ def prune_old_history():
 
 def fetch_market_data(tickers, period="6mo", interval="1d"):
     """
-    Batch-downloads historical daily data for the full universe using yfinance.
+    Downloads data in batches of 75 tickers to prevent Yahoo Finance HTTP 429 rate limits.
+    Merges batch dataframes cleanly.
     """
     try:
         import yfinance as yf
-        print(f"[*] Downloading market data for {len(tickers)} tickers via yfinance...")
-        data = yf.download(tickers, period=period, interval=interval, group_by="ticker", auto_adjust=False, threads=True)
-        return data
+        # Normalize dots to hyphens for Yahoo Finance (e.g. BRK.B -> BRK-B)
+        cleaned_tickers = [t.replace(".", "-") for t in tickers]
+        unique_cleaned = sorted(list(set(cleaned_tickers)))
+        
+        batch_size = 75
+        combined_df = None
+        print(f"[*] Downloading market data for {len(unique_cleaned)} tickers across {len(unique_cleaned)//batch_size + 1} batches...")
+
+        for i in range(0, len(unique_cleaned), batch_size):
+            batch = unique_cleaned[i:i + batch_size]
+            try:
+                print(f"    -> Batch {i//batch_size + 1}: {len(batch)} tickers ({batch[0]}..{batch[-1]})")
+                batch_data = yf.download(batch, period=period, interval=interval, group_by="ticker", auto_adjust=False, threads=True, progress=False)
+                if batch_data is not None and len(batch_data) > 0:
+                    if combined_df is None:
+                        combined_df = batch_data
+                    else:
+                        combined_df = pd.concat([combined_df, batch_data], axis=1)
+            except Exception as batch_err:
+                print(f"[!] Warning on batch {i//batch_size + 1}: {batch_err}")
+
+        return combined_df
     except Exception as e:
         print(f"[!] Warning: yfinance download failed or network unavailable: {e}")
         return None
+
+def extract_ticker_df(raw_data, ticker):
+    """
+    Robust extractor: Handles MultiIndex with Level 0 = Ticker, Level 1 = Ticker, or single ticker.
+    Supports dot/hyphen normalization (BRK.B <-> BRK-B).
+    """
+    if raw_data is None:
+        return None
+        
+    clean_variants = [ticker, ticker.replace(".", "-"), ticker.replace("-", ".")]
+    
+    for t in clean_variants:
+        if isinstance(raw_data.columns, pd.MultiIndex):
+            # Check Level 0 as Ticker
+            if t in raw_data.columns.levels[0]:
+                try:
+                    df = raw_data[t].dropna(how="all")
+                    if len(df) >= 30 and "Close" in df.columns:
+                        return df
+                except Exception:
+                    pass
+            # Check Level 1 as Ticker (common default in newer yfinance)
+            if len(raw_data.columns.levels) > 1 and t in raw_data.columns.levels[1]:
+                try:
+                    df = raw_data.xs(t, axis=1, level=1).dropna(how="all")
+                    if len(df) >= 30 and "Close" in df.columns:
+                        return df
+                except Exception:
+                    pass
+        else:
+            if t in raw_data.columns:
+                try:
+                    df = raw_data[[t]].dropna()
+                    if len(df) >= 30:
+                        return df
+                except Exception:
+                    pass
+    return None
 
 def process_universe(raw_data=None, sample_date_str=None):
     """
@@ -69,12 +127,9 @@ def process_universe(raw_data=None, sample_date_str=None):
 
     # 1. Compute SPY Benchmark Returns
     spy_returns = None
-    if raw_data is not None and "SPY" in raw_data:
-        try:
-            spy_df = raw_data["SPY"].dropna()
-            spy_returns = spy_df["Close"].pct_change()
-        except Exception:
-            pass
+    spy_df = extract_ticker_df(raw_data, "SPY")
+    if spy_df is not None and "Close" in spy_df.columns:
+        spy_returns = spy_df["Close"].pct_change()
 
     # 2. Process Individual Stocks
     ticker_records = []
@@ -88,13 +143,7 @@ def process_universe(raw_data=None, sample_date_str=None):
     sector_support_tickers = {}
 
     for ticker, (sector, subsector) in taxonomy.items():
-        ticker_df = None
-        if raw_data is not None and ticker in raw_data:
-            try:
-                ticker_df = raw_data[ticker].dropna()
-            except Exception:
-                pass
-
+        ticker_df = extract_ticker_df(raw_data, ticker)
         snapshot = compute_technical_snapshot(ticker_df, spy_returns) if ticker_df is not None else None
         
         if snapshot is None:
@@ -133,7 +182,7 @@ def process_universe(raw_data=None, sample_date_str=None):
         if is_confirmed:
             confirmed_count += 1
 
-        # Trend quality classification matching Netlify / Sheet
+        # Trend quality classification
         price = snapshot["price"]
         ema10 = snapshot["ema10"]
         ema21 = snapshot["ema21"]
@@ -190,13 +239,7 @@ def process_universe(raw_data=None, sample_date_str=None):
     sector_results = []
     
     for etf, meta in SECTOR_ETFS.items():
-        etf_df = None
-        if raw_data is not None and etf in raw_data:
-            try:
-                etf_df = raw_data[etf].dropna()
-            except Exception:
-                pass
-                
+        etf_df = extract_ticker_df(raw_data, etf)
         snapshot = compute_technical_snapshot(etf_df, spy_returns) if etf_df is not None else None
         
         if snapshot is None:
@@ -214,10 +257,8 @@ def process_universe(raw_data=None, sample_date_str=None):
             holding_days = 15
             crossed = "YES" if abs(vs_ema50) <= 1.0 else "NO"
 
-        # Tickers at support for this sector
         matched_tickers = sector_support_tickers.get(meta["name"].upper(), [])
         
-        # Signal description matching Netlify
         if "OUTPERFORMING" in status:
             sig = f"★ HOT — ETF + {len(matched_tickers)} tickers bouncing"
         elif "GAINING" in status:
@@ -244,7 +285,6 @@ def process_universe(raw_data=None, sample_date_str=None):
             "signal": sig
         })
 
-    # Sort sector ladder by performance vs EMA50 descending
     sector_results = sorted(sector_results, key=lambda x: x["vs_ema50_num"], reverse=True)
 
     # 4. Macro Breadth Calculation
@@ -271,7 +311,6 @@ def process_universe(raw_data=None, sample_date_str=None):
         "regime": "RISK-ON" if (reclaim_count / max(1, alert_count)) > 0.4 else "MIXED"
     }
 
-    # Sort candidates by velocity (reclaim days) and overhead clearance
     qualified_candidates = sorted(qualified_candidates, key=lambda x: (x["reclaim_days"], -x["overhead_runway_pct"]))
 
     return {
@@ -283,17 +322,30 @@ def process_universe(raw_data=None, sample_date_str=None):
     }
 
 def save_payloads(payload: dict):
-    """Writes latest.json, updates summary.json, writes historical date file, and flushes >365-day archives."""
+    """
+    Writes latest.json, updates summary.json, writes historical date file, and flushes >365-day archives.
+    Circuit breaker: If payload has 0 tickers (e.g. data provider outage), does NOT overwrite existing valid data!
+    """
     os.makedirs(DATA_DIR, exist_ok=True)
     os.makedirs(HISTORY_DIR, exist_ok=True)
     
+    ticker_count = len(payload.get("tickers", []))
+    latest_path = os.path.join(DATA_DIR, "latest.json")
+    
+    if ticker_count == 0:
+        print("[!] CIRCUIT BREAKER: Scan produced 0 tickers (offline or data provider temporary error).")
+        if os.path.exists(latest_path):
+            print("[*] Preserving existing latest.json to prevent dashboard blackout.")
+            return
+        else:
+            print("[!] No existing latest.json found. Writing placeholder.")
+
     date_str = payload["macro_breadth"]["date"]
     
     # 1. Write latest.json
-    latest_path = os.path.join(DATA_DIR, "latest.json")
     with open(latest_path, "w") as f:
         json.dump(payload, f, indent=2)
-    print(f"[+] Wrote {latest_path}")
+    print(f"[+] Wrote {latest_path} ({ticker_count} tickers)")
 
     # 2. Write history/YYYY-MM-DD.json
     history_path = os.path.join(HISTORY_DIR, f"{date_str}.json")
@@ -311,7 +363,6 @@ def save_payloads(payload: dict):
         except Exception:
             summary_data = []
             
-    # Filter out today if exists and append new
     cutoff_date = (datetime.datetime.now() - datetime.timedelta(days=RETENTION_DAYS)).strftime("%Y-%m-%d")
     summary_data = [item for item in summary_data if item.get("date") != date_str and item.get("date") >= cutoff_date]
     summary_data.append(payload["macro_breadth"])
