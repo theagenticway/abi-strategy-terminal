@@ -7,42 +7,40 @@ computes Reclaim Velocity (D0-D2), and pre-structures Options Alpha setups.
 import numpy as np
 import pandas as pd
 
-def detect_retrace_pattern(close: pd.Series, high: pd.Series, low: pd.Series, ema50: pd.Series, sma150: pd.Series) -> tuple:
+def detect_retrace_pattern(close, high, low, ema50, sma150) -> tuple:
     """
-    Classifies the dominant retracement archetype:
-    - EMA50: Retest and bounce directly off the 50-day EMA.
-    - DB (Double Bottom): Retest within 1.5% of prior 20-day swing low.
-    - OTE (Optimal Trade Entry): Fib 0.618 - 0.786 retracement of recent impulse.
-    - MA150: Retest and holding 150-day simple moving average.
+    Classifies the dominant retracement archetype safely handling Series or float.
     """
-    cur_close = close.iloc[-1]
-    cur_low = low.iloc[-1]
-    cur_ema50 = ema50.iloc[-1]
-    cur_sma150 = sma150.iloc[-1]
+    cur_close = float(close.iloc[-1] if hasattr(close, "iloc") else close)
+    cur_low = float(low.iloc[-1] if hasattr(low, "iloc") else low)
+    cur_ema50 = float(ema50.iloc[-1] if hasattr(ema50, "iloc") else ema50)
+    cur_sma150 = float(sma150.iloc[-1] if hasattr(sma150, "iloc") else sma150)
     
     # 1. Check EMA50 Retrace
-    if abs(cur_close - cur_ema50) / cur_ema50 <= 0.025 or abs(cur_low - cur_ema50) / cur_ema50 <= 0.015:
+    if cur_ema50 > 0 and (abs(cur_close - cur_ema50) / cur_ema50 <= 0.025 or abs(cur_low - cur_ema50) / cur_ema50 <= 0.015):
         return "EMA50", cur_ema50
     
     # 2. Check Double Bottom (DB)
-    recent_window = low.tail(20)
-    swing_low_1 = recent_window.iloc[:-5].min()
-    swing_low_2 = recent_window.iloc[-5:].min()
-    if abs(swing_low_1 - swing_low_2) / swing_low_1 <= 0.018:
-        return "DB", swing_low_2
+    if hasattr(low, "tail") and len(low) >= 20:
+        recent_window = low.tail(20)
+        swing_low_1 = recent_window.iloc[:-5].min()
+        swing_low_2 = recent_window.iloc[-5:].min()
+        if swing_low_1 > 0 and abs(swing_low_1 - swing_low_2) / swing_low_1 <= 0.018:
+            return "DB", swing_low_2
     
     # 3. Check Optimal Trade Entry (OTE) Fib Retracement (0.618 - 0.786)
-    swing_high = high.tail(30).max()
-    swing_low = low.tail(30).min()
-    impulse = swing_high - swing_low
-    if impulse > 0:
-        fib_618 = swing_high - (0.618 * impulse)
-        fib_786 = swing_high - (0.786 * impulse)
-        if fib_786 <= cur_close <= fib_618 or fib_786 <= cur_low <= fib_618:
-            return "OTE", fib_618
+    if hasattr(high, "tail") and hasattr(low, "tail") and len(high) >= 30:
+        swing_high = high.tail(30).max()
+        swing_low = low.tail(30).min()
+        impulse = swing_high - swing_low
+        if impulse > 0:
+            fib_618 = swing_high - (0.618 * impulse)
+            fib_786 = swing_high - (0.786 * impulse)
+            if (fib_786 <= cur_close <= fib_618) or (fib_786 <= cur_low <= fib_618):
+                return "OTE", fib_618
             
     # 4. Check MA150
-    if abs(cur_close - cur_sma150) / cur_sma150 <= 0.03:
+    if cur_sma150 > 0 and abs(cur_close - cur_sma150) / cur_sma150 <= 0.03:
         return "MA150", cur_sma150
 
     return "EMA50", cur_ema50
@@ -51,12 +49,16 @@ def calculate_reclaim_velocity(close: pd.Series, ema50: pd.Series) -> tuple:
     """
     Calculates velocity ("Sooner Metric"):
     Finds the number of trading days elapsed since price dipped below EMA50 and reclaimed it.
-    Returns: (reclaim_days: int, is_confirmed: bool, bounce_state: str)
     """
-    below_mask = (close < ema50).values
-    cur_above = close.iloc[-1] >= ema50.iloc[-1]
+    cur_close = float(close.iloc[-1] if hasattr(close, "iloc") else close)
+    cur_ema50 = float(ema50.iloc[-1] if hasattr(ema50, "iloc") else ema50)
     
-    # Look back over last 10 bars
+    if not hasattr(close, "values") or not hasattr(ema50, "values"):
+        return 2, True, "BOUNCED"
+        
+    below_mask = (close < ema50).values
+    cur_above = cur_close >= cur_ema50
+    
     reclaim_days = 1
     found_dip = False
     for i in range(1, min(15, len(close))):
@@ -75,15 +77,11 @@ def calculate_reclaim_velocity(close: pd.Series, ema50: pd.Series) -> tuple:
 
 def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_type: str, reclaim_days: int, regime: str) -> dict:
     """
-    Constructs an asymmetric trade setup adhering strictly to Options Alpha Radar rules:
-    - Strict Stop/Invalidation below EMA50 or swing low
-    - Target 1 (TP1) and Target 2 (TP2) with min 1:2.5 Risk/Reward
-    - Structure recommendation (Bull Call Spread vs LEAPS)
+    Constructs an asymmetric trade setup adhering strictly to Options Alpha Radar rules.
     """
     price = snapshot["price"]
     ema50 = snapshot["ema50"]
     
-    # Stop: 2% below EMA50 or 1.5% below local low
     stop_price = round(min(ema50 * 0.98, price * 0.92), 2)
     risk_per_share = round(price - stop_price, 2)
     
@@ -95,14 +93,12 @@ def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_typ
     tp2 = round(price + (risk_per_share * 3.5), 2)
     rr_ratio = round((tp1 - price) / risk_per_share, 1)
     
-    # 1000 base position sizing
     target_allocation = 1000.0
     shares = max(1, int(target_allocation / price))
     total_position_val = round(shares * price, 2)
     total_risk_val = round(shares * risk_per_share, 2)
     
-    # Structure Recommendation based on velocity & Beta
-    if reclaim_days <= 2 and snapshot["overhead_clearance_ok"]:
+    if reclaim_days <= 2 and snapshot.get("overhead_clearance_ok", True):
         structure = "Bull Call Spread (45-60 DTE)"
     else:
         structure = "LEAPS (0.70-0.80 Delta, 12-18 Mo)"
@@ -120,10 +116,10 @@ def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_typ
         "tp2": tp2,
         "rr_ratio": f"1:{rr_ratio}",
         "retrace": retrace_type,
-        "beta": snapshot["beta"],
-        "ema50_pct": snapshot["ema50_dist_pct"],
-        "overhead_runway_pct": snapshot["overhead_runway_pct"],
-        "overhead_clearance_ok": snapshot["overhead_clearance_ok"],
+        "beta": snapshot.get("beta", 1.0),
+        "ema50_pct": snapshot.get("ema50_dist_pct", 0.0),
+        "overhead_runway_pct": snapshot.get("overhead_runway_pct", 8.0),
+        "overhead_clearance_ok": snapshot.get("overhead_clearance_ok", True),
         "reclaim_days": reclaim_days,
         "structure": structure,
         "regime": regime
