@@ -8,7 +8,18 @@ on:
     - cron: '30 13-20 * * 1-5'
     # 17:00 EDT (21:00 UTC) Mon-Fri: Official Post-Market Close & Prune
     - cron: '0 21 * * 1-5'
-  workflow_dispatch: # Allows manual one-click scan from GitHub UI anytime
+  workflow_dispatch:
+    inputs:
+      backfill_days:
+        description: 'Number of historical days to backfill (0 to disable)'
+        required: true
+        default: '30'
+        type: choice
+        options:
+          - '0'
+          - '7'
+          - '14'
+          - '30'
 
 permissions:
   contents: write
@@ -34,16 +45,29 @@ jobs:
 
       - name: Execute Full Universe Scanner & Prune Old Data
         run: |
-          python engine/scanner.py
+          # If triggered via schedule, default backfill to 0 (hourly updates). 
+          # If triggered via workflow_dispatch, use the selected input value.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BACKFILL="${{ github.event.inputs.backfill_days }}"
+          else
+            BACKFILL="0"
+          fi
+          
+          echo "Running scanner with --backfill $BACKFILL"
+          if [ "$BACKFILL" -gt 0 ]; then
+            python engine/scanner.py --backfill "$BACKFILL"
+          else
+            python engine/scanner.py
+          fi
 
       - name: Commit and Push Updated Telemetry
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A data/
-          if git diff --staged --quiet; then
+          git diff --staged --quiet; then
             echo "No telemetry changes detected."
           else
-            git commit -m "chore(telemetry): hourly active market scan & retention prune [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]"
+            git commit -m "chore(telemetry): scan & backfill update [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]"
             git push
           fi
