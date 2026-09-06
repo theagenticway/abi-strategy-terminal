@@ -911,7 +911,7 @@
                         <td class="py-2.5 px-2.5 font-mono text-emerald-400">$${c.tp1} / $${c.tp2}</td>
                         <td class="py-2.5 px-2.5 font-semibold text-amber-300">${c.rr_ratio}</td>
                         <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-medium">D${c.reclaim_days}</span></td>
-                        <td class="py-2.5 px-2.5 text-[11px] font-mono text-slate-300">${c.overhead_runway_pct}%</td>
+                        <td class="py-2.5 px-2.5 text-[11px] font-mono">${(c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`}</td>
                         <td class="py-2.5 px-2.5 text-[11px] text-slate-200 font-medium">${c.structure}</td>
                     `;
                     candBody.appendChild(tr);

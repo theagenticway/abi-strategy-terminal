@@ -323,7 +323,26 @@ def process_universe(raw_data=None, sample_date_str=None):
         "regime": "RISK-ON" if (reclaim_count / max(1, alert_count)) > 0.4 else "MIXED"
     }
 
-    qualified_candidates = sorted(qualified_candidates, key=lambda x: (x["reclaim_days"], -x["overhead_runway_pct"]))
+        # Sector priority ranking based on Options Alpha Radar rules (Hot sectors first)
+    sector_priority = {
+        "TECH SOFTWARE": 10, "TECH SEMIS": 10, "FINANCIALS": 9, "ENERGY": 9,
+        "HEALTHCARE": 8, "TECH CORE": 8, "COMM SERVICES": 7, "CRYPTO": 7,
+        "INDUSTRIALS": 6, "MATERIALS": 5, "CONSUMER DISC": 5, "CONSUMER STAPLES": 4
+    }
+
+    # Multi-factor Alpha Radar ranking:
+    # 1. Reclaim Velocity (D0/D1 first, then D2)
+    # 2. Institutional Sector Leadership (Hot sectors first)
+    # 3. High Risk/Reward & Beta (liquid momentum)
+    qualified_candidates = sorted(
+        qualified_candidates,
+        key=lambda x: (
+            x.get("reclaim_days", 2),
+            -sector_priority.get(x.get("sector", "").upper(), 1),
+            -float(str(x.get("rr_ratio", "1:2.5")).replace("1:", "")),
+            -x.get("beta", 1.0)
+        )
+    )
 
     # --- DYNAMIC NETLIFY SYNTHESIS (100% Dynamic, 0% Static) ---
     
