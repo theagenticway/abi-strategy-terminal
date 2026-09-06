@@ -9,7 +9,11 @@ import pandas as pd
 
 def detect_retrace_pattern(close, high, low, ema50, sma150) -> tuple:
     """
-    Classifies the dominant retracement archetype safely handling Series or float.
+    Classifies the dominant retracement archetype:
+    - EMA50: Retest and bounce directly off the 50-day EMA.
+    - DB (Double Bottom): Retest within 1.5% of prior 20-day swing low.
+    - OTE (Optimal Trade Entry): Fib 0.618 - 0.786 retracement of recent impulse.
+    - MA150: Retest and holding 150-day simple moving average.
     """
     cur_close = float(close.iloc[-1] if hasattr(close, "iloc") else close)
     cur_low = float(low.iloc[-1] if hasattr(low, "iloc") else low)
@@ -49,6 +53,7 @@ def calculate_reclaim_velocity(close: pd.Series, ema50: pd.Series) -> tuple:
     """
     Calculates velocity ("Sooner Metric"):
     Finds the number of trading days elapsed since price dipped below EMA50 and reclaimed it.
+    Returns: (reclaim_days: int, is_confirmed: bool, bounce_state: str)
     """
     cur_close = float(close.iloc[-1] if hasattr(close, "iloc") else close)
     cur_ema50 = float(ema50.iloc[-1] if hasattr(ema50, "iloc") else ema50)
@@ -59,6 +64,7 @@ def calculate_reclaim_velocity(close: pd.Series, ema50: pd.Series) -> tuple:
     below_mask = (close < ema50).values
     cur_above = cur_close >= cur_ema50
     
+    # Look back over last 15 bars
     reclaim_days = 1
     found_dip = False
     for i in range(1, min(15, len(close))):
@@ -77,11 +83,15 @@ def calculate_reclaim_velocity(close: pd.Series, ema50: pd.Series) -> tuple:
 
 def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_type: str, reclaim_days: int, regime: str) -> dict:
     """
-    Constructs an asymmetric trade setup adhering strictly to Options Alpha Radar rules.
+    Constructs an asymmetric trade setup adhering strictly to Options Alpha Radar rules:
+    - Strict Stop/Invalidation below EMA50 or swing low
+    - Target 1 (TP1) and Target 2 (TP2) with min 1:2.5 Risk/Reward
+    - Structure recommendation (Bull Call Spread vs LEAPS)
     """
     price = snapshot["price"]
     ema50 = snapshot["ema50"]
     
+    # Stop: 2% below EMA50 or 8% below entry price
     stop_price = round(min(ema50 * 0.98, price * 0.92), 2)
     risk_per_share = round(price - stop_price, 2)
     
@@ -93,11 +103,13 @@ def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_typ
     tp2 = round(price + (risk_per_share * 3.5), 2)
     rr_ratio = round((tp1 - price) / risk_per_share, 1)
     
+    # 1000 base position sizing
     target_allocation = 1000.0
     shares = max(1, int(target_allocation / price))
     total_position_val = round(shares * price, 2)
     total_risk_val = round(shares * risk_per_share, 2)
     
+    # Structure Recommendation based on velocity & Beta
     if reclaim_days <= 2 and snapshot.get("overhead_clearance_ok", True):
         structure = "Bull Call Spread (45-60 DTE)"
     else:

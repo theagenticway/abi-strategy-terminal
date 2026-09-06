@@ -141,5 +141,6 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
         "raw_close": close,
         "raw_high": high,
         "raw_low": low,
-        "raw_ema50": ema50
+        "raw_ema50": ema50,
+        "raw_sma150": sma150
     }

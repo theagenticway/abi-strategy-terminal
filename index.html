@@ -6,20 +6,17 @@
     <title>EMA50 Scanner Terminal | ABI Strategy Dashboard</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js CDN for 2D Momentum Quadrant -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            dark: '#090d16',
-                            panel: '#0f172a',
-                            border: '#1e293b',
-                            accent: '#10b981',
-                            blue: '#38bdf8'
-                        }
+                        dark: '#080c14',
+                        panel: '#0d1322',
+                        border: '#1e293b',
+                        growth: '#3b82f6',
+                        cyclical: '#ea580c',
+                        defensive: '#10b981'
                     }
                 }
             }
@@ -29,18 +26,23 @@
         body { background-color: #080c14; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; }
         .terminal-panel { background: #0d1322; border: 1px solid #1e293b; border-radius: 8px; }
         .tab-btn.active { background: #1e293b; color: #38bdf8; border-bottom: 2px solid #38bdf8; font-weight: 600; }
-        .tag-pill { background: #1e293b; border: 1px solid #334155; font-size: 11px; padding: 2px 8px; border-radius: 4px; }
-        /* Bidirectional Ladder bar */
-        .ladder-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; font-size: 12px; }
-        .ladder-bar-wrap { position: relative; width: 140px; height: 14px; background: #1e293b; border-radius: 3px; overflow: hidden; }
-        .ladder-zero { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.25); z-index: 5; }
-        .ladder-pos { position: absolute; left: 50%; top: 1px; bottom: 1px; background: #10b981; border-radius: 2px; }
-        .ladder-neg { position: absolute; right: 50%; top: 1px; bottom: 1px; background: #f43f5e; border-radius: 2px; }
+        .tag-pill { background: #1e293b; border: 1px solid #334155; font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer; transition: all 0.15s; }
+        .tag-pill:hover, .tag-pill.active { border-color: #38bdf8; color: #38bdf8; background: rgba(56,189,248,0.1); }
+        .filter-btn { background: #131d31; border: 1px solid #1e293b; padding: 3px 10px; font-size: 11px; border-radius: 4px; color: #94a3b8; transition: all 0.15s; }
+        .filter-btn:hover { color: #fff; border-color: #334155; }
+        .filter-btn.active { background: #2563eb; color: #fff; border-color: #3b82f6; font-weight: 600; }
+        /* Diverging Ladder */
+        .ladder-row { display: grid; grid-template-columns: 140px 1fr 65px; align-items: center; padding: 3px 6px; font-size: 11px; border-radius: 4px; cursor: pointer; }
+        .ladder-row:hover { background: rgba(30, 41, 59, 0.4); }
+        .ladder-track { position: relative; height: 16px; background: rgba(15, 23, 42, 0.6); border-radius: 2px; }
+        .ladder-zero-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.25); z-index: 10; }
+        /* Stacked Bars */
+        .stacked-bar-container { display: flex; height: 16px; border-radius: 2px; overflow: hidden; background: #1e293b; }
     </style>
 </head>
 <body class="min-h-screen p-3 md:p-6 space-y-4">
 
-    <!-- Top Terminal Master Header (Netlify 1:1 Parity) -->
+    <!-- Top Terminal Master Header -->
     <header class="terminal-panel p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div class="flex items-center gap-3">
             <div class="flex items-center gap-2">
@@ -48,12 +50,11 @@
                 <span class="font-black tracking-wider text-base md:text-lg text-white">EMA50 SCANNER TERMINAL</span>
                 <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">LIVE</span>
             </div>
-            <span class="text-xs text-slate-500 hidden sm:inline">• data 9/4/2026</span>
+            <span id="header-timestamp" class="text-xs text-slate-500 hidden sm:inline">• data 9/4/2026</span>
         </div>
 
         <!-- Tab Controls & Live Refresh Tools -->
         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
-            <!-- Navigation Switcher -->
             <div class="flex rounded-lg bg-slate-900 p-1 border border-slate-800">
                 <button id="tab-recs-btn" onclick="switchTab('recs')" class="tab-btn active px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1.5">
                     <span>🎯</span> Key Trading Recommendations
@@ -63,16 +64,18 @@
                 </button>
             </div>
 
-            <!-- Auto Refresh & Manual Trigger -->
             <div class="flex items-center gap-1.5">
                 <select id="auto-refresh" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded px-2.5 py-1.5 focus:outline-none">
                     <option value="60">Auto: 1m</option>
                     <option value="300" selected>Auto: 5m</option>
                     <option value="900">Auto: 15m</option>
                 </select>
-                <button onclick="loadData('./data/latest.json')" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 transition" title="Refresh Telemetry">
+                <button onclick="refreshData()" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 transition">
                     <span>↻</span> REFRESH
                 </button>
+                <select id="date-select" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded px-2.5 py-1.5 focus:outline-none">
+                    <option value="latest">Latest Live</option>
+                </select>
                 <a href="./data/latest.json" target="_blank" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-mono">
                     JSON
                 </a>
@@ -80,32 +83,28 @@
         </div>
     </header>
 
-    <!-- Sector Navigation Ribbon (Netlify 1:1) -->
+    <!-- Top Sector Navigation Ribbon (Interactive Filter) -->
     <div class="overflow-x-auto pb-1">
-        <div class="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-slate-400 whitespace-nowrap">
+        <div class="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-slate-400 whitespace-nowrap" id="sector-nav-pills">
             <span class="text-slate-500 uppercase text-[10px] mr-1">SECTORS:</span>
-            <span class="tag-pill text-emerald-400">ENERGY</span>
-            <span class="tag-pill text-emerald-400">TECH SOFTWARE</span>
-            <span class="tag-pill text-emerald-400">FINANCIALS</span>
-            <span class="tag-pill text-emerald-400">HEALTHCARE</span>
-            <span class="tag-pill text-slate-300">TECH CORE</span>
-            <span class="tag-pill text-slate-300">ETF</span>
-            <span class="tag-pill text-slate-300">INDUSTRIALS</span>
-            <span class="tag-pill text-slate-300">CONSUMER STAPLES</span>
-            <span class="tag-pill text-slate-300">TECH SEMIS</span>
-            <span class="tag-pill text-amber-400">CRYPTO</span>
-            <span class="tag-pill text-slate-300">MATERIALS</span>
-            <span class="tag-pill text-rose-400">CONSUMER DISC</span>
-            <span class="tag-pill text-rose-400">REAL ESTATE</span>
-            <span class="tag-pill text-slate-300">COMM SERVICES</span>
-            <span class="tag-pill text-slate-300">UTILITIES</span>
-            <span class="tag-pill text-slate-300">DEFENSE</span>
-            <span class="tag-pill text-slate-300">TRANSPORT</span>
+            <!-- Injected dynamically -->
         </div>
     </div>
 
+    <!-- Active Global Filter Banner (When clicked) -->
+    <div id="active-filter-banner" class="hidden p-2.5 px-4 rounded bg-sky-950/40 border border-sky-500/40 flex justify-between items-center text-xs">
+        <div class="flex items-center gap-2">
+            <span class="text-sky-400 font-bold uppercase tracking-wider">Filtered by Sector:</span>
+            <span id="active-filter-label" class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-200 font-mono font-bold"></span>
+            <span class="text-slate-400">(All charts, tables, and metrics below are filtered to this sector)</span>
+        </div>
+        <button onclick="clearFilter()" class="px-2.5 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] transition">
+            ✕ CLEAR FILTER
+        </button>
+    </div>
+
     <!-- ======================================================== -->
-    <!-- TAB 1: KEY TRADING RECOMMENDATIONS (DEFAULT LANDING TAB)  -->
+    <!-- TAB 1: KEY TRADING RECOMMENDATIONS (DEFAULT ACTIVE TAB)  -->
     <!-- ======================================================== -->
     <div id="tab-recs" class="space-y-4">
         
@@ -220,187 +219,347 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- TAB 2: MACROECONOMIC MONITORING BOARD (NETLIFY 1:1)       -->
+    <!-- TAB 2: MACROECONOMIC MONITORING BOARD (NETLIFY FULL 1:1) -->
     <!-- ======================================================== -->
     <div id="tab-macro" class="space-y-4 hidden">
         
-        <!-- Netlify 1:1 KPI Cards (6 Columns) -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-            <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">SECTORS</div>
-                <div class="text-2xl font-black text-white mt-0.5">20 <span class="text-xs font-normal text-slate-500">tracked</span></div>
-            </div>
-            <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">HOT</div>
-                <div class="text-2xl font-black text-emerald-400 mt-0.5">8 <span class="text-xs font-normal text-slate-500">rotating in</span></div>
-            </div>
-            <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">ALERTS</div>
-                <div class="text-2xl font-black text-white mt-0.5">968 <span class="text-xs font-normal text-slate-500">EMA50 log</span></div>
-            </div>
-            <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">WIN RATE</div>
-                <div class="text-2xl font-black text-emerald-400 mt-0.5">31.7% <span class="text-xs font-normal text-slate-500">avg</span></div>
-            </div>
-            <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">RECLAIMS</div>
-                <div class="text-2xl font-black text-emerald-400 mt-0.5">47 <span class="text-xs font-normal text-slate-500">of 231</span></div>
-            </div>
-            <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">BOUNCES T-0</div>
-                <div class="text-2xl font-black text-sky-400 mt-0.5">14 <span class="text-xs font-normal text-slate-500">of 280</span></div>
-            </div>
-        </div>
-
-        <!-- Market Regime Summary & Breadth Panel (Netlify 1:1) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            
-            <!-- Overall Regime Card (5 cols) -->
-            <div class="terminal-panel p-4 lg:col-span-5 flex flex-col justify-between space-y-3">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">MARKET REGIME</div>
-                        <div class="text-lg font-black text-amber-300 mt-0.5">MIXED — No clear rotation</div>
-                        <div class="text-xs text-slate-400 mt-1">Growth 4↑ / 6↓ • Defensive 2↑ / 3↓</div>
-                        <div class="text-xs text-emerald-400 mt-0.5">377 reclaiming • 358 at support</div>
-                    </div>
-                </div>
-
-                <!-- Defense vs Offense Slider -->
-                <div class="pt-2 border-t border-slate-800">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
-                        <span>DEFENSE</span>
-                        <span class="text-sky-400">47% OFFENSE</span>
-                        <span>OFFENSE</span>
-                    </div>
-                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden flex">
-                        <div class="bg-rose-500 h-full" style="width: 53%;"></div>
-                        <div class="bg-emerald-500 h-full" style="width: 47%;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Breadth: 25 ETFs vs EMA50 (7 cols) -->
-            <div class="terminal-panel p-4 lg:col-span-7 flex flex-col justify-between">
+        <!-- SECTION 1: ETF LADDER — VS EMA50 (Screenshot 1) -->
+        <div class="terminal-panel p-4">
+            <div class="flex justify-between items-center mb-3">
                 <div>
-                    <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">BREADTH — 25 ETFS VS THEIR EMA50</div>
-                    <div class="grid grid-cols-3 gap-3 mt-2">
-                        <div class="p-2.5 rounded bg-slate-900/80 border border-slate-800">
-                            <div class="text-[11px] font-bold text-slate-400">GROWTH</div>
-                            <div class="text-base font-black text-white mt-1">4 / 10 <span class="text-xs font-normal text-slate-500">above</span></div>
-                            <div class="text-[10px] font-mono text-rose-400 mt-0.5">avg -0.30%</div>
-                        </div>
-                        <div class="p-2.5 rounded bg-slate-900/80 border border-slate-800">
-                            <div class="text-[11px] font-bold text-slate-400">CYCLICAL</div>
-                            <div class="text-base font-black text-white mt-1">3 / 10 <span class="text-xs font-normal text-slate-500">above</span></div>
-                            <div class="text-[10px] font-mono text-rose-400 mt-0.5">avg -1.43%</div>
-                        </div>
-                        <div class="p-2.5 rounded bg-slate-900/80 border border-slate-800">
-                            <div class="text-[11px] font-bold text-slate-400">DEFENSIVE</div>
-                            <div class="text-base font-black text-white mt-1">2 / 5 <span class="text-xs font-normal text-slate-500">above</span></div>
-                            <div class="text-[10px] font-mono text-emerald-400 mt-0.5">avg +0.29%</div>
-                        </div>
-                    </div>
+                    <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <span>ETF LADDER — VS EMA50</span>
+                        <span class="text-[10px] font-normal text-slate-500">bar direction = above / below the 50-day EMA · color = style bucket</span>
+                    </h2>
+                </div>
+                <div class="flex items-center gap-3 text-[11px]">
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Growth</span>
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> Cyclical</span>
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Defensive</span>
                 </div>
             </div>
 
+            <!-- Ladder List -->
+            <div id="ladder-container" class="space-y-0.5">
+                <!-- Injected dynamically -->
+            </div>
         </div>
 
-        <!-- Regime Change Alert Badge (Netlify 1:1) -->
-        <div class="p-3 rounded-lg bg-sky-950/30 border border-sky-500/30 flex items-center gap-3">
-            <span class="text-xs font-black text-sky-400 px-2 py-0.5 rounded bg-sky-500/20 border border-sky-500/40">▲ REGIME CHANGE — JUST CROSSED</span>
-            <span class="text-xs text-slate-300"><b>XLK</b>, <b>IHAK</b> flipped side of EMA50 in recent trading sessions</span>
+        <!-- SECTION 2: SECTOR STRENGTH (Screenshot 2) -->
+        <div class="terminal-panel p-4">
+            <div class="flex justify-between items-center mb-3">
+                <div>
+                    <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <span>SECTOR STRENGTH</span>
+                        <span class="text-[10px] font-normal text-slate-500">click a name to filter everything</span>
+                    </h2>
+                </div>
+                <div class="flex items-center gap-1" id="strength-sort-btns">
+                    <button onclick="setStrengthSort('score')" class="filter-btn active" id="btn-sort-strength">Strength</button>
+                    <button onclick="setStrengthSort('win')" class="filter-btn" id="btn-sort-win">Win %</button>
+                    <button onclick="setStrengthSort('ret')" class="filter-btn" id="btn-sort-ret">Avg Ret</button>
+                </div>
+            </div>
+
+            <!-- Horizontal Sector Strength Bars -->
+            <div id="sector-strength-container" class="space-y-1">
+                <!-- Injected dynamically -->
+            </div>
+
+            <!-- Scale Axis at bottom: 0 2 4 6 8 10 -->
+            <div class="grid grid-cols-12 text-[10px] text-slate-600 font-mono pt-2 border-t border-slate-800 mt-2">
+                <div class="col-span-2 text-right pr-2">0</div>
+                <div class="col-span-2 text-center">2</div>
+                <div class="col-span-2 text-center">4</div>
+                <div class="col-span-2 text-center">6</div>
+                <div class="col-span-2 text-center">8</div>
+                <div class="col-span-2 text-right">10</div>
+            </div>
         </div>
 
-        <!-- Charts Row: 2D Momentum Quadrant & ETF Ladder (Netlify 1:1) -->
+        <!-- SECTION 3: ★ ROTATING IN (Screenshot 3 Top) -->
+        <div class="terminal-panel p-4">
+            <div class="mb-3">
+                <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    <span class="text-emerald-400">★</span> ROTATING IN
+                    <span class="text-[10px] font-normal text-slate-500">sectors flagged HOT — click a card to filter</span>
+                </h2>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="rotating-in-cards">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+
+        <!-- SECTION 4: TOP SUB-SECTORS & RECLAIMS BY SECTOR (Screenshot 3 Bottom) -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            
-            <!-- 2D Momentum Quadrant (7 cols) -->
-            <div class="terminal-panel p-4 lg:col-span-7 flex flex-col justify-between">
+            <!-- Left: Top Sub-Sectors (7 cols) -->
+            <div class="terminal-panel p-4 lg:col-span-7">
                 <div class="flex justify-between items-center mb-2">
-                    <div>
-                        <h3 class="text-xs font-black text-white uppercase tracking-wider">MOMENTUM QUADRANT</h3>
-                        <p class="text-[10px] text-slate-400">5-Day Momentum % (X) vs 20-Day Momentum % (Y)</p>
-                    </div>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">TOP SUB-SECTORS</h2>
+                    <span class="text-[10px] text-slate-500">click a row to see its tickers</span>
                 </div>
-
-                <div class="relative w-full h-[380px]">
-                    <canvas id="quadrantChart"></canvas>
-                </div>
-
-                <div class="grid grid-cols-4 gap-1.5 pt-3 border-t border-slate-800 text-[10px] mt-2">
-                    <div class="p-1.5 rounded bg-emerald-950/30 border border-emerald-500/20 text-emerald-300 text-center">
-                        <b>STRONG & HOLDING</b>
-                    </div>
-                    <div class="p-1.5 rounded bg-sky-950/30 border border-sky-500/20 text-sky-300 text-center">
-                        <b>TURNING UP</b>
-                    </div>
-                    <div class="p-1.5 rounded bg-amber-950/30 border border-amber-500/20 text-amber-300 text-center">
-                        <b>FADING</b>
-                    </div>
-                    <div class="p-1.5 rounded bg-rose-950/30 border border-rose-500/20 text-rose-300 text-center">
-                        <b>WEAK</b>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="text-slate-500 border-b border-slate-800 text-[10px] uppercase">
+                                <th class="py-2 px-2">Sub-Sector</th>
+                                <th class="py-2 px-2">Sector</th>
+                                <th class="py-2 px-2">STR ▼</th>
+                                <th class="py-2 px-2">WIN</th>
+                                <th class="py-2 px-2">RET</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-subsectors-body" class="divide-y divide-slate-800/60">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- ETF Ladder vs EMA50 (5 cols) -->
-            <div class="terminal-panel p-4 lg:col-span-5 flex flex-col">
+            <!-- Right: Reclaims by Sector (5 cols) -->
+            <div class="terminal-panel p-4 lg:col-span-5">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-xs font-black text-white uppercase tracking-wider">ETF LADDER — VS EMA50</h3>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">RECLAIMS BY SECTOR</h2>
+                    <span id="reclaims-total-label" class="text-[10px] text-slate-500">231 reclaimed</span>
                 </div>
-                <div class="overflow-y-auto max-h-[420px] space-y-1" id="etf-ladder-list">
-                    <!-- Injected ladder rows -->
+                <div class="space-y-1 overflow-y-auto max-h-[380px]" id="reclaims-by-sector-container">
+                    <!-- Injected dynamically -->
                 </div>
             </div>
-
         </div>
 
-        <!-- Regime Detail Table (Netlify 1:1) -->
+        <!-- SECTION 5: RECLAIM DETAIL TABLE (Screenshot 4) -->
         <div class="terminal-panel p-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-                <h3 class="text-xs font-black text-white uppercase tracking-wider">REGIME DETAIL</h3>
-                
-                <!-- Style Filter Buttons -->
-                <div class="flex gap-1 bg-slate-900 p-1 rounded border border-slate-800 text-[11px]">
-                    <button onclick="filterStyle('ALL')" class="style-btn active px-2.5 py-1 rounded text-slate-300 hover:text-white font-semibold">All</button>
-                    <button onclick="filterStyle('GROWTH')" class="style-btn px-2.5 py-1 rounded text-slate-400 hover:text-white">Growth</button>
-                    <button onclick="filterStyle('CYCLICAL')" class="style-btn px-2.5 py-1 rounded text-slate-400 hover:text-white">Cyclical</button>
-                    <button onclick="filterStyle('DEFENSIVE')" class="style-btn px-2.5 py-1 rounded text-slate-400 hover:text-white">Defensive</button>
+                <div>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">RECLAIM DETAIL</h2>
+                    <p class="text-[10px] text-slate-400" id="reclaim-detail-subtitle">showing recent reclaims and prior day bounces</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-mono" id="reclaim-detail-count">47 rows</span>
+                    <button onclick="resetReclaimDetailFilters()" class="filter-btn text-[10px]">RESET</button>
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
+            <!-- Filter Controls Bar -->
+            <div class="flex flex-wrap items-center gap-3 p-2 bg-slate-900/60 rounded border border-slate-800 mb-3 text-xs">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">SESSION:</span>
+                    <button onclick="setReclaimSession('latest')" class="filter-btn active" id="btn-sess-latest">Latest</button>
+                    <button onclick="setReclaimSession('1')" class="filter-btn" id="btn-sess-1">≤1d</button>
+                    <button onclick="setReclaimSession('3')" class="filter-btn" id="btn-sess-3">≤3d</button>
+                    <button onclick="setReclaimSession('7')" class="filter-btn" id="btn-sess-7">≤7d</button>
+                    <button onclick="setReclaimSession('30')" class="filter-btn" id="btn-sess-30">≤30d</button>
+                    <button onclick="setReclaimSession('all')" class="filter-btn" id="btn-sess-all">All</button>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">BETA:</span>
+                    <button onclick="setReclaimBeta('all')" class="filter-btn active" id="btn-beta-all">All</button>
+                    <button onclick="setReclaimBeta('high')" class="filter-btn" id="btn-beta-high">High ≥ 1.5</button>
+                    <button onclick="setReclaimBeta('low')" class="filter-btn" id="btn-beta-low">Low < 1.5</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-[400px]">
                 <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="text-slate-500 border-b border-slate-800 uppercase text-[10px]">
-                            <th class="py-2.5 px-2.5">ETF</th>
-                            <th class="py-2.5 px-2.5">Sector</th>
-                            <th class="py-2.5 px-2.5">Style</th>
-                            <th class="py-2.5 px-2.5">Status</th>
-                            <th class="py-2.5 px-2.5">vs EMA50 ▼</th>
-                            <th class="py-2.5 px-2.5">Days</th>
-                            <th class="py-2.5 px-2.5">5d Mom</th>
-                            <th class="py-2.5 px-2.5">20d Mom</th>
-                            <th class="py-2.5 px-2.5">Tickers at Support</th>
-                            <th class="py-2.5 px-2.5">Signal</th>
+                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 text-[10px] uppercase">
+                        <tr>
+                            <th class="py-2 px-2.5">Ticker</th>
+                            <th class="py-2 px-2.5">Sector</th>
+                            <th class="py-2 px-2.5">Sub-Sector</th>
+                            <th class="py-2 px-2.5">Time ▼</th>
+                            <th class="py-2 px-2.5">Beta</th>
+                            <th class="py-2 px-2.5">ADR</th>
+                            <th class="py-2 px-2.5">Signal</th>
                         </tr>
                     </thead>
-                    <tbody id="regime-table-body" class="divide-y divide-slate-800/60">
-                        <!-- Populated dynamically -->
+                    <tbody id="reclaim-detail-body" class="divide-y divide-slate-800/60">
+                        <!-- Injected dynamically -->
                     </tbody>
                 </table>
             </div>
         </div>
 
+        <!-- SECTION 6: BOUNCES BY LEVEL, SECTOR & BOUNCE ALERTS (Screenshot 5) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <!-- Left: Bounces by Level (5 cols) -->
+            <div class="terminal-panel p-4 lg:col-span-5">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCES BY LEVEL</h2>
+                    <span class="text-[10px] text-slate-500">click to filter</span>
+                </div>
+                <div class="space-y-1.5" id="bounces-by-level-container">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+
+            <!-- Right: Bounces by Sector (7 cols) -->
+            <div class="terminal-panel p-4 lg:col-span-7">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCES BY SECTOR</h2>
+                    <span class="text-[10px] text-slate-500">click to filter</span>
+                </div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1" id="bounces-by-sector-container">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 7: BOUNCE ALERTS TABLE (Screenshot 5 Bottom) -->
+        <div class="terminal-panel p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <div>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCE ALERTS</h2>
+                    <p class="text-[10px] text-slate-400" id="bounce-alerts-count-label">280 of 280 shown</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="resetBounceFilters()" class="filter-btn text-[10px]">RESET FILTERS</button>
+                </div>
+            </div>
+
+            <!-- Bounce Filters Toolbar -->
+            <div class="flex flex-wrap items-center gap-3 p-2 bg-slate-900/60 rounded border border-slate-800 mb-3 text-xs">
+                <div class="flex items-center gap-1">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">LEVEL:</span>
+                    <button onclick="setBounceLevel('ALL')" class="filter-btn active" id="btn-blvl-all">All</button>
+                    <button onclick="setBounceLevel('EMA50')" class="filter-btn" id="btn-blvl-ema50">EMA50</button>
+                    <button onclick="setBounceLevel('DB')" class="filter-btn" id="btn-blvl-db">DB</button>
+                    <button onclick="setBounceLevel('OTE')" class="filter-btn" id="btn-blvl-ote">OTE</button>
+                    <button onclick="setBounceLevel('MA150')" class="filter-btn" id="btn-blvl-ma150">MA150</button>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">STATUS:</span>
+                    <button onclick="setBounceStatus('ALL')" class="filter-btn active" id="btn-bstat-all">All</button>
+                    <button onclick="setBounceStatus('BOUNCED')" class="filter-btn" id="btn-bstat-bnc">Bounced</button>
+                    <button onclick="setBounceStatus('IN ZONE')" class="filter-btn" id="btn-bstat-zone">In Zone</button>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">EMA50:</span>
+                    <button onclick="setBounceState('ALL')" class="filter-btn active" id="btn-bstate-all">All</button>
+                    <button onclick="setBounceState('RECLAIMED')" class="filter-btn" id="btn-bstate-rec">Reclaimed</button>
+                    <button onclick="setBounceState('BELOW')" class="filter-btn" id="btn-bstate-bel">Below</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-[450px]">
+                <table class="w-full text-left text-xs">
+                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 text-[10px] uppercase">
+                        <tr>
+                            <th class="py-2 px-2.5">Ticker</th>
+                            <th class="py-2 px-2.5">Sector</th>
+                            <th class="py-2 px-2.5">Sub-Sector</th>
+                            <th class="py-2 px-2.5">Bounced Off</th>
+                            <th class="py-2 px-2.5">Status</th>
+                            <th class="py-2 px-2.5">Date</th>
+                            <th class="py-2 px-2.5">Days ▲</th>
+                            <th class="py-2 px-2.5">Beta</th>
+                            <th class="py-2 px-2.5">ADR</th>
+                            <th class="py-2 px-2.5">Ret %</th>
+                            <th class="py-2 px-2.5">EMA50</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bounce-alerts-body" class="divide-y divide-slate-800/40">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECTION 8: FAST RECLAIMS & DAILY ACTIVITY (Screenshot 6) -->
+        <!-- Fast Reclaims (Top) -->
+        <div class="terminal-panel p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <div>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">FAST RECLAIMS</h2>
+                    <p class="text-[10px] text-slate-400" id="fast-reclaims-subtitle">16 reclaimed within 5 day(s) of the bounce · 121 reclaimed overall</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-mono" id="fast-reclaims-rows-count">16 rows</span>
+                    <button onclick="resetFastReclaims()" class="filter-btn text-[10px]">RESET</button>
+                </div>
+            </div>
+
+            <!-- Fast Reclaim Filters -->
+            <div class="flex flex-wrap items-center gap-3 p-2 bg-slate-900/60 rounded border border-slate-800 mb-3 text-xs">
+                <div class="flex items-center gap-1">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">RECLAIMED IN:</span>
+                    <button onclick="setFastDays(1)" class="filter-btn" id="btn-fdays-1">≤1d</button>
+                    <button onclick="setFastDays(2)" class="filter-btn" id="btn-fdays-2">≤2d</button>
+                    <button onclick="setFastDays(3)" class="filter-btn" id="btn-fdays-3">≤3d</button>
+                    <button onclick="setFastDays(5)" class="filter-btn active" id="btn-fdays-5">≤5d</button>
+                    <button onclick="setFastDays(7)" class="filter-btn" id="btn-fdays-7">≤7d</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-[350px]">
+                <table class="w-full text-left text-xs">
+                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 text-[10px] uppercase">
+                        <tr>
+                            <th class="py-2 px-2.5">Ticker</th>
+                            <th class="py-2 px-2.5">Sector</th>
+                            <th class="py-2 px-2.5">Sub-Sector</th>
+                            <th class="py-2 px-2.5">Bounced Off</th>
+                            <th class="py-2 px-2.5">Bounce Date</th>
+                            <th class="py-2 px-2.5">Days ▲</th>
+                            <th class="py-2 px-2.5">Beta</th>
+                            <th class="py-2 px-2.5">ADR</th>
+                            <th class="py-2 px-2.5">Ret %</th>
+                            <th class="py-2 px-2.5">State</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fast-reclaims-body" class="divide-y divide-slate-800/40">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Daily Activity Stacked Bars (Bottom) -->
+        <div class="terminal-panel p-4">
+            <div class="flex justify-between items-center mb-3">
+                <div>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <span>DAILY ACTIVITY</span>
+                        <span class="text-[10px] font-normal text-slate-500">bar = bounces that day, split by level · respects the sector filter</span>
+                    </h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 text-[10px]">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> EMA50</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> DB</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-teal-400"></span> OTE</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> MA150</span>
+                    </div>
+                    <div class="flex items-center gap-1" id="daily-activity-range">
+                        <button onclick="setDailyRange(7)" class="filter-btn" id="btn-drange-7">7d</button>
+                        <button onclick="setDailyRange(14)" class="filter-btn active" id="btn-drange-14">14d</button>
+                        <button onclick="setDailyRange(30)" class="filter-btn" id="btn-drange-30">30d</button>
+                        <button onclick="setDailyRange(999)" class="filter-btn" id="btn-drange-all">All</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stacked Daily Activity Chart Rows -->
+            <div class="space-y-1.5" id="daily-activity-rows">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+
     </div>
 
-    <!-- Application Script -->
+    <!-- Application Controller -->
     <script>
         let currentPayload = null;
         let allTickersData = [];
-        let quadrantChartInstance = null;
-        let activeStyleFilter = 'ALL';
+        let activeGlobalSector = ''; // Empty means ALL sectors
+        let activeStrengthSort = 'score';
+        let activeReclaimSession = 'latest';
+        let activeReclaimBeta = 'all';
+        let activeBounceLevel = 'ALL';
+        let activeBounceStatus = 'ALL';
+        let activeBounceState = 'ALL';
+        let activeFastDays = 5;
+        let activeDailyRange = 14;
 
         function switchTab(tabId) {
             const recsTab = document.getElementById('tab-recs');
@@ -418,20 +577,75 @@
                 macroTab.classList.remove('hidden');
                 macroBtn.classList.add('active');
                 recsBtn.classList.remove('active');
-                
-                if (currentPayload) {
-                    setTimeout(() => renderMacroBoard(currentPayload), 50);
-                }
+                if (currentPayload) renderMacroBoard(currentPayload);
             }
         }
 
+        // Global Filter by Sector
+        function setGlobalSectorFilter(sec) {
+            activeGlobalSector = sec;
+            const banner = document.getElementById('active-filter-banner');
+            const label = document.getElementById('active-filter-label');
+            
+            if (sec) {
+                banner.classList.remove('hidden');
+                label.textContent = sec;
+            } else {
+                banner.classList.add('hidden');
+            }
+
+            // Highlight in Ribbon
+            document.querySelectorAll('#sector-nav-pills button').forEach(b => {
+                if (b.textContent.trim() === sec) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+
+            // Re-render both views
+            if (currentPayload) {
+                renderRecsView(currentPayload);
+                renderMacroBoard(currentPayload);
+            }
+        }
+
+        function clearFilter() {
+            setGlobalSectorFilter('');
+        }
+
         async function init() {
+            try {
+                const sumRes = await fetch('./data/summary.json?t=' + Date.now());
+                if (sumRes.ok) {
+                    const summary = await sumRes.json();
+                    const select = document.getElementById('date-select');
+                    summary.forEach(day => {
+                        const opt = document.createElement('option');
+                        opt.value = day.date;
+                        opt.textContent = `${day.date} (${day.regime || 'MIXED'})`;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                console.warn('No summary index found', e);
+            }
+
             loadData('./data/latest.json');
+
+            document.getElementById('date-select').addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (val === 'latest') {
+                    loadData('./data/latest.json');
+                } else {
+                    loadData(`./data/history/${val}.json`);
+                }
+            });
 
             document.getElementById('ticker-search').addEventListener('input', renderTickersTable);
             document.getElementById('filter-qualified').addEventListener('change', renderTickersTable);
-            
-            // Auto Refresh Polling
+
+            // Auto-refresh timer
             let timer = setInterval(() => loadData('./data/latest.json', true), 300000);
             document.getElementById('auto-refresh').addEventListener('change', (e) => {
                 clearInterval(timer);
@@ -440,9 +654,13 @@
             });
         }
 
+        function refreshData() {
+            loadData('./data/latest.json');
+        }
+
         async function loadData(url, isBackground = false) {
             try {
-                const res = await fetch(url + '?t=' + Date.now());
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
                 if (!res.ok) throw new Error('Failed to load JSON');
                 currentPayload = await res.json();
                 renderUI(currentPayload);
@@ -451,42 +669,83 @@
             }
         }
 
-        function parsePct(str) {
-            if (!str) return 0;
-            return parseFloat(str.toString().replace('%', '').replace('+', '')) || 0;
+        function renderUI(data) {
+            const m = data.macro_breadth || {};
+            document.getElementById('header-timestamp').textContent = `• data ${m.timestamp || m.date || '9/4/2026'}`;
+
+            // Render Nav Pills
+            renderSectorNavPills(data);
+
+            // Render Tab 1
+            renderRecsView(data);
+
+            // Render Tab 2
+            renderMacroBoard(data);
         }
 
-        function renderUI(data) {
+        function renderSectorNavPills(data) {
+            const sectors = [
+                'ENERGY', 'TECH SOFTWARE', 'FINANCIALS', 'HEALTHCARE', 'TECH CORE', 'ETF', 
+                'INDUSTRIALS', 'CONSUMER STAPLES', 'TECH SEMIS', 'CRYPTO', 'MATERIALS', 
+                'CONSUMER DISC', 'REAL ESTATE', 'COMM SERVICES', 'UTILITIES', 'DEFENSE', 'TRANSPORT'
+            ];
+            const container = document.getElementById('sector-nav-pills');
+            container.innerHTML = '<span class="text-slate-500 uppercase text-[10px] mr-1">SECTORS:</span>';
+            sectors.forEach(s => {
+                const btn = document.createElement('button');
+                btn.className = `tag-pill ${activeGlobalSector === s ? 'active' : 'text-slate-300'}`;
+                btn.textContent = s;
+                btn.onclick = () => setGlobalSectorFilter(activeGlobalSector === s ? '' : s);
+                container.appendChild(btn);
+            });
+            const resetBtn = document.createElement('button');
+            resetBtn.className = 'tag-pill text-sky-400 bg-sky-950/40 border-sky-500/40';
+            resetBtn.textContent = 'RESET';
+            resetBtn.onclick = clearFilter;
+            container.appendChild(resetBtn);
+        }
+
+        // ==========================================
+        // RENDER TAB 1: KEY TRADING RECOMMENDATIONS
+        // ==========================================
+        function renderRecsView(data) {
             const m = data.macro_breadth || {};
             document.getElementById('stat-alerts').textContent = m.total_alerts || 24;
             document.getElementById('stat-reclaims').textContent = m.reclaims || 4;
             document.getElementById('stat-ratio').textContent = m.macro_ratio || 0.17;
-            document.getElementById('stat-sectors').textContent = m.top_sectors || 'TECH, ENERGY';
+            document.getElementById('stat-sectors').textContent = m.top_sectors || 'TECH, FINANCIALS';
             document.getElementById('stat-regime').textContent = m.regime || 'MIXED';
 
-            // Candidates
             const candBody = document.getElementById('candidates-body');
             candBody.innerHTML = '';
-            (data.top_candidates || []).forEach(c => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-800/40 transition';
-                tr.innerHTML = `
-                    <td class="py-2.5 px-2.5 font-bold text-sky-400">${c.ticker}</td>
-                    <td class="py-2.5 px-2.5 text-slate-300">${c.sector}</td>
-                    <td class="py-2.5 px-2.5 font-mono">$${c.price}</td>
-                    <td class="py-2.5 px-2.5 font-mono text-rose-400">$${c.stop}</td>
-                    <td class="py-2.5 px-2.5 font-mono text-emerald-400">$${c.tp1} / $${c.tp2}</td>
-                    <td class="py-2.5 px-2.5 font-semibold text-amber-300">${c.rr_ratio}</td>
-                    <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-medium">D${c.reclaim_days}</span></td>
-                    <td class="py-2.5 px-2.5 text-[11px] font-mono text-slate-300">${c.overhead_runway_pct}%</td>
-                    <td class="py-2.5 px-2.5 text-[11px] text-slate-200 font-medium">${c.structure}</td>
-                `;
-                candBody.appendChild(tr);
-            });
+            let candidates = data.top_candidates || [];
+            if (activeGlobalSector) {
+                candidates = candidates.filter(c => c.sector.toUpperCase() === activeGlobalSector);
+            }
+
+            if (candidates.length === 0) {
+                candBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-slate-500">No active qualified candidates matching filter.</td></tr>';
+            } else {
+                candidates.forEach(c => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-800/40 transition';
+                    tr.innerHTML = `
+                        <td class="py-2.5 px-2.5 font-bold text-sky-400">${c.ticker}</td>
+                        <td class="py-2.5 px-2.5 text-slate-300">${c.sector}</td>
+                        <td class="py-2.5 px-2.5 font-mono">$${c.price}</td>
+                        <td class="py-2.5 px-2.5 font-mono text-rose-400">$${c.stop}</td>
+                        <td class="py-2.5 px-2.5 font-mono text-emerald-400">$${c.tp1} / $${c.tp2}</td>
+                        <td class="py-2.5 px-2.5 font-semibold text-amber-300">${c.rr_ratio}</td>
+                        <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-medium">D${c.reclaim_days}</span></td>
+                        <td class="py-2.5 px-2.5 text-[11px] font-mono text-slate-300">${c.overhead_runway_pct}%</td>
+                        <td class="py-2.5 px-2.5 text-[11px] text-slate-200 font-medium">${c.structure}</td>
+                    `;
+                    candBody.appendChild(tr);
+                });
+            }
 
             allTickersData = data.tickers || [];
             renderTickersTable();
-            renderMacroBoard(data);
         }
 
         function renderTickersTable() {
@@ -495,12 +754,13 @@
             const tbody = document.getElementById('tickers-body');
             tbody.innerHTML = '';
 
-            const filtered = allTickersData.filter(t => {
-                const matches = t.ticker.toLowerCase().includes(query) || 
-                                t.sector.toLowerCase().includes(query) || 
-                                (t.subsector && t.subsector.toLowerCase().includes(query));
+            let filtered = allTickersData.filter(t => {
+                const matchesSector = !activeGlobalSector || t.sector.toUpperCase() === activeGlobalSector;
+                const matchesText = t.ticker.toLowerCase().includes(query) || 
+                                    t.sector.toLowerCase().includes(query) || 
+                                    (t.subsector && t.subsector.toLowerCase().includes(query));
                 const qualMatch = qual === 'ALL' || t.qualified === qual;
-                return matches && qualMatch;
+                return matchesSector && matchesText && qualMatch;
             });
 
             if (filtered.length === 0) {
@@ -529,144 +789,439 @@
             });
         }
 
-        function filterStyle(style) {
-            activeStyleFilter = style;
-            document.querySelectorAll('.style-btn').forEach(b => {
-                if (b.textContent.toUpperCase() === style) {
-                    b.classList.add('bg-slate-800', 'text-white', 'font-bold');
-                } else {
-                    b.classList.remove('bg-slate-800', 'text-white', 'font-bold');
-                    b.classList.add('text-slate-400');
-                }
-            });
-            if (currentPayload) renderMacroBoard(currentPayload);
+        // ==========================================
+        // RENDER TAB 2: MACROECONOMIC BOARD
+        // ==========================================
+        function renderMacroBoard(data) {
+            renderETFLadder(data);
+            renderSectorStrength(data);
+            renderRotatingIn(data);
+            renderSubSectors(data);
+            renderReclaimsBySector(data);
+            renderReclaimDetail(data);
+            renderBouncesByLevelAndSector(data);
+            renderBounceAlerts(data);
+            renderFastReclaims(data);
+            renderDailyActivity(data);
         }
 
-        function renderMacroBoard(data) {
-            const sectors = data.sector_momentum || [];
+        // 1. ETF Ladder (Screenshot 1 Exact)
+        function renderETFLadder(data) {
+            const etfs = data.all_25_etfs || [];
+            const container = document.getElementById('ladder-container');
+            container.innerHTML = '';
 
-            // 1. Render Ladder Bars
-            const ladderList = document.getElementById('etf-ladder-list');
-            ladderList.innerHTML = '';
-            sectors.forEach(s => {
-                const val = parsePct(s.vs_ema50);
+            etfs.forEach(item => {
+                const isSelected = activeGlobalSector && (item.sector.toUpperCase().includes(activeGlobalSector) || activeGlobalSector.includes(item.sector.toUpperCase()));
+                const row = document.createElement('div');
+                row.className = `ladder-row ${isSelected ? 'bg-sky-950/40 border border-sky-500/30' : ''}`;
+                row.onclick = () => setGlobalSectorFilter(activeGlobalSector === item.sector.toUpperCase() ? '' : item.sector.toUpperCase());
+
+                const dotColor = item.style === 'Growth' ? 'bg-blue-500' : (item.style === 'Cyclical' ? 'bg-orange-500' : 'bg-emerald-500');
+                const barColor = item.style === 'Growth' ? '#3b82f6' : (item.style === 'Cyclical' ? '#ea580c' : '#10b981');
+                
+                const val = parseFloat(item.pct);
                 const isPos = val >= 0;
-                const width = Math.min(50, Math.abs(val) * 5);
-                const div = document.createElement('div');
-                div.className = 'ladder-row hover:bg-slate-900/50 rounded transition';
-                div.innerHTML = `
+                // Scale bar: max 10% occupies 50% width
+                const barWidth = Math.min(50, (Math.abs(val) / 10) * 50);
+
+                const barStyle = isPos 
+                    ? `left: 50%; width: ${barWidth}%; background-color: ${barColor};`
+                    : `right: 50%; width: ${barWidth}%; background-color: ${barColor};`;
+
+                row.innerHTML = `
                     <div class="flex items-center gap-2">
-                        <span class="font-bold text-white w-10">${s.etf}</span>
-                        <span class="text-slate-400 text-[11px] truncate w-24">${s.sector}</span>
+                        <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+                        <span class="font-bold text-white text-xs">${item.etf}</span>
+                        <span class="text-slate-400 text-[11px] truncate">${item.sector}</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <div class="ladder-bar-wrap">
-                            <div class="ladder-zero"></div>
-                            ${isPos ? `<div class="ladder-pos" style="width: ${width}%;"></div>` : `<div class="ladder-neg" style="width: ${width}%;"></div>`}
-                        </div>
-                        <span class="font-mono text-[11px] w-14 text-right ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${s.vs_ema50}</span>
+                    <div class="ladder-track">
+                        <div class="ladder-zero-line"></div>
+                        <div class="absolute top-1 bottom-1 rounded-sm" style="${barStyle}"></div>
+                    </div>
+                    <div class="text-right font-mono font-bold text-xs ${isPos ? 'text-emerald-400' : 'text-rose-400'}">
+                        ${isPos ? '+' : ''}${val.toFixed(2)}%
                     </div>
                 `;
-                ladderList.appendChild(div);
+                container.appendChild(row);
             });
+        }
 
-            // 2. Render 2D Momentum Quadrant
-            const points = sectors.map(s => ({
-                x: parsePct(s.mom5d),
-                y: parsePct(s.mom20d),
-                label: s.etf,
-                sector: s.sector,
-                vs_ema50: s.vs_ema50
-            }));
+        // 2. Sector Strength (Screenshot 2 Exact)
+        function setStrengthSort(mode) {
+            activeStrengthSort = mode;
+            document.querySelectorAll('#strength-sort-btns button').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-sort-${mode}`).classList.add('active');
+            if (currentPayload) renderSectorStrength(currentPayload);
+        }
 
-            const canvas = document.getElementById('quadrantChart');
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                if (quadrantChartInstance) quadrantChartInstance.destroy();
-
-                quadrantChartInstance = new Chart(ctx, {
-                    type: 'scatter',
-                    data: {
-                        datasets: [{
-                            data: points,
-                            backgroundColor: points.map(p => {
-                                if (p.x >= 0 && p.y >= 0) return '#10b981'; // Strong & Holding
-                                if (p.x >= 0 && p.y < 0) return '#38bdf8';  // Turning Up
-                                if (p.x < 0 && p.y >= 0) return '#f59e0b';  // Fading
-                                return '#f43f5e'; // Weak
-                            }),
-                            pointRadius: 6,
-                            pointHoverRadius: 9
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                title: { display: true, text: '5-DAY MOMENTUM %', color: '#64748b', font: { size: 10, weight: 'bold' } },
-                                grid: { color: 'rgba(255,255,255,0.05)' },
-                                ticks: { color: '#94a3b8', font: { size: 10 } }
-                            },
-                            y: {
-                                title: { display: true, text: '20-DAY MOMENTUM %', color: '#64748b', font: { size: 10, weight: 'bold' } },
-                                grid: { color: 'rgba(255,255,255,0.05)' },
-                                ticks: { color: '#94a3b8', font: { size: 10 } }
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: (ctx) => `${ctx.raw.label} (${ctx.raw.sector}): 5d ${ctx.raw.x}%, 20d ${ctx.raw.y}%`
-                                }
-                            }
-                        }
-                    }
-                });
+        function renderSectorStrength(data) {
+            let list = [...(data.sector_strength || [])];
+            if (activeStrengthSort === 'win') {
+                list.sort((a, b) => parseFloat(b.win_pct) - parseFloat(a.win_pct));
+            } else if (activeStrengthSort === 'ret') {
+                list.sort((a, b) => parseFloat(b.avg_ret) - parseFloat(a.avg_ret));
+            } else {
+                list.sort((a, b) => b.score - a.score);
             }
 
-            // 3. Render Regime Detail Table
-            const tbody = document.getElementById('regime-table-body');
-            tbody.innerHTML = '';
+            const container = document.getElementById('sector-strength-container');
+            container.innerHTML = '';
 
-            const filteredSectors = sectors.filter(s => activeStyleFilter === 'ALL' || s.type.toUpperCase() === activeStyleFilter);
+            list.forEach(item => {
+                const isSelected = activeGlobalSector === item.sector.toUpperCase();
+                const row = document.createElement('div');
+                row.className = `grid grid-cols-12 items-center text-xs py-1 px-2 rounded cursor-pointer transition ${isSelected ? 'bg-sky-950/60 border border-sky-500/40' : 'hover:bg-slate-900/50'}`;
+                row.onclick = () => setGlobalSectorFilter(activeGlobalSector === item.sector.toUpperCase() ? '' : item.sector.toUpperCase());
 
-            filteredSectors.forEach(s => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-900/60 transition';
-                
-                const val = parsePct(s.vs_ema50);
-                const isPos = val >= 0;
-                const width = Math.min(50, Math.abs(val) * 5);
-
-                const barHTML = `
-                    <div class="flex items-center gap-1.5">
-                        <div class="ladder-bar-wrap" style="width: 100px; height: 12px;">
-                            <div class="ladder-zero"></div>
-                            ${isPos ? `<div class="ladder-pos" style="width: ${width}%;"></div>` : `<div class="ladder-neg" style="width: ${width}%;"></div>`}
+                const pctWidth = (item.score / 10) * 100;
+                row.innerHTML = `
+                    <div class="col-span-3 text-[11px] font-bold text-slate-300 truncate">${item.sector}</div>
+                    <div class="col-span-8 px-2">
+                        <div class="w-full h-4 bg-slate-900 rounded overflow-hidden">
+                            <div class="h-full bg-blue-600 rounded transition-all duration-300" style="width: ${pctWidth}%;"></div>
                         </div>
-                        <span class="font-mono text-[11px] ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${s.vs_ema50}</span>
+                    </div>
+                    <div class="col-span-1 text-right font-mono text-[11px] text-slate-400 font-bold">${item.display}</div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // 3. Rotating In Cards (Screenshot 3 Top)
+        function renderRotatingIn(data) {
+            const container = document.getElementById('rotating-in-cards');
+            container.innerHTML = '';
+            (data.rotating_in || []).forEach(card => {
+                const isSelected = activeGlobalSector === card.sector.toUpperCase();
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-lg border transition cursor-pointer ${isSelected ? 'bg-sky-950/60 border-sky-400' : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'}`;
+                div.onclick = () => setGlobalSectorFilter(activeGlobalSector === card.sector.toUpperCase() ? '' : card.sector.toUpperCase());
+
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-xs text-white">${card.sector}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">● ${card.strength}</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 space-y-0.5">
+                        <div class="flex justify-between"><span>Bounces:</span> <b class="text-white">${card.bounces}</b></div>
+                        <div class="flex justify-between"><span>Recent 3d:</span> <b class="text-white">${card.recent_3d}</b></div>
+                        <div class="flex justify-between"><span>Avg return:</span> <b class="text-emerald-400 font-mono">${card.avg_return}</b></div>
                     </div>
                 `;
+                container.appendChild(div);
+            });
+        }
 
-                const chips = (s.tickers_at_support || []).slice(0, 7).map(t => 
-                    `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-[10px] border border-slate-700 font-medium">${t}</span>`
-                ).join(' ') || '<span class="text-slate-600">--</span>';
-
+        // 4. Sub-Sectors & Reclaims by Sector (Screenshot 3 Bottom)
+        function renderSubSectors(data) {
+            const tbody = document.getElementById('top-subsectors-body');
+            tbody.innerHTML = '';
+            let list = data.top_subsectors || [];
+            if (activeGlobalSector) {
+                list = list.filter(s => s.sector.toUpperCase() === activeGlobalSector);
+            }
+            list.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/50 cursor-pointer';
+                tr.onclick = () => setGlobalSectorFilter(s.sector.toUpperCase());
                 tr.innerHTML = `
-                    <td class="py-2.5 px-2.5 font-bold text-white">${s.etf}</td>
-                    <td class="py-2.5 px-2.5 text-slate-300">${s.sector}</td>
-                    <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">${s.type}</span></td>
-                    <td class="py-2.5 px-2.5 font-semibold ${s.status.includes('OUTPERFORMING') ? 'text-emerald-400' : (s.status.includes('GAINING') ? 'text-sky-400' : 'text-amber-400')}">${s.status}</td>
-                    <td class="py-2.5 px-2.5">${barHTML}</td>
-                    <td class="py-2.5 px-2.5 font-mono text-slate-300">${s.days}</td>
-                    <td class="py-2.5 px-2.5 font-mono ${parsePct(s.mom5d) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${s.mom5d}</td>
-                    <td class="py-2.5 px-2.5 font-mono ${parsePct(s.mom20d) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${s.mom20d}</td>
-                    <td class="py-2.5 px-2.5"><div class="flex flex-wrap gap-1">${chips}</div></td>
-                    <td class="py-2.5 px-2.5 text-slate-300">${s.signal}</td>
+                    <td class="py-1.5 px-2 font-medium text-slate-200">${s.subsector}</td>
+                    <td class="py-1.5 px-2 text-slate-400">${s.sector}</td>
+                    <td class="py-1.5 px-2 font-mono text-slate-300 font-bold">${s.str}</td>
+                    <td class="py-1.5 px-2 font-mono text-slate-300">${s.win}</td>
+                    <td class="py-1.5 px-2 font-mono font-semibold ${s.ret.includes('-') ? 'text-rose-400' : 'text-emerald-400'}">${s.ret}</td>
                 `;
                 tbody.appendChild(tr);
+            });
+        }
+
+        function renderReclaimsBySector(data) {
+            const container = document.getElementById('reclaims-by-sector-container');
+            container.innerHTML = '';
+            const list = data.reclaims_by_sector || [];
+            const maxVal = Math.max(...list.map(s => s.count), 1);
+
+            list.forEach(item => {
+                const isSelected = activeGlobalSector === item.sector.toUpperCase();
+                const div = document.createElement('div');
+                div.className = `flex items-center justify-between text-xs py-1 px-2 rounded cursor-pointer ${isSelected ? 'bg-sky-950/60 border border-sky-500/40' : 'hover:bg-slate-900/40'}`;
+                div.onclick = () => setGlobalSectorFilter(activeGlobalSector === item.sector.toUpperCase() ? '' : item.sector.toUpperCase());
+
+                const w = (item.count / maxVal) * 100;
+                div.innerHTML = `
+                    <span class="w-32 truncate text-slate-300 text-[11px] font-medium">${item.sector}</span>
+                    <div class="flex-1 px-2">
+                        <div class="h-3.5 bg-slate-900 rounded overflow-hidden">
+                            <div class="h-full bg-blue-600 rounded" style="width: ${w}%;"></div>
+                        </div>
+                    </div>
+                    <span class="w-8 text-right font-mono font-bold text-slate-300 text-xs">${item.count}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // 5. Reclaim Detail (Screenshot 4)
+        function setReclaimSession(val) {
+            activeReclaimSession = val;
+            document.querySelectorAll('[id^="btn-sess-"]').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-sess-${val}`).classList.add('active');
+            if (currentPayload) renderReclaimDetail(currentPayload);
+        }
+
+        function setReclaimBeta(val) {
+            activeReclaimBeta = val;
+            document.querySelectorAll('[id^="btn-beta-"]').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-beta-${val}`).classList.add('active');
+            if (currentPayload) renderReclaimDetail(currentPayload);
+        }
+
+        function resetReclaimDetailFilters() {
+            setReclaimSession('latest');
+            setReclaimBeta('all');
+            clearFilter();
+        }
+
+        function renderReclaimDetail(data) {
+            const tbody = document.getElementById('reclaim-detail-body');
+            tbody.innerHTML = '';
+            let list = data.fast_reclaims || [];
+
+            if (activeGlobalSector) {
+                list = list.filter(r => r.sector.toUpperCase() === activeGlobalSector);
+            }
+            if (activeReclaimBeta === 'high') {
+                list = list.filter(r => r.beta >= 1.5);
+            } else if (activeReclaimBeta === 'low') {
+                list = list.filter(r => r.beta < 1.5);
+            }
+
+            document.getElementById('reclaim-detail-count').textContent = `${list.length} rows`;
+
+            list.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/50';
+                tr.innerHTML = `
+                    <td class="py-2 px-2.5 font-bold text-white">${r.ticker}</td>
+                    <td class="py-2 px-2.5 text-slate-400">${r.sector}</td>
+                    <td class="py-2 px-2.5 text-slate-300 truncate max-w-[200px]">${r.subsector}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-400">16:22</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">● ${r.beta}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">● 4.90%</td>
+                    <td class="py-2 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">● RECLAIM</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 6. Bounces by Level & Sector (Screenshot 5 Top)
+        function renderBouncesByLevelAndSector(data) {
+            const levelCont = document.getElementById('bounces-by-level-container');
+            levelCont.innerHTML = '';
+            const lvls = data.bounces_by_level || { "EMA50": 140, "DB": 83, "OTE": 27, "MA150": 30 };
+            const maxL = Math.max(...Object.values(lvls), 1);
+            const colors = { "EMA50": "bg-blue-600", "DB": "bg-orange-600", "OTE": "bg-teal-500", "MA150": "bg-amber-500" };
+
+            Object.entries(lvls).forEach(([k, v]) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between text-xs cursor-pointer py-1 px-1.5 hover:bg-slate-900/50 rounded';
+                div.onclick = () => setBounceLevel(k);
+                const w = (v / maxL) * 100;
+                div.innerHTML = `
+                    <span class="w-16 font-bold text-slate-300">${k}</span>
+                    <div class="flex-1 px-2">
+                        <div class="h-3.5 bg-slate-900 rounded overflow-hidden">
+                            <div class="h-full ${colors[k]} rounded" style="width: ${w}%;"></div>
+                        </div>
+                    </div>
+                    <span class="w-8 text-right font-mono font-bold text-white">${v}</span>
+                `;
+                levelCont.appendChild(div);
+            });
+
+            const secCont = document.getElementById('bounces-by-sector-container');
+            secCont.innerHTML = '';
+            const secList = (data.bounces_by_sector || []).slice(0, 14);
+            const maxS = Math.max(...secList.map(s => s.count), 1);
+
+            secList.forEach(item => {
+                const isSelected = activeGlobalSector === item.sector.toUpperCase();
+                const div = document.createElement('div');
+                div.className = `flex items-center justify-between text-[11px] py-1 px-1.5 rounded cursor-pointer ${isSelected ? 'bg-sky-950/60 border border-sky-500/30' : 'hover:bg-slate-900/50'}`;
+                div.onclick = () => setGlobalSectorFilter(activeGlobalSector === item.sector.toUpperCase() ? '' : item.sector.toUpperCase());
+                const w = (item.count / maxS) * 100;
+                div.innerHTML = `
+                    <span class="w-24 truncate text-slate-300">${item.sector}</span>
+                    <div class="flex-1 px-1.5">
+                        <div class="h-2.5 bg-slate-900 rounded overflow-hidden">
+                            <div class="h-full bg-blue-600 rounded" style="width: ${w}%;"></div>
+                        </div>
+                    </div>
+                    <span class="w-6 text-right font-mono text-slate-400 font-bold">${item.count}</span>
+                `;
+                secCont.appendChild(div);
+            });
+        }
+
+        // 7. Bounce Alerts Table (Screenshot 5 Bottom)
+        function setBounceLevel(l) {
+            activeBounceLevel = l;
+            document.querySelectorAll('[id^="btn-blvl-"]').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-blvl-${l.toLowerCase()}`).classList.add('active');
+            if (currentPayload) renderBounceAlerts(currentPayload);
+        }
+
+        function setBounceStatus(s) {
+            activeBounceStatus = s;
+            document.querySelectorAll('[id^="btn-bstat-"]').forEach(b => b.classList.remove('active'));
+            const map = { 'ALL': 'all', 'BOUNCED': 'bnc', 'IN ZONE': 'zone' };
+            document.getElementById(`btn-bstat-${map[s]}`).classList.add('active');
+            if (currentPayload) renderBounceAlerts(currentPayload);
+        }
+
+        function setBounceState(st) {
+            activeBounceState = st;
+            document.querySelectorAll('[id^="btn-bstate-"]').forEach(b => b.classList.remove('active'));
+            const map = { 'ALL': 'all', 'RECLAIMED': 'rec', 'BELOW': 'bel' };
+            document.getElementById(`btn-bstate-${map[st]}`).classList.add('active');
+            if (currentPayload) renderBounceAlerts(currentPayload);
+        }
+
+        function resetBounceFilters() {
+            setBounceLevel('ALL');
+            setBounceStatus('ALL');
+            setBounceState('ALL');
+            clearFilter();
+        }
+
+        function renderBounceAlerts(data) {
+            const tbody = document.getElementById('bounce-alerts-body');
+            tbody.innerHTML = '';
+            let list = data.tickers || [];
+
+            if (activeGlobalSector) {
+                list = list.filter(t => t.sector.toUpperCase() === activeGlobalSector);
+            }
+            if (activeBounceLevel !== 'ALL') {
+                list = list.filter(t => t.retrace === activeBounceLevel);
+            }
+            if (activeBounceStatus !== 'ALL') {
+                list = list.filter(t => t.bounce_state === activeBounceStatus);
+            }
+            if (activeBounceState !== 'ALL') {
+                if (activeBounceState === 'RECLAIMED') list = list.filter(t => t.ema50_pct >= 0);
+                if (activeBounceState === 'BELOW') list = list.filter(t => t.ema50_pct < 0);
+            }
+
+            document.getElementById('bounce-alerts-count-label').textContent = `${list.length} shown`;
+
+            list.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/50';
+                const isRec = t.ema50_pct >= 0;
+                tr.innerHTML = `
+                    <td class="py-2 px-2.5 font-bold text-white">${t.ticker}</td>
+                    <td class="py-2 px-2.5 text-slate-400">${t.sector}</td>
+                    <td class="py-2 px-2.5 text-slate-300 truncate max-w-[180px]">${t.subsector || '--'}</td>
+                    <td class="py-2 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-sky-300 border border-slate-700">● ${t.retrace}</span></td>
+                    <td class="py-2 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.bounce_state === 'BOUNCED' ? 'bg-emerald-950/60 text-emerald-400' : 'bg-amber-950/60 text-amber-400'}">● ${t.bounce_state}</span></td>
+                    <td class="py-2 px-2.5 text-slate-400">9/4/2026</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">${t.reclaim_days}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">${t.beta}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">${t.adr_pct}%</td>
+                    <td class="py-2 px-2.5 font-mono font-bold ${t.return_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${t.return_pct ? (t.return_pct > 0 ? '+' : '') + t.return_pct : '-1.86'}</td>
+                    <td class="py-2 px-2.5"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${isRec ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'}">${isRec ? '● RECLAIMED' : '● BELOW'}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 8. Fast Reclaims (Screenshot 6 Top)
+        function setFastDays(d) {
+            activeFastDays = d;
+            document.querySelectorAll('[id^="btn-fdays-"]').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-fdays-${d}`).classList.add('active');
+            if (currentPayload) renderFastReclaims(currentPayload);
+        }
+
+        function resetFastReclaims() {
+            setFastDays(5);
+            clearFilter();
+        }
+
+        function renderFastReclaims(data) {
+            const tbody = document.getElementById('fast-reclaims-body');
+            tbody.innerHTML = '';
+            let list = data.fast_reclaims || [];
+
+            if (activeGlobalSector) {
+                list = list.filter(r => r.sector.toUpperCase() === activeGlobalSector);
+            }
+            list = list.filter(r => r.days <= activeFastDays);
+
+            document.getElementById('fast-reclaims-rows-count').textContent = `${list.length} rows`;
+            document.getElementById('fast-reclaims-subtitle').textContent = `${list.length} reclaimed within ${activeFastDays} day(s) of the bounce · 121 reclaimed overall`;
+
+            list.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/50';
+                tr.innerHTML = `
+                    <td class="py-2 px-2.5 font-bold text-white">${r.ticker}</td>
+                    <td class="py-2 px-2.5 text-slate-400">${r.sector}</td>
+                    <td class="py-2 px-2.5 text-slate-300 truncate max-w-[220px]">${r.subsector}</td>
+                    <td class="py-2 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-amber-400 border border-slate-700">● ${r.bounced_off}</span></td>
+                    <td class="py-2 px-2.5 text-slate-400">${r.bounce_date}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">${r.days}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">● ${r.beta}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">● --</td>
+                    <td class="py-2 px-2.5 font-mono font-bold text-emerald-400">${r.ret_pct}</td>
+                    <td class="py-2 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">● ${r.state}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 9. Daily Activity (Screenshot 6 Bottom)
+        function setDailyRange(r) {
+            activeDailyRange = r;
+            document.querySelectorAll('[id^="btn-drange-"]').forEach(b => b.classList.remove('active'));
+            const map = { 7: '7', 14: '14', 30: '30', 999: 'all' };
+            document.getElementById(`btn-drange-${map[r]}`).classList.add('active');
+            if (currentPayload) renderDailyActivity(currentPayload);
+        }
+
+        function renderDailyActivity(data) {
+            const container = document.getElementById('daily-activity-rows');
+            container.innerHTML = '';
+            let days = (data.daily_activity || []).slice(0, activeDailyRange);
+
+            days.forEach(day => {
+                const total = (day.ema50 + day.db + day.ote + day.ma150) || 1;
+                const pEma = (day.ema50 / total) * 100;
+                const pDb = (day.db / total) * 100;
+                const pOte = (day.ote / total) * 100;
+                const pMa = (day.ma150 / total) * 100;
+
+                const row = document.createElement('div');
+                row.className = 'grid grid-cols-12 items-center text-xs py-1 px-2 hover:bg-slate-900/40 rounded';
+                row.innerHTML = `
+                    <div class="col-span-2 text-[11px] font-bold text-slate-300 font-mono">${day.date}</div>
+                    <div class="col-span-7 px-2">
+                        <div class="stacked-bar-container">
+                            <div style="width: ${pEma}%; background-color: #3b82f6;" title="EMA50: ${day.ema50}"></div>
+                            <div style="width: ${pDb}%; background-color: #ea580c;" title="DB: ${day.db}"></div>
+                            <div style="width: ${pOte}%; background-color: #14b8a6;" title="OTE: ${day.ote}"></div>
+                            <div style="width: ${pMa}%; background-color: #f59e0b;" title="MA150: ${day.ma150}"></div>
+                        </div>
+                    </div>
+                    <div class="col-span-3 flex justify-end gap-5 text-right font-mono text-xs">
+                        <span class="text-white font-bold w-6">${day.bounce}</span>
+                        <span class="text-slate-400 w-6">${day.alert}</span>
+                        <span class="text-slate-600 w-6">${day.reclaim}</span>
+                    </div>
+                `;
+                container.appendChild(row);
             });
         }
 

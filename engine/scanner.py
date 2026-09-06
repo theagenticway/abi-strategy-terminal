@@ -154,7 +154,7 @@ def process_universe(raw_data=None, sample_date_str=None):
         low = snapshot["raw_low"]
         ema50 = snapshot["raw_ema50"]
 
-        retrace_type, retrace_level = detect_retrace_pattern(close, high, low, ema50, snapshot["sma150"])
+        retrace_type, retrace_level = detect_retrace_pattern(close, high, low, ema50, snapshot.get("raw_sma150", snapshot["sma150"]))
         reclaim_days, is_confirmed, bounce_state = calculate_reclaim_velocity(close, ema50)
 
         alert_count += 1
