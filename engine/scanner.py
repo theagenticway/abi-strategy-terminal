@@ -46,7 +46,7 @@ def prune_old_history():
     if pruned_count > 0:
         print(f"[*] Pruned {pruned_count} historical files older than {RETENTION_DAYS} days (cutoff: {cutoff_date}).")
 
-def fetch_market_data(tickers, period="6mo", interval="1d"):
+def fetch_market_data(tickers, period="1y", interval="1d"):
     """
     Downloads data in batches of 75 tickers to prevent Yahoo Finance HTTP 429 rate limits.
     Merges batch dataframes cleanly.
