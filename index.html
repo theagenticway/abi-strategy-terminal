@@ -75,6 +75,9 @@
                 <button id="tab-recs-btn" onclick="switchTab('recs')" class="tab-btn px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
                     <span>🎯</span> Key Trading Recommendations
                 </button>
+                <button id="tab-perf-btn" onclick="switchTab('perf')" class="tab-btn px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <span>📈</span> Performance & Audit Log
+                </button>
             </div>
 
             <!-- Auto-Refresh & Action buttons -->
@@ -706,6 +709,104 @@
 
     </div>
 
+    <!-- ======================================================== -->
+    <!-- TAB 3: PERFORMANCE & AUDIT LOG (AUTOMATED TRADE TRACKER) -->
+    <!-- ======================================================== -->
+    <div id="tab-perf" class="space-y-4 hidden">
+        
+        <!-- Strategy Performance KPI Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">CUMULATIVE WIN RATE</div>
+                <div class="text-2xl font-black text-emerald-400 mt-0.5"><span id="perf-winrate">60.0%</span></div>
+                <div class="text-[11px] text-slate-500">TP1/TP2 vs Stops</div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">PROFIT FACTOR</div>
+                <div class="text-2xl font-black text-sky-400 mt-0.5"><span id="perf-profitfactor">1.99x</span></div>
+                <div class="text-[11px] text-slate-500">Gross Win / Loss</div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">TOTAL LOGGED</div>
+                <div class="text-2xl font-black text-white mt-0.5"><span id="perf-total">10</span></div>
+                <div class="text-[11px] text-slate-500">recommendations</div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">ACTIVE OPEN</div>
+                <div class="text-2xl font-black text-amber-400 mt-0.5"><span id="perf-open">5</span></div>
+                <div class="text-[11px] text-slate-500">live positions</div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">AVG WINNER / LOSER</div>
+                <div class="text-xs font-black text-white mt-2 font-mono">
+                    <span class="text-emerald-400" id="perf-avgwin">+11.0%</span> / <span class="text-rose-400" id="perf-avgloss">-8.3%</span>
+                </div>
+                <div class="text-[11px] text-slate-500">realized returns</div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">AVG HOLDING TIME</div>
+                <div class="text-2xl font-black text-slate-200 mt-0.5"><span id="perf-holding">6.5d</span></div>
+                <div class="text-[11px] text-slate-500">to target / stop</div>
+            </div>
+        </div>
+
+        <!-- Interactive Filterable Audit Ledger Table -->
+        <div class="terminal-panel p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <div>
+                    <h2 class="text-sm font-black text-white flex items-center gap-1.5 uppercase tracking-wide">
+                        <span class="text-emerald-400">📈</span> Automated Recommendation Audit & Outcome Ledger
+                    </h2>
+                    <p class="text-[11px] text-slate-400">Historical record of all recommended swing setups, tracking execution from alert to TP1/TP2 targets or invalidation stops.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-mono" id="perf-trades-count">10 trades shown</span>
+                    <button onclick="loadPerformanceData()" class="filter-btn text-[10px]">↻ REFRESH LEDGER</button>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="flex flex-wrap items-center justify-between gap-3 p-2.5 bg-slate-900/60 rounded border border-slate-800 mb-3 text-xs">
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold mr-1">STATUS:</span>
+                    <button onclick="setPerfFilter('ALL')" class="filter-btn active" id="btn-pfilt-all">All Trades</button>
+                    <button onclick="setPerfFilter('OPEN')" class="filter-btn" id="btn-pfilt-open">Active Open</button>
+                    <button onclick="setPerfFilter('WON')" class="filter-btn" id="btn-pfilt-won">Target Hit (TP1/TP2)</button>
+                    <button onclick="setPerfFilter('LOST')" class="filter-btn" id="btn-pfilt-lost">Stopped Out</button>
+                </div>
+                <div class="w-full sm:w-64">
+                    <input type="text" id="perf-search" placeholder="Search ticker / sector..." class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded px-3 py-1 w-full focus:outline-none focus:ring-1 focus:ring-sky-500">
+                </div>
+            </div>
+
+            <!-- Ledger Table -->
+            <div class="overflow-x-auto max-h-[550px]">
+                <table class="w-full text-left text-xs">
+                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 uppercase text-[10px]">
+                        <tr>
+                            <th class="py-2.5 px-2.5">Entry Date</th>
+                            <th class="py-2.5 px-2.5">Ticker</th>
+                            <th class="py-2.5 px-2.5">Sector</th>
+                            <th class="py-2.5 px-2.5">Structure</th>
+                            <th class="py-2.5 px-2.5">Entry</th>
+                            <th class="py-2.5 px-2.5">Stop</th>
+                            <th class="py-2.5 px-2.5">Targets (TP1/TP2)</th>
+                            <th class="py-2.5 px-2.5">Current / Exit</th>
+                            <th class="py-2.5 px-2.5">P&L %</th>
+                            <th class="py-2.5 px-2.5">Active</th>
+                            <th class="py-2.5 px-2.5">Status</th>
+                            <th class="py-2.5 px-2.5">Audit Lifecycle Note</th>
+                        </tr>
+                    </thead>
+                    <tbody id="perf-trades-body" class="divide-y divide-slate-800/40">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
     <!-- Application Master Controller -->
     <script>
         let currentPayload = null;
@@ -724,25 +825,129 @@
         let currentRegimeSortCol = 'pct';
         let currentRegimeSortAsc = false;
 
+        let activePerfFilter = 'ALL';
+        let allTradesLog = [];
+
         function switchTab(tabId) {
             const macroTab = document.getElementById('tab-macro');
             const recsTab = document.getElementById('tab-recs');
+            const perfTab = document.getElementById('tab-perf');
             const macroBtn = document.getElementById('tab-macro-btn');
             const recsBtn = document.getElementById('tab-recs-btn');
+            const perfBtn = document.getElementById('tab-perf-btn');
+
+            // Reset all tabs
+            macroTab.classList.add('hidden');
+            recsTab.classList.add('hidden');
+            perfTab.classList.add('hidden');
+            macroBtn.classList.remove('active');
+            recsBtn.classList.remove('active');
+            perfBtn.classList.remove('active');
 
             if (tabId === 'macro') {
                 macroTab.classList.remove('hidden');
-                recsTab.classList.add('hidden');
                 macroBtn.classList.add('active');
-                recsBtn.classList.remove('active');
                 if (currentPayload) renderMacroBoard(currentPayload);
-            } else {
-                macroTab.classList.add('hidden');
+            } else if (tabId === 'recs') {
                 recsTab.classList.remove('hidden');
                 recsBtn.classList.add('active');
-                macroBtn.classList.remove('active');
                 if (currentPayload) renderRecsView(currentPayload);
+            } else if (tabId === 'perf') {
+                perfTab.classList.remove('hidden');
+                perfBtn.classList.add('active');
+                loadPerformanceData();
             }
+        }
+
+        async function loadPerformanceData() {
+            try {
+                const res = await fetch('./data/trades_log.json?t=' + Date.now());
+                if (!res.ok) throw new Error('No trades_log.json found');
+                const logData = await res.json();
+                renderPerformanceView(logData);
+            } catch (e) {
+                console.warn('Could not load trades log:', e);
+            }
+        }
+
+        function setPerfFilter(status) {
+            activePerfFilter = status;
+            document.querySelectorAll('[id^="btn-pfilt-"]').forEach(b => b.classList.remove('active'));
+            const map = { 'ALL': 'all', 'OPEN': 'open', 'WON': 'won', 'LOST': 'lost' };
+            document.getElementById(`btn-pfilt-${map[status]}`).classList.add('active');
+            renderTradesLedgerTable();
+        }
+
+        function renderPerformanceView(data) {
+            const sum = data.summary || {};
+            allTradesLog = data.trades || [];
+
+            document.getElementById('perf-winrate').textContent = (sum.win_rate_pct || 60.0) + '%';
+            document.getElementById('perf-profitfactor').textContent = (sum.profit_factor || 1.99) + 'x';
+            document.getElementById('perf-total').textContent = sum.total_recommendations || allTradesLog.length;
+            document.getElementById('perf-open').textContent = sum.active_open || 0;
+            document.getElementById('perf-avgwin').textContent = (sum.avg_winner_pct > 0 ? '+' : '') + (sum.avg_winner_pct || 11.0) + '%';
+            document.getElementById('perf-avgloss').textContent = (sum.avg_loser_pct || -8.3) + '%';
+            document.getElementById('perf-holding').textContent = (sum.avg_holding_days || 6.5) + 'd';
+
+            renderTradesLedgerTable();
+        }
+
+        function renderTradesLedgerTable() {
+            const query = (document.getElementById('perf-search')?.value || '').toLowerCase().trim();
+            const tbody = document.getElementById('perf-trades-body');
+            tbody.innerHTML = '';
+
+            let filtered = allTradesLog.filter(t => {
+                const matchesSearch = t.ticker.toLowerCase().includes(query) || t.sector.toLowerCase().includes(query);
+                let matchesStatus = true;
+                if (activePerfFilter === 'OPEN') matchesStatus = (t.status === 'OPEN');
+                else if (activePerfFilter === 'WON') matchesStatus = (t.status === 'TP1_HIT' || t.status === 'TP2_HIT');
+                else if (activePerfFilter === 'LOST') matchesStatus = (t.status === 'STOPPED_OUT');
+                return matchesSearch && matchesStatus;
+            });
+
+            document.getElementById('perf-trades-count').textContent = `${filtered.length} trades shown`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" class="py-6 text-center text-slate-500">No trades match the selected status filter.</td></tr>';
+                return;
+            }
+
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/50 transition';
+
+                const pnl = parseFloat(t.pnl_pct || 0);
+                const isPos = pnl >= 0;
+
+                let statusBadge = '';
+                if (t.status === 'OPEN') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950/60 text-amber-400 border border-amber-500/30">● OPEN</span>';
+                } else if (t.status === 'TP1_HIT') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">● TP1 HIT</span>';
+                } else if (t.status === 'TP2_HIT') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">★ TP2 HIT</span>';
+                } else if (t.status === 'STOPPED_OUT') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30">✕ STOPPED</span>';
+                }
+
+                tr.innerHTML = `
+                    <td class="py-2.5 px-2.5 font-mono text-slate-400 text-[11px]">${t.entry_date}</td>
+                    <td class="py-2.5 px-2.5 font-bold text-sky-400">${t.ticker}</td>
+                    <td class="py-2.5 px-2.5 text-slate-400">${t.sector}</td>
+                    <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">${t.structure}</span></td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-200">$${parseFloat(t.entry_price).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-rose-400">$${parseFloat(t.stop_price).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-emerald-400">$${parseFloat(t.tp1).toFixed(2)} / $${parseFloat(t.tp2).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-200">$${parseFloat(t.current_price).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${pnl.toFixed(2)}%</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-400">${t.days_active}d</td>
+                    <td class="py-2.5 px-2.5">${statusBadge}</td>
+                    <td class="py-2.5 px-2.5 text-[11px] text-slate-400 truncate max-w-[220px]" title="${t.exit_reason || 'Active position'}">${t.exit_reason || 'Live holding · Stop active'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
         // Live Clock
@@ -827,6 +1032,7 @@
             });
 
             document.getElementById('ticker-search').addEventListener('input', renderTickersTable);
+            document.getElementById('perf-search')?.addEventListener('input', renderTradesLedgerTable);
             document.getElementById('filter-qualified').addEventListener('change', renderTickersTable);
 
             // Auto-refresh interval

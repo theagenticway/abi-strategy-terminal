@@ -536,13 +536,143 @@ def run_backfill(raw_data, days=30):
         try:
             sliced_df = raw_data.loc[:dt_str]
             payload = process_universe(sliced_df, sample_date_str=dt_str)
-            save_payloads(payload)
+            save_payloads(payload, data)
             print(f"    -> Backfilled {dt_str} ({len(payload.get('tickers', []))} tickers)")
         except Exception as e:
             print(f"    [!] Error on {dt_str}: {e}")
     print(f"[✓] Backfilled {len(target_dates)} days successfully.")
 
-def save_payloads(payload: dict):
+
+def audit_and_update_trades(raw_data, qualified_candidates, today_str):
+    """
+    Automated Trade Lifecycle & Performance Auditor.
+    Tracks all historical recommendations, audits active open positions against live market bars,
+    evaluates invalidation stops / TP1 / TP2 exits, logs new setups, and computes cumulative metrics.
+    """
+    trades_log_path = os.path.join(DATA_DIR, "trades_log.json")
+    trades_data = {"summary": {}, "trades": []}
+    
+    if os.path.exists(trades_log_path):
+        try:
+            with open(trades_log_path, "r") as f:
+                trades_data = json.load(f)
+        except Exception:
+            pass
+            
+    trades = trades_data.get("trades", [])
+    existing_ids = set(t["id"] for t in trades)
+    active_open_tickers = set(t["ticker"] for t in trades if t["status"] == "OPEN")
+
+    # 1. Audit Active Open Positions against current day's price action
+    for t in trades:
+        if t["status"] == "OPEN":
+            ticker = t["ticker"]
+            ticker_df = extract_ticker_df(raw_data, ticker)
+            if ticker_df is not None and len(ticker_df) > 0 and "Close" in ticker_df.columns:
+                today_bar = ticker_df.iloc[-1]
+                high_p = float(today_bar.get("High", today_bar["Close"]))
+                low_p = float(today_bar.get("Low", today_bar["Close"]))
+                close_p = float(today_bar["Close"])
+                
+                t["max_price"] = max(t.get("max_price", t["entry_price"]), high_p)
+                t["min_price"] = min(t.get("min_price", t["entry_price"]), low_p)
+                t["current_price"] = close_p
+                t["days_active"] = t.get("days_active", 0) + 1
+                
+                entry_p = t["entry_price"]
+                stop_p = t["stop_price"]
+                tp1 = t["tp1"]
+                tp2 = t["tp2"]
+                
+                # Check Invalidation Stop Hit
+                if low_p <= stop_p:
+                    t["status"] = "STOPPED_OUT"
+                    t["exit_date"] = today_str
+                    realized_pnl = round(((stop_p - entry_p) / entry_p) * 100, 2)
+                    t["pnl_pct"] = realized_pnl
+                    t["exit_reason"] = f"Hit Invalidation Stop ({realized_pnl:+.2f}%)"
+                    t["current_price"] = stop_p
+                # Check Take Profit 2 Hit
+                elif high_p >= tp2:
+                    t["status"] = "TP2_HIT"
+                    t["exit_date"] = today_str
+                    realized_pnl = round(((tp2 - entry_p) / entry_p) * 100, 2)
+                    t["pnl_pct"] = realized_pnl
+                    t["exit_reason"] = f"Take Profit 2 Hit ({realized_pnl:+.2f}%)"
+                    t["current_price"] = tp2
+                # Check Take Profit 1 Hit
+                elif high_p >= tp1:
+                    t["status"] = "TP1_HIT"
+                    realized_pnl = round(((high_p - entry_p) / entry_p) * 100, 2)
+                    t["pnl_pct"] = realized_pnl
+                    t["exit_reason"] = f"Take Profit 1 Hit ({realized_pnl:+.2f}%) · Trailing Breakeven"
+                    # Trail stop to breakeven
+                    t["stop_price"] = max(t["stop_price"], entry_p)
+                else:
+                    # Still open, update floating PnL
+                    t["pnl_pct"] = round(((close_p - entry_p) / entry_p) * 100, 2)
+
+    # 2. Append Newly Qualified Recommendations
+    for c in qualified_candidates[:5]:
+        ticker = c["ticker"]
+        trade_id = f"{today_str}_{ticker}"
+        if trade_id not in existing_ids and ticker not in active_open_tickers:
+            entry_p = c["price"]
+            stop_p = c["stop"]
+            new_trade = {
+                "id": trade_id,
+                "entry_date": today_str,
+                "ticker": ticker,
+                "sector": c["sector"],
+                "entry_price": entry_p,
+                "stop_price": stop_p,
+                "tp1": c["tp1"],
+                "tp2": c["tp2"],
+                "structure": c.get("structure", "Bull Call Spread (45-60 DTE)"),
+                "status": "OPEN",
+                "current_price": entry_p,
+                "max_price": entry_p,
+                "min_price": entry_p,
+                "days_active": 0,
+                "pnl_pct": 0.0,
+                "exit_date": None,
+                "exit_reason": None
+            }
+            trades.insert(0, new_trade) # Add to top of list
+            existing_ids.add(trade_id)
+            active_open_tickers.add(ticker)
+
+    # 3. Compute Cumulative Strategy Performance
+    closed = [t for t in trades if t["status"] != "OPEN"]
+    winners = [t for t in closed if t["status"] in ["TP1_HIT", "TP2_HIT"] or t["pnl_pct"] > 0]
+    losers = [t for t in closed if t["status"] == "STOPPED_OUT" or t["pnl_pct"] < 0]
+
+    win_rate = round((len(winners) / max(1, len(closed))) * 100, 1)
+    avg_winner = round(sum(t["pnl_pct"] for t in winners) / max(1, len(winners)), 2) if winners else 0.0
+    avg_loser = round(sum(t["pnl_pct"] for t in losers) / max(1, len(losers)), 2) if losers else 0.0
+    total_win_dollars = sum(t["pnl_pct"] for t in winners)
+    total_loss_dollars = abs(sum(t["pnl_pct"] for t in losers)) if losers else 1.0
+    profit_factor = round(total_win_dollars / max(0.01, total_loss_dollars), 2)
+    avg_holding = round(sum(t.get("days_active", 1) for t in closed) / max(1, len(closed)), 1) if closed else 0.0
+
+    summary = {
+        "total_recommendations": len(trades),
+        "active_open": len([t for t in trades if t["status"] == "OPEN"]),
+        "closed_trades": len(closed),
+        "win_rate_pct": win_rate,
+        "profit_factor": profit_factor,
+        "avg_winner_pct": avg_winner,
+        "avg_loser_pct": avg_loser,
+        "avg_holding_days": avg_holding
+    }
+
+    trades_payload = {"summary": summary, "trades": trades}
+    with open(trades_log_path, "w") as f:
+        json.dump(trades_payload, f, indent=2)
+    print(f"[+] Updated {trades_log_path} ({len(trades)} total trades, {win_rate}% win rate, {profit_factor}x profit factor)")
+    return trades_payload
+
+def save_payloads(payload: dict, raw_data=None):
     """Writes latest.json, updates summary.json, and prunes old files."""
     os.makedirs(DATA_DIR, exist_ok=True)
     os.makedirs(HISTORY_DIR, exist_ok=True)
@@ -599,6 +729,6 @@ if __name__ == "__main__":
     else:
         data = fetch_market_data(universe, period="1y")
         payload = process_universe(data)
-        save_payloads(payload)
+        save_payloads(payload, data)
         
     print("[✓] Execution complete.")
