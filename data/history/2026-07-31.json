@@ -1,7 +1,7 @@
 {
   "macro_breadth": {
     "date": "2026-07-31",
-    "timestamp": "2026-09-06 02:42:53",
+    "timestamp": "2026-09-06 02:56:21",
     "total_alerts": 454,
     "reclaims": 174,
     "confirmed": 174,
@@ -2707,132 +2707,132 @@
     },
     {
       "date": "2026-09-04",
-      "ema50": 4,
-      "db": 1,
-      "ote": 1,
-      "ma150": 4,
-      "bounce": 4,
-      "alert": 24,
+      "ema50": 361,
+      "db": 72,
+      "ote": 21,
+      "ma150": 0,
+      "bounce": 187,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-09-03",
-      "ema50": 21,
-      "db": 17,
-      "ote": 6,
-      "ma150": 9,
-      "bounce": 18,
-      "alert": 54,
+      "ema50": 378,
+      "db": 59,
+      "ote": 17,
+      "ma150": 0,
+      "bounce": 197,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-09-02",
-      "ema50": 34,
-      "db": 23,
-      "ote": 10,
-      "ma150": 14,
-      "bounce": 31,
-      "alert": 81,
+      "ema50": 367,
+      "db": 69,
+      "ote": 18,
+      "ma150": 0,
+      "bounce": 177,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-09-01",
-      "ema50": 8,
-      "db": 5,
-      "ote": 1,
-      "ma150": 3,
-      "bounce": 5,
-      "alert": 17,
+      "ema50": 366,
+      "db": 74,
+      "ote": 14,
+      "ma150": 0,
+      "bounce": 167,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-08-31",
-      "ema50": 3,
-      "db": 6,
-      "ote": 1,
-      "ma150": 4,
-      "bounce": 4,
-      "alert": 14,
+      "ema50": 339,
+      "db": 99,
+      "ote": 16,
+      "ma150": 0,
+      "bounce": 184,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-08-28",
-      "ema50": 1,
-      "db": 10,
-      "ote": 2,
-      "ma150": 3,
-      "bounce": 0,
-      "alert": 16,
+      "ema50": 345,
+      "db": 93,
+      "ote": 16,
+      "ma150": 0,
+      "bounce": 197,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-08-27",
-      "ema50": 15,
-      "db": 24,
-      "ote": 2,
-      "ma150": 3,
-      "bounce": 7,
-      "alert": 44,
+      "ema50": 341,
+      "db": 91,
+      "ote": 22,
+      "ma150": 0,
+      "bounce": 201,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-08-26",
-      "ema50": 10,
-      "db": 12,
-      "ote": 2,
-      "ma150": 5,
-      "bounce": 10,
-      "alert": 29,
+      "ema50": 371,
+      "db": 66,
+      "ote": 17,
+      "ma150": 0,
+      "bounce": 201,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-08-25",
-      "ema50": 4,
-      "db": 4,
-      "ote": 2,
-      "ma150": 9,
-      "bounce": 3,
-      "alert": 19,
+      "ema50": 364,
+      "db": 68,
+      "ote": 22,
+      "ma150": 0,
+      "bounce": 198,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-08-24",
-      "ema50": 6,
-      "db": 7,
-      "ote": 3,
-      "ma150": 2,
-      "bounce": 3,
-      "alert": 18,
+      "ema50": 365,
+      "db": 71,
+      "ote": 18,
+      "ma150": 0,
+      "bounce": 212,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-08-21",
-      "ema50": 12,
-      "db": 3,
-      "ote": 1,
-      "ma150": 9,
-      "bounce": 2,
-      "alert": 25,
+      "ema50": 363,
+      "db": 67,
+      "ote": 24,
+      "ma150": 0,
+      "bounce": 204,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-08-20",
-      "ema50": 11,
-      "db": 15,
-      "ote": 0,
-      "ma150": 9,
-      "bounce": 16,
-      "alert": 35,
+      "ema50": 364,
+      "db": 57,
+      "ote": 33,
+      "ma150": 0,
+      "bounce": 203,
+      "alert": 454,
       "reclaim": "--"
     },
     {
       "date": "2026-08-19",
-      "ema50": 22,
-      "db": 23,
-      "ote": 7,
-      "ma150": 27,
-      "bounce": 21,
-      "alert": 79,
+      "ema50": 386,
+      "db": 39,
+      "ote": 29,
+      "ma150": 0,
+      "bounce": 226,
+      "alert": 454,
       "reclaim": "--"
     }
   ],
@@ -7216,7 +7216,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -7238,7 +7238,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7260,7 +7260,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7282,7 +7282,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7304,7 +7304,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7326,7 +7326,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 14,
       "qualified": "NO"
     },
@@ -7348,7 +7348,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -7370,7 +7370,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -7392,7 +7392,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -7414,7 +7414,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -7436,7 +7436,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7458,7 +7458,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -7480,7 +7480,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7502,7 +7502,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -7524,7 +7524,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -7546,7 +7546,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -7568,7 +7568,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -7590,7 +7590,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -7612,7 +7612,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7634,7 +7634,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7656,7 +7656,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7678,7 +7678,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7700,7 +7700,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 13,
       "qualified": "NO"
     },
@@ -7722,7 +7722,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 10,
       "qualified": "NO"
     },
@@ -7744,7 +7744,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -7766,7 +7766,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7788,7 +7788,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -7810,7 +7810,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7832,7 +7832,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7854,7 +7854,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -7876,7 +7876,7 @@
       "retrace": "OTE",
       "bounce_state": "ABOVE",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -7898,7 +7898,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -7920,7 +7920,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -7942,7 +7942,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 10,
       "qualified": "NO"
     },
@@ -7964,7 +7964,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -7986,7 +7986,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -8008,7 +8008,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8030,7 +8030,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8052,7 +8052,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -8074,7 +8074,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 4,
       "qualified": "NO"
     },
@@ -8096,7 +8096,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -8118,7 +8118,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8140,7 +8140,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8162,7 +8162,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -8184,7 +8184,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8206,7 +8206,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8228,7 +8228,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8250,7 +8250,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -8272,7 +8272,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -8294,7 +8294,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8316,7 +8316,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 10,
       "qualified": "NO"
     },
@@ -8338,7 +8338,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 13,
       "qualified": "NO"
     },
@@ -8360,7 +8360,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8382,7 +8382,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -8404,7 +8404,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8426,7 +8426,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8448,7 +8448,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8470,7 +8470,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8492,7 +8492,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8514,7 +8514,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8536,7 +8536,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -8558,7 +8558,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8580,7 +8580,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 14,
       "qualified": "NO"
     },
@@ -8602,7 +8602,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -8624,7 +8624,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8646,7 +8646,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8668,7 +8668,7 @@
       "retrace": "DB",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -8690,7 +8690,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -8712,7 +8712,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -8734,7 +8734,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -8756,7 +8756,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -8778,7 +8778,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -8800,7 +8800,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -8822,7 +8822,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 9,
       "qualified": "NO"
     },
@@ -8844,7 +8844,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -8866,7 +8866,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 10,
       "qualified": "NO"
     },
@@ -8888,7 +8888,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 10,
       "qualified": "NO"
     },
@@ -8910,7 +8910,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -8932,7 +8932,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -8954,7 +8954,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -8976,7 +8976,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -8998,7 +8998,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9020,7 +9020,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9042,7 +9042,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 5,
       "qualified": "NO"
     },
@@ -9064,7 +9064,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9086,7 +9086,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -9108,7 +9108,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 5,
       "qualified": "NO"
     },
@@ -9130,7 +9130,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 5,
       "qualified": "NO"
     },
@@ -9152,7 +9152,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9174,7 +9174,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9196,7 +9196,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9218,7 +9218,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9240,7 +9240,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9262,7 +9262,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -9284,7 +9284,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -9306,7 +9306,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9328,7 +9328,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -9350,7 +9350,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9372,7 +9372,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9394,7 +9394,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9416,7 +9416,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9438,7 +9438,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9460,7 +9460,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9482,7 +9482,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9504,7 +9504,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9526,7 +9526,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9548,7 +9548,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9570,7 +9570,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -9592,7 +9592,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9614,7 +9614,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9636,7 +9636,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9658,7 +9658,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9680,7 +9680,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9702,7 +9702,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9724,7 +9724,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9746,7 +9746,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9768,7 +9768,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9790,7 +9790,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9812,7 +9812,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9834,7 +9834,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9856,7 +9856,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -9878,7 +9878,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9900,7 +9900,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9922,7 +9922,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -9944,7 +9944,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -9966,7 +9966,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -9988,7 +9988,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -10010,7 +10010,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10032,7 +10032,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10054,7 +10054,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -10076,7 +10076,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 5,
       "qualified": "NO"
     },
@@ -10098,7 +10098,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -10120,7 +10120,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10142,7 +10142,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10164,7 +10164,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10186,7 +10186,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10208,7 +10208,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -10230,7 +10230,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10252,7 +10252,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10274,7 +10274,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10296,7 +10296,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10318,7 +10318,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10340,7 +10340,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10362,7 +10362,7 @@
       "retrace": "OTE",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -10384,7 +10384,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -10406,7 +10406,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -10428,7 +10428,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -10450,7 +10450,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -10472,7 +10472,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -10494,7 +10494,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -10516,7 +10516,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10538,7 +10538,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -10560,7 +10560,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -10582,7 +10582,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10604,7 +10604,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10626,7 +10626,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10648,7 +10648,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -10670,7 +10670,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -10692,7 +10692,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -10714,7 +10714,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -10736,7 +10736,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10758,7 +10758,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -10780,7 +10780,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 5,
       "qualified": "NO"
     },
@@ -10802,7 +10802,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10824,7 +10824,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -10846,7 +10846,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -10868,7 +10868,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -10890,7 +10890,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -10912,7 +10912,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -10934,7 +10934,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -10956,7 +10956,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -10978,7 +10978,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -11000,7 +11000,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11022,7 +11022,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11044,7 +11044,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11066,7 +11066,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11088,7 +11088,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -11110,7 +11110,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11132,7 +11132,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11154,7 +11154,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -11176,7 +11176,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11198,7 +11198,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -11220,7 +11220,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -11242,7 +11242,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -11264,7 +11264,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -11286,7 +11286,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -11308,7 +11308,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -11330,7 +11330,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -11352,7 +11352,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11374,7 +11374,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -11396,7 +11396,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11418,7 +11418,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11440,7 +11440,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11462,7 +11462,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -11484,7 +11484,7 @@
       "retrace": "DB",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -11506,7 +11506,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11528,7 +11528,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11550,7 +11550,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11572,7 +11572,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11594,7 +11594,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -11616,7 +11616,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11638,7 +11638,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11660,7 +11660,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11682,7 +11682,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -11704,7 +11704,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11726,7 +11726,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11748,7 +11748,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11770,7 +11770,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -11792,7 +11792,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11814,7 +11814,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11836,7 +11836,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11858,7 +11858,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11880,7 +11880,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11902,7 +11902,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11924,7 +11924,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -11946,7 +11946,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 9,
       "qualified": "NO"
     },
@@ -11968,7 +11968,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -11990,7 +11990,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12012,7 +12012,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 13,
       "qualified": "NO"
     },
@@ -12034,7 +12034,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12056,7 +12056,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12078,7 +12078,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12100,7 +12100,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -12122,7 +12122,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12144,7 +12144,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12166,7 +12166,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12188,7 +12188,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -12210,7 +12210,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12232,7 +12232,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -12254,7 +12254,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12276,7 +12276,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12298,7 +12298,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -12320,7 +12320,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12342,7 +12342,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12364,7 +12364,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12386,7 +12386,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12408,7 +12408,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12430,7 +12430,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12452,7 +12452,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12474,7 +12474,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12496,7 +12496,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12518,7 +12518,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -12540,7 +12540,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -12562,7 +12562,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -12584,7 +12584,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -12606,7 +12606,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12628,7 +12628,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -12650,7 +12650,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12672,7 +12672,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12694,7 +12694,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12716,7 +12716,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12738,7 +12738,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12760,7 +12760,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12782,7 +12782,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 13,
       "qualified": "NO"
     },
@@ -12804,7 +12804,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -12826,7 +12826,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -12848,7 +12848,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -12870,7 +12870,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -12892,7 +12892,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -12914,7 +12914,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -12936,7 +12936,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 13,
       "qualified": "NO"
     },
@@ -12958,7 +12958,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 14,
       "qualified": "NO"
     },
@@ -12980,7 +12980,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13002,7 +13002,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13024,7 +13024,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13046,7 +13046,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -13068,7 +13068,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13090,7 +13090,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13112,7 +13112,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13134,7 +13134,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 14,
       "qualified": "NO"
     },
@@ -13156,7 +13156,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13178,7 +13178,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13200,7 +13200,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13222,7 +13222,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13244,7 +13244,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -13266,7 +13266,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -13288,7 +13288,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -13310,7 +13310,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 5,
       "qualified": "NO"
     },
@@ -13332,7 +13332,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13354,7 +13354,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13376,7 +13376,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13398,7 +13398,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -13420,7 +13420,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13442,7 +13442,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -13464,7 +13464,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13486,7 +13486,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13508,7 +13508,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13530,7 +13530,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -13552,7 +13552,7 @@
       "retrace": "DB",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13574,7 +13574,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13596,7 +13596,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13618,7 +13618,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13640,7 +13640,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13662,7 +13662,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13684,7 +13684,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13706,7 +13706,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13728,7 +13728,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13750,7 +13750,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13772,7 +13772,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -13794,7 +13794,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -13816,7 +13816,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -13838,7 +13838,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13860,7 +13860,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13882,7 +13882,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 14,
       "qualified": "NO"
     },
@@ -13904,7 +13904,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13926,7 +13926,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13948,7 +13948,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -13970,7 +13970,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -13992,7 +13992,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 10,
       "qualified": "NO"
     },
@@ -14014,7 +14014,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14036,7 +14036,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -14058,7 +14058,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -14080,7 +14080,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14102,7 +14102,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14124,7 +14124,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 5,
       "qualified": "NO"
     },
@@ -14146,7 +14146,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14168,7 +14168,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14190,7 +14190,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -14212,7 +14212,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14234,7 +14234,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14256,7 +14256,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14278,7 +14278,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14300,7 +14300,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -14322,7 +14322,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14344,7 +14344,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 14,
       "qualified": "NO"
     },
@@ -14366,7 +14366,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -14388,7 +14388,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14410,7 +14410,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -14432,7 +14432,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14454,7 +14454,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14476,7 +14476,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14498,7 +14498,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14520,7 +14520,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14542,7 +14542,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14564,7 +14564,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14586,7 +14586,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14608,7 +14608,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -14630,7 +14630,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14652,7 +14652,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -14674,7 +14674,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -14696,7 +14696,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14718,7 +14718,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14740,7 +14740,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14762,7 +14762,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14784,7 +14784,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14806,7 +14806,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14828,7 +14828,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14850,7 +14850,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14872,7 +14872,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -14894,7 +14894,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -14916,7 +14916,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -14938,7 +14938,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -14960,7 +14960,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -14982,7 +14982,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15004,7 +15004,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15026,7 +15026,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15048,7 +15048,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15070,7 +15070,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -15092,7 +15092,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -15114,7 +15114,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15136,7 +15136,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15158,7 +15158,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 13,
       "qualified": "NO"
     },
@@ -15180,7 +15180,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15202,7 +15202,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 4,
       "qualified": "NO"
     },
@@ -15224,7 +15224,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15246,7 +15246,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15268,7 +15268,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15290,7 +15290,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15312,7 +15312,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15334,7 +15334,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15356,7 +15356,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15378,7 +15378,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 4,
       "qualified": "NO"
     },
@@ -15400,7 +15400,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 4,
       "qualified": "NO"
     },
@@ -15422,7 +15422,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15444,7 +15444,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -15466,7 +15466,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 4,
       "qualified": "NO"
     },
@@ -15488,7 +15488,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15510,7 +15510,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15532,7 +15532,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15554,7 +15554,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15576,7 +15576,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15598,7 +15598,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15620,7 +15620,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15642,7 +15642,7 @@
       "retrace": "OTE",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15664,7 +15664,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15686,7 +15686,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15708,7 +15708,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 9,
       "qualified": "NO"
     },
@@ -15730,7 +15730,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15752,7 +15752,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15774,7 +15774,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15796,7 +15796,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -15818,7 +15818,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15840,7 +15840,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15862,7 +15862,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15884,7 +15884,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -15906,7 +15906,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15928,7 +15928,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15950,7 +15950,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15972,7 +15972,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -15994,7 +15994,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -16016,7 +16016,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16038,7 +16038,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16060,7 +16060,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16082,7 +16082,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -16104,7 +16104,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -16126,7 +16126,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16148,7 +16148,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16170,7 +16170,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 9,
       "qualified": "NO"
     },
@@ -16192,7 +16192,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -16214,7 +16214,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16236,7 +16236,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16258,7 +16258,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16280,7 +16280,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16302,7 +16302,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16324,7 +16324,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16346,7 +16346,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -16368,7 +16368,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -16390,7 +16390,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 6,
       "qualified": "NO"
     },
@@ -16412,7 +16412,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -16434,7 +16434,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 10,
       "qualified": "NO"
     },
@@ -16456,7 +16456,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16478,7 +16478,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16500,7 +16500,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16522,7 +16522,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16544,7 +16544,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16566,7 +16566,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -16588,7 +16588,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16610,7 +16610,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -16632,7 +16632,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16654,7 +16654,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16676,7 +16676,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "BELOW EMA50 \u2014 MA150 support",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -16698,7 +16698,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -16720,7 +16720,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -16742,7 +16742,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 8,
       "qualified": "NO"
     },
@@ -16764,7 +16764,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -16786,7 +16786,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16808,7 +16808,7 @@
       "retrace": "EMA50",
       "bounce_state": "ABOVE",
       "trend": "\u2605 STRONG \u2014 above all",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 7,
       "qualified": "NO"
     },
@@ -16830,7 +16830,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16852,7 +16852,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16874,7 +16874,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16896,7 +16896,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16918,7 +16918,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16940,7 +16940,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16962,7 +16962,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -16984,7 +16984,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 2,
       "qualified": "YES"
     },
@@ -17006,7 +17006,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -17028,7 +17028,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -17050,7 +17050,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "AT EMA50 \u2014 bounce or break",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -17072,7 +17072,7 @@
       "retrace": "DB",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -17094,7 +17094,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -17116,7 +17116,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -17138,7 +17138,7 @@
       "retrace": "EMA50",
       "bounce_state": "BOUNCED",
       "trend": "MODERATE \u2014 holding EMA21",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 3,
       "qualified": "YES"
     },
@@ -17160,7 +17160,7 @@
       "retrace": "EMA50",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     },
@@ -17182,7 +17182,7 @@
       "retrace": "OTE",
       "bounce_state": "BELOW",
       "trend": "BELOW ALL \u2014 avoid longs",
-      "reclaim_date": "2026-09-06 02:42:53",
+      "reclaim_date": "2026-09-06 02:56:21",
       "reclaim_days": 1,
       "qualified": "NO"
     }
