@@ -543,12 +543,15 @@ TICKER_TAXONOMY = {
 
 def fetch_live_sp500_constituents():
     """
-    Dynamically fetches official S&P 500 constituents from Wikipedia when online.
+    Dynamically fetches official S&P 500 constituents from Wikipedia with a valid User-Agent.
     Returns dictionary {ticker: (sector, subsector)}.
     """
     try:
+        import urllib.request
         url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-        tables = pd.read_html(url)
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'})
+        with urllib.request.urlopen(req) as resp:
+            tables = pd.read_html(resp.read())
         df = tables[0]
         live_taxonomy = {}
         for _, row in df.iterrows():

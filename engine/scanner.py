@@ -46,7 +46,7 @@ def prune_old_history():
     if pruned_count > 0:
         print(f"[*] Pruned {pruned_count} historical files older than {RETENTION_DAYS} days (cutoff: {cutoff_date}).")
 
-def fetch_market_data(tickers, period="1y", interval="1d"):
+def fetch_market_data(tickers, period="6mo", interval="1d"):
     """
     Downloads data in batches of 75 tickers to prevent Yahoo Finance HTTP 429 rate limits.
     Merges batch dataframes cleanly.
@@ -207,6 +207,10 @@ def process_universe(raw_data=None, sample_date_str=None):
             snapshot["overhead_clearance_ok"]
         )
 
+        time_str = timestamp_str.split(" ")[-1][:5] if " " in timestamp_str else "16:00"
+        ret_val = snapshot.get("d1_return", 0.0)
+        is_reclaimed = snapshot["ema50_dist_pct"] >= 0
+
         record = {
             "ticker": ticker,
             "sector": sector,
@@ -220,13 +224,21 @@ def process_universe(raw_data=None, sample_date_str=None):
             "overhead_clearance_ok": snapshot["overhead_clearance_ok"],
             "beta": snapshot["beta"],
             "adr_pct": snapshot["adr_pct"],
+            "adr": f"{snapshot['adr_pct']}%",
+            "return_pct": ret_val,
+            "d5_return": snapshot.get("d5_return", 0.0),
+            "d20_return": snapshot.get("d20_return", 0.0),
             "rsi": snapshot["rsi"],
             "macd_crawling_up": snapshot["macd_crawling_up"],
             "retrace": retrace_type,
+            "bounced_off": retrace_type,
             "bounce_state": bounce_state,
             "trend": trend_quality,
+            "time": time_str,
+            "date": today_str,
             "reclaim_date": timestamp_str,
             "reclaim_days": reclaim_days,
+            "state": "RECLAIMED" if is_reclaimed else "BELOW",
             "qualified": "YES" if is_qualified else "NO"
         }
         ticker_records.append(record)
@@ -397,7 +409,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             "win": f"{win}%",
             "ret": f"{ret:+.2f}%"
         })
-    top_subsectors = sorted(top_subsectors, key=lambda x: x["ret"], reverse=True)[:15]
+    top_subsectors = sorted(top_subsectors, key=lambda x: (x["score"], int(x["win"].replace("%", "")), float(x["ret"].replace("%", "").replace("+", ""))), reverse=True)[:15]
 
     # 5. Reclaims by Sector & Bounces by Sector
     reclaims_by_sector = []
