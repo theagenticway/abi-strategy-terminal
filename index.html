@@ -280,7 +280,7 @@
                 <span class="text-[10px] text-slate-500" id="regime-change-count-sub">2 ETFs flipped their side of the EMA50 in the last day</span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="regime-change-cards-container">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3" id="regime-change-cards-container">
                 <!-- Injected dynamically -->
             </div>
         </div>
@@ -992,7 +992,8 @@
             const tickers = data.tickers || [];
             const sectors = data.sector_momentum || [];
 
-            const totalSec = new Set(sectors.map(s => s.sector).concat(tickers.map(t => t.sector))).size || 20;
+            // 20 primary tracking sectors matching Netlify
+            const totalSec = 20;
             const hotSec = sectors.filter(s => s.status.includes('OUTPERFORMING') || s.signal.includes('HOT')).length || 8;
             const alertsCount = m.total_alerts || 968;
             const reclaimsCount = m.reclaims || 47;
@@ -1183,7 +1184,7 @@
             ];
 
             cards.forEach(c => {
-                const isPos = c.vs_ema50.startsWith('+');
+                const isPos = c.vs_ema50.toString().startsWith('+');
                 const div = document.createElement('div');
                 div.className = 'p-3.5 rounded-lg bg-slate-900/90 border border-blue-500/40 space-y-1.5 cursor-pointer';
                 div.onclick = () => setGlobalSectorFilter(c.sector.toUpperCase());
@@ -1249,9 +1250,12 @@
                 const statusClass = e.status.includes('OUTPERFORMING') ? 'badge-outperforming' : (e.status.includes('GAINING') ? 'badge-gaining' : 'badge-weakening');
                 const isPos = e.pct >= 0;
 
-                const chips = (secMetaMap[e.etf] || (data.tickers || []).filter(t => t.sector.toUpperCase().includes(e.sector.toUpperCase())).map(t => t.ticker)).slice(0, 8).map(t => 
+                const fullSupportList = secMetaMap[e.etf] || (data.tickers || []).filter(t => t.sector.toUpperCase().includes(e.sector.toUpperCase())).map(t => t.ticker);
+                const supportCount = fullSupportList.length;
+                const overflowCount = supportCount > 7 ? ` <span class="text-slate-500 font-bold">+${supportCount - 7}</span>` : '';
+                const chips = fullSupportList.slice(0, 7).map(t => 
                     `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px] font-medium">${t}</span>`
-                ).join(' ');
+                ).join(' ') + overflowCount;
 
                 tr.innerHTML = `
                     <td class="py-2.5 px-2.5 font-bold text-white text-xs">${e.etf}</td>
@@ -1259,10 +1263,10 @@
                     <td class="py-2.5 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${styleClass}">● ${e.style.toUpperCase()}</span></td>
                     <td class="py-2.5 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">● ${e.status.replace('★ ', '')}</span></td>
                     <td class="py-2.5 px-2.5 font-mono font-bold text-xs ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${e.pct.toFixed(2)}%</td>
-                    <td class="py-2.5 px-2.5 font-mono text-slate-300">23</td>
-                    <td class="py-2.5 px-2.5 font-mono text-slate-300">-0.5%</td>
-                    <td class="py-2.5 px-2.5 font-mono text-slate-300">+10.86%</td>
-                    <td class="py-2.5 px-2.5 font-mono text-white font-bold">10</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-300">${e.days || 15}</td>
+                    <td class="py-2.5 px-2.5 font-mono ${parsePct(e.mom5d) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${e.mom5d || '+0.00%'}</td>
+                    <td class="py-2.5 px-2.5 font-mono ${parsePct(e.mom20d) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${e.mom20d || '+0.00%'}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-white font-bold">${supportCount}</td>
                     <td class="py-2.5 px-2.5"><div class="flex flex-wrap gap-1">${chips}</div></td>
                 `;
                 tbody.appendChild(tr);
@@ -1609,6 +1613,9 @@
             }
 
             document.getElementById('bounce-alerts-count-label').textContent = `${list.length} shown`;
+            
+            // Sort by days ascending so fresh Day 0 / Day 1 bounces appear at the top matching Netlify
+            list = [...list].sort((a, b) => (a.reclaim_days || 0) - (b.reclaim_days || 0));
 
             list.forEach(t => {
                 const tr = document.createElement('tr');
@@ -1653,6 +1660,11 @@
                 list = list.filter(r => r.sector.toUpperCase() === activeGlobalSector);
             }
             list = list.filter(r => r.days <= activeFastDays);
+            // Sort by days ascending, then return descending matching Netlify
+            list = [...list].sort((a, b) => {
+                if (a.days !== b.days) return a.days - b.days;
+                return parsePct(b.ret_pct) - parsePct(a.ret_pct);
+            });
 
             document.getElementById('fast-reclaims-rows-count').textContent = `${list.length} rows`;
             document.getElementById('fast-reclaims-subtitle').textContent = `${list.length} reclaimed within ${activeFastDays} day(s) of the bounce · 121 reclaimed overall`;
