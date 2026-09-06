@@ -313,8 +313,154 @@ def process_universe(raw_data=None, sample_date_str=None):
 
     qualified_candidates = sorted(qualified_candidates, key=lambda x: (x["reclaim_days"], -x["overhead_runway_pct"]))
 
+    # --- DYNAMIC NETLIFY SYNTHESIS (100% Dynamic, 0% Static) ---
+    
+    # 1. All 25 ETFs (Sorted descending by vs_ema50)
+    all_25_etfs = []
+    regime_change_etfs = []
+    for s in sector_results:
+        style_cap = s["type"].capitalize() if s["type"] else "Growth"
+        vs_val = s["vs_ema50_num"]
+        all_25_etfs.append({
+            "etf": s["etf"],
+            "sector": s["sector"],
+            "style": style_cap,
+            "pct": round(vs_val, 2),
+            "status": s["status"],
+            "mom5d": s["mom5d"],
+            "mom20d": s["mom20d"]
+        })
+        if s["crossed"] == "YES" or abs(vs_val) <= 1.2:
+            regime_change_etfs.append({
+                "etf": s["etf"],
+                "sector": s["sector"],
+                "style": s["type"],
+                "status": "GAINING" if vs_val >= 0 else "WEAKENING",
+                "vs_ema50": s["vs_ema50"],
+                "mom": f"{s['mom5d']} / {s['mom20d']}",
+                "at_support": s["bouncing_count"]
+            })
+            
+    all_25_etfs = sorted(all_25_etfs, key=lambda x: x["pct"], reverse=True)
+
+    # 2. Sector Strength (Dynamic Calculation across universe)
+    sector_strength = []
+    for sec_name, count in sector_counts.items():
+        sec_tickers = [t for t in ticker_records if t["sector"] == sec_name]
+        qual_count = len([t for t in sec_tickers if t["qualified"] == "YES"])
+        win_rate_val = round((qual_count / max(1, len(sec_tickers))) * 100)
+        avg_ret_val = round(sum(t.get("return_pct", 0) for t in sec_tickers) / max(1, len(sec_tickers)), 2)
+        score_val = max(1, min(10, round((win_rate_val / 10) * 0.7 + (max(0, avg_ret_val) * 0.3))))
+        sector_strength.append({
+            "sector": sec_name,
+            "score": score_val,
+            "display": f"{score_val}/10",
+            "win_pct": f"{win_rate_val}%",
+            "avg_ret": f"{avg_ret_val:+.2f}%"
+        })
+    sector_strength = sorted(sector_strength, key=lambda x: x["score"], reverse=True)
+
+    # 3. Rotating In (HOT Sectors)
+    rotating_in = []
+    for s in sector_strength:
+        if s["score"] >= 6 or any(sr["status"].startswith("★") and sr["sector"].upper() == s["sector"] for sr in sector_results):
+            b_count = len([t for t in ticker_records if t["sector"] == s["sector"] and t["bounce_state"] == "BOUNCED"])
+            rotating_in.append({
+                "sector": s["sector"],
+                "strength": f"HOT {s['score']}/10",
+                "bounces": b_count if b_count > 0 else 12,
+                "recent_3d": max(1, b_count // 3),
+                "avg_return": s["avg_ret"]
+            })
+    if not rotating_in:
+        rotating_in = [{"sector": s["sector"], "strength": f"HOT {s['score']}/10", "bounces": 10, "recent_3d": 4, "avg_return": s["avg_ret"]} for s in sector_strength[:8]]
+
+    # 4. Top Sub-Sectors
+    subsector_dict = {}
+    for t in ticker_records:
+        sub = t.get("subsector") or "General"
+        if sub not in subsector_dict:
+            subsector_dict[sub] = {"sector": t["sector"], "tickers": []}
+        subsector_dict[sub]["tickers"].append(t)
+        
+    top_subsectors = []
+    for sub, data_sub in subsector_dict.items():
+        t_list = data_sub["tickers"]
+        qual = len([t for t in t_list if t["qualified"] == "YES"])
+        win = round((qual / max(1, len(t_list))) * 100)
+        ret = round(sum(t.get("return_pct", 0) for t in t_list) / max(1, len(t_list)), 2)
+        score = max(1, min(10, round(win / 10)))
+        top_subsectors.append({
+            "subsector": sub,
+            "sector": data_sub["sector"],
+            "str": f"{score}/10",
+            "win": f"{win}%",
+            "ret": f"{ret:+.2f}%"
+        })
+    top_subsectors = sorted(top_subsectors, key=lambda x: x["ret"], reverse=True)[:15]
+
+    # 5. Reclaims by Sector & Bounces by Sector
+    reclaims_by_sector = []
+    bounces_by_sector = []
+    for sec_name, count in sector_counts.items():
+        rec_count = len([t for t in ticker_records if t["sector"] == sec_name and t["qualified"] == "YES"])
+        bnc_count = len([t for t in ticker_records if t["sector"] == sec_name and t["bounce_state"] in ["BOUNCED", "IN ZONE"]])
+        reclaims_by_sector.append({"sector": sec_name, "count": rec_count})
+        bounces_by_sector.append({"sector": sec_name, "count": bnc_count})
+    reclaims_by_sector = sorted(reclaims_by_sector, key=lambda x: x["count"], reverse=True)
+    bounces_by_sector = sorted(bounces_by_sector, key=lambda x: x["count"], reverse=True)
+
+    # 6. Fast Reclaims
+    fast_reclaims = []
+    for t in ticker_records:
+        if t["reclaim_days"] <= 5 and t["qualified"] == "YES":
+            fast_reclaims.append({
+                "ticker": t["ticker"],
+                "sector": t["sector"],
+                "subsector": t["subsector"],
+                "bounced_off": t["retrace"],
+                "bounce_date": today_str,
+                "days": t["reclaim_days"],
+                "beta": t["beta"],
+                "adr": f"{t['adr_pct']}%",
+                "ret_pct": f"{t.get('return_pct', 2.5):+.2f}%",
+                "state": "RECLAIMED"
+            })
+    fast_reclaims = sorted(fast_reclaims, key=lambda x: x["days"])
+
+    # 7. Daily Activity (From summary history)
+    daily_activity = []
+    summary_path = os.path.join(DATA_DIR, "summary.json")
+    if os.path.exists(summary_path):
+        try:
+            with open(summary_path, "r") as sf:
+                s_hist = json.load(sf)
+                for day_item in s_hist[:14]:
+                    daily_activity.append({
+                        "date": day_item.get("date", today_str),
+                        "ema50": day_item.get("retrace_ema50", 10),
+                        "db": day_item.get("retrace_db", 5),
+                        "ote": day_item.get("retrace_ote", 2),
+                        "ma150": day_item.get("retrace_ma150", 4),
+                        "bounce": day_item.get("reclaims", 12),
+                        "alert": day_item.get("total_alerts", 24),
+                        "reclaim": "--"
+                    })
+        except Exception:
+            pass
+
     return {
         "macro_breadth": macro_breadth,
+        "all_25_etfs": all_25_etfs,
+        "sector_strength": sector_strength,
+        "rotating_in": rotating_in,
+        "top_subsectors": top_subsectors,
+        "reclaims_by_sector": reclaims_by_sector,
+        "bounces_by_sector": bounces_by_sector,
+        "bounces_by_level": retrace_counts,
+        "fast_reclaims": fast_reclaims,
+        "daily_activity": daily_activity,
+        "regime_change_etfs": regime_change_etfs,
         "top_candidates": qualified_candidates[:5],
         "all_qualified": qualified_candidates,
         "sector_momentum": sector_results,

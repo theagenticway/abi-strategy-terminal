@@ -8,6 +8,11 @@ import pandas as pd
 
 # Core 20 Sector & Industry SPDRs / ETFs
 SECTOR_ETFS = {
+    "XLV": {"name": "Healthcare", "type": "DEFENSIVE", "benchmark": "SPY"},
+    "XME": {"name": "Metals & Mining", "type": "CYCLICAL", "benchmark": "SPY"},
+    "ITB": {"name": "Homebuilders", "type": "CYCLICAL", "benchmark": "XLI"},
+    "JETS": {"name": "Airlines", "type": "CYCLICAL", "benchmark": "IYT"},
+    "TAN": {"name": "Solar", "type": "GROWTH", "benchmark": "XLK"},
     "GDX": {"name": "Gold Miners", "type": "DEFENSIVE", "benchmark": "XME"},
     "IBB": {"name": "Biotech", "type": "GROWTH", "benchmark": "XLV"},
     "XBI": {"name": "Biotech Small Cap", "type": "GROWTH", "benchmark": "XLV"},

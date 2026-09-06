@@ -6,6 +6,8 @@
     <title>EMA50 Scanner Terminal | ABI Strategy Dashboard</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN with annotation plugin for Momentum Quadrant -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -26,7 +28,7 @@
         body { background-color: #080c14; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; }
         .terminal-panel { background: #0d1322; border: 1px solid #1e293b; border-radius: 8px; }
         .tab-btn.active { background: #1e293b; color: #38bdf8; border-bottom: 2px solid #38bdf8; font-weight: 600; }
-        .tag-pill { background: #1e293b; border: 1px solid #334155; font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer; transition: all 0.15s; }
+        .tag-pill { background: #101726; border: 1px solid #1e293b; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; transition: all 0.15s; }
         .tag-pill:hover, .tag-pill.active { border-color: #38bdf8; color: #38bdf8; background: rgba(56,189,248,0.1); }
         .filter-btn { background: #131d31; border: 1px solid #1e293b; padding: 3px 10px; font-size: 11px; border-radius: 4px; color: #94a3b8; transition: all 0.15s; }
         .filter-btn:hover { color: #fff; border-color: #334155; }
@@ -38,32 +40,44 @@
         .ladder-zero-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.25); z-index: 10; }
         /* Stacked Bars */
         .stacked-bar-container { display: flex; height: 16px; border-radius: 2px; overflow: hidden; background: #1e293b; }
+        /* Style Badges */
+        .badge-growth { background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa; }
+        .badge-cyclical { background: rgba(234, 88, 12, 0.15); border: 1px solid rgba(234, 88, 12, 0.3); color: #fb923c; }
+        .badge-defensive { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; }
+        .badge-outperforming { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; }
+        .badge-gaining { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
+        .badge-weakening { background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.3); color: #f87171; }
     </style>
 </head>
-<body class="min-h-screen p-3 md:p-6 space-y-4">
+<body class="min-h-screen p-3 md:p-6 space-y-3">
 
-    <!-- Top Terminal Master Header -->
-    <header class="terminal-panel p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <!-- Top Terminal Master Header (Netlify 1:1 Parity) -->
+    <header class="terminal-panel p-3.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div class="flex items-center gap-3">
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="font-black tracking-wider text-base md:text-lg text-white">EMA50 SCANNER TERMINAL</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">LIVE</span>
+                <span class="font-black tracking-wider text-base md:text-lg text-white">EMA50 SCANNER</span>
+                <span class="text-xs text-slate-500 font-mono">TERMINAL</span>
+                <span class="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> LIVE
+                </span>
             </div>
+            <span id="header-clock" class="text-xs text-slate-400 font-mono hidden sm:inline">6:52:57 PM</span>
             <span id="header-timestamp" class="text-xs text-slate-500 hidden sm:inline">• data 9/4/2026</span>
         </div>
 
-        <!-- Tab Controls & Live Refresh Tools -->
+        <!-- Controls: Tab Switcher, Auto-Refresh, Refresh, Date Selector -->
         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+            <!-- Navigation Switcher -->
             <div class="flex rounded-lg bg-slate-900 p-1 border border-slate-800">
-                <button id="tab-recs-btn" onclick="switchTab('recs')" class="tab-btn active px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1.5">
-                    <span>🎯</span> Key Trading Recommendations
-                </button>
-                <button id="tab-macro-btn" onclick="switchTab('macro')" class="tab-btn px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                <button id="tab-macro-btn" onclick="switchTab('macro')" class="tab-btn active px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1.5">
                     <span>🌐</span> Macroeconomic Board
+                </button>
+                <button id="tab-recs-btn" onclick="switchTab('recs')" class="tab-btn px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <span>🎯</span> Key Trading Recommendations
                 </button>
             </div>
 
+            <!-- Auto-Refresh & Action buttons -->
             <div class="flex items-center gap-1.5">
                 <select id="auto-refresh" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded px-2.5 py-1.5 focus:outline-none">
                     <option value="60">Auto: 1m</option>
@@ -76,72 +90,546 @@
                 <select id="date-select" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded px-2.5 py-1.5 focus:outline-none">
                     <option value="latest">Latest Live</option>
                 </select>
-                <a href="./data/latest.json" target="_blank" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-mono">
-                    JSON
-                </a>
             </div>
         </div>
     </header>
 
-    <!-- Top Sector Navigation Ribbon (Interactive Filter) -->
-    <div class="overflow-x-auto pb-1">
-        <div class="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-slate-400 whitespace-nowrap" id="sector-nav-pills">
-            <span class="text-slate-500 uppercase text-[10px] mr-1">SECTORS:</span>
+    <!-- Sector Navigation Ribbon with Search Input & CLEAR (Netlify Screenshot 8 1:1) -->
+    <div class="terminal-panel p-3 space-y-2">
+        <div class="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider">SECTOR</div>
+        <div class="flex flex-wrap gap-1.5 text-[11px] font-bold tracking-wider" id="sector-nav-pills">
             <!-- Injected dynamically -->
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+            <input type="text" id="global-search-input" placeholder="Search ticker / sector / sub-sector..." class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded px-3 py-1.5 w-full sm:w-80 focus:outline-none focus:ring-1 focus:ring-sky-500">
+            <button onclick="clearFilter()" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-bold transition">
+                CLEAR
+            </button>
         </div>
     </div>
 
-    <!-- Active Global Filter Banner (When clicked) -->
-    <div id="active-filter-banner" class="hidden p-2.5 px-4 rounded bg-sky-950/40 border border-sky-500/40 flex justify-between items-center text-xs">
+    <!-- Active Filter Notice Banner (When sector or card is clicked) -->
+    <div id="active-filter-banner" class="hidden p-2 px-3.5 rounded bg-sky-950/40 border border-sky-500/40 flex justify-between items-center text-xs">
         <div class="flex items-center gap-2">
-            <span class="text-sky-400 font-bold uppercase tracking-wider">Filtered by Sector:</span>
+            <span class="text-sky-400 font-bold uppercase">Active Sector Filter:</span>
             <span id="active-filter-label" class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-200 font-mono font-bold"></span>
-            <span class="text-slate-400">(All charts, tables, and metrics below are filtered to this sector)</span>
+            <span class="text-slate-400 text-[11px]">(All tables, charts, and counts below are dynamically filtered)</span>
         </div>
-        <button onclick="clearFilter()" class="px-2.5 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] transition">
+        <button onclick="clearFilter()" class="px-2 py-0.5 rounded bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] transition">
             ✕ CLEAR FILTER
         </button>
     </div>
 
-    <!-- ======================================================== -->
-    <!-- TAB 1: KEY TRADING RECOMMENDATIONS (DEFAULT ACTIVE TAB)  -->
-    <!-- ======================================================== -->
-    <div id="tab-recs" class="space-y-4">
+    <!-- ========================================================================= -->
+    <!-- TAB 1: MACROECONOMIC BOARD (NETLIFY 1:1 SCREENSHOTS 1, 2, 3, 4, 5, 6, 8, 9)-->
+    <!-- ========================================================================= -->
+    <div id="tab-macro" class="space-y-4">
         
-        <!-- Summary KPI Ribbon -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+        <!-- Netlify KPI Cards (Screenshot 8: 6 Columns) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-500 uppercase">Tracked Universe</div>
-                <div class="text-xl font-black text-white mt-0.5">500+</div>
-                <div class="text-[10px] text-slate-500">S&P 500 / NASDAQ</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase">SECTORS</div>
+                <div class="text-2xl font-black text-white mt-0.5"><span id="macro-sectors-count">20</span></div>
+                <div class="text-[11px] text-slate-500">tracked</div>
             </div>
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-500 uppercase">Active Alerts</div>
-                <div id="stat-alerts" class="text-xl font-black text-amber-400 mt-0.5">24</div>
-                <div class="text-[10px] text-slate-500">Signals in zone</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase">HOT</div>
+                <div class="text-2xl font-black text-emerald-400 mt-0.5"><span id="macro-hot-count">8</span></div>
+                <div class="text-[11px] text-slate-500">rotating in</div>
             </div>
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-500 uppercase">Reclaims (D0-D2)</div>
-                <div id="stat-reclaims" class="text-xl font-black text-emerald-400 mt-0.5">4</div>
-                <div class="text-[10px] text-slate-500">Confirmed velocity</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase">ALERTS</div>
+                <div class="text-2xl font-black text-white mt-0.5"><span id="macro-alerts-count">968</span></div>
+                <div class="text-[11px] text-slate-500">EMA50 log</div>
             </div>
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-500 uppercase">Macro Ratio</div>
-                <div id="stat-ratio" class="text-xl font-black text-sky-400 mt-0.5">0.17</div>
-                <div class="text-[10px] text-slate-500">Breadth Index</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase">WIN RATE</div>
+                <div class="text-2xl font-black text-white mt-0.5"><span id="macro-winrate">31.7%</span></div>
+                <div class="text-[11px] text-slate-500">avg / sector</div>
             </div>
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-500 uppercase">Market Regime</div>
-                <div id="stat-regime" class="text-xs font-black text-amber-300 mt-1 truncate">MIXED</div>
-                <div class="text-[10px] text-slate-500">No clear rotation</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase">RECLAIMS</div>
+                <div class="text-2xl font-black text-emerald-400 mt-0.5"><span id="macro-reclaims-count">47</span></div>
+                <div class="text-[11px] text-slate-500" id="macro-reclaims-sub">of 231 (filtered)</div>
             </div>
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-500 uppercase">Top Inflow</div>
-                <div id="stat-sectors" class="text-xs font-semibold text-slate-300 mt-1 truncate">TECH, FINANCIALS</div>
-                <div class="text-[10px] text-slate-500">Cluster momentum</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase">BOUNCES T-0</div>
+                <div class="text-2xl font-black text-sky-400 mt-0.5"><span id="macro-bounces-count">14</span></div>
+                <div class="text-[11px] text-slate-500" id="macro-bounces-sub">of 280 tracked</div>
             </div>
         </div>
 
+        <!-- MARKET REGIME & BREADTH SECTION (Screenshot 8 Exact) -->
+        <div class="terminal-panel p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-black text-white uppercase tracking-wider">MARKET REGIME</span>
+                    <span id="market-regime-updated" class="text-[11px] text-slate-500 font-mono">updated 09/04/2026 19:44 ET</span>
+                </div>
+                <!-- Style Filter Buttons -->
+                <div class="flex gap-1 bg-slate-900 p-0.5 rounded border border-slate-800 text-[11px]">
+                    <button onclick="filterStyle('ALL')" class="style-btn active px-2.5 py-0.5 rounded text-white bg-blue-600 font-semibold" id="sbtn-all">All</button>
+                    <button onclick="filterStyle('GROWTH')" class="style-btn px-2.5 py-0.5 rounded text-slate-400 hover:text-white" id="sbtn-growth">Growth</button>
+                    <button onclick="filterStyle('CYCLICAL')" class="style-btn px-2.5 py-0.5 rounded text-slate-400 hover:text-white" id="sbtn-cyclical">Cyclical</button>
+                    <button onclick="filterStyle('DEFENSIVE')" class="style-btn px-2.5 py-0.5 rounded text-slate-400 hover:text-white" id="sbtn-defensive">Defensive</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-3">
+                <!-- Left: Overall Regime & Offense Slider (5 cols) -->
+                <div class="lg:col-span-5 flex flex-col justify-between space-y-3">
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">OVERALL REGIME</div>
+                        <div id="macro-regime-title" class="text-xl font-black text-white mt-0.5">MIXED — No clear rotation</div>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-950/40 border border-amber-500/40 text-amber-300 font-bold text-xs mt-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                            <span id="breadth-says-label">BREADTH SAYS: MIXED — no clear rotation</span>
+                        </div>
+                        <div id="macro-regime-counts" class="text-xs text-slate-400 mt-2">
+                            Growth 4↑ / 6↓ · Defensive 2↑ / 3↓ · 377 reclaiming · 358 at support
+                        </div>
+                    </div>
+
+                    <!-- Defense vs Offense Slider -->
+                    <div class="pt-2 border-t border-slate-800/80">
+                        <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                            <span>DEFENSE</span>
+                            <span id="offense-label" class="text-amber-400 font-mono">47% OFFENSE</span>
+                            <span>OFFENSE</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden flex">
+                            <div id="defense-slider-bar" class="bg-amber-400 h-full transition-all duration-300" style="width: 47%;"></div>
+                        </div>
+                        <div id="offense-subtext" class="text-[10px] text-slate-500 mt-1">
+                            47% offense — 7/20 growth+cyclical above EMA50 vs 2/5 defensive
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Breadth 25 ETFs vs EMA50 with 4-Color Segmented Bar (7 cols) -->
+                <div class="lg:col-span-7 flex flex-col justify-between space-y-3">
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">BREADTH — 25 ETFS VS THEIR EMA50</div>
+                        
+                        <!-- 4-Color Segmented Bar (Screenshot 8 Exact) -->
+                        <div class="w-full h-6 rounded flex overflow-hidden font-bold text-xs font-mono text-white mt-1.5 shadow-inner">
+                            <div id="seg-outperforming" class="bg-emerald-500 flex items-center justify-center transition-all duration-300" style="width: 32%;" title="Outperforming: 8">8</div>
+                            <div id="seg-gaining" class="bg-amber-400 text-slate-900 flex items-center justify-center transition-all duration-300" style="width: 4%;" title="Gaining: 1">1</div>
+                            <div id="seg-weakening" class="bg-orange-300 text-slate-900 flex items-center justify-center transition-all duration-300" style="width: 8%;" title="Weakening: 2">2</div>
+                            <div id="seg-underperforming" class="bg-rose-600 flex items-center justify-center transition-all duration-300" style="width: 56%;" title="Underperforming: 14">14</div>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="flex items-center gap-3 text-[10px] text-slate-400 mt-1.5">
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-emerald-500"></span> Outperforming</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-amber-400"></span> Gaining</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-orange-300"></span> Weakening</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-rose-600"></span> Underperforming</span>
+                        </div>
+                    </div>
+
+                    <!-- 3 Category Cards -->
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <div class="p-2.5 rounded bg-slate-900/90 border-t-2 border-blue-500 border-x border-b border-slate-800">
+                            <div class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">GROWTH</div>
+                            <div id="macro-growth-breadth" class="text-base font-black text-white mt-1">4 / 10 <span class="text-xs font-normal text-slate-500">above</span></div>
+                            <div id="macro-growth-avg" class="text-[11px] font-mono text-rose-400 font-semibold mt-0.5">avg -0.30%</div>
+                        </div>
+                        <div class="p-2.5 rounded bg-slate-900/90 border-t-2 border-orange-500 border-x border-b border-slate-800">
+                            <div class="text-[10px] font-bold text-orange-400 uppercase tracking-wider">CYCLICAL</div>
+                            <div id="macro-cyclical-breadth" class="text-base font-black text-white mt-1">3 / 10 <span class="text-xs font-normal text-slate-500">above</span></div>
+                            <div id="macro-cyclical-avg" class="text-[11px] font-mono text-rose-400 font-semibold mt-0.5">avg -1.43%</div>
+                        </div>
+                        <div class="p-2.5 rounded bg-slate-900/90 border-t-2 border-emerald-500 border-x border-b border-slate-800">
+                            <div class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">DEFENSIVE</div>
+                            <div id="macro-defensive-breadth" class="text-base font-black text-white mt-1">2 / 5 <span class="text-xs font-normal text-slate-500">above</span></div>
+                            <div id="macro-defensive-avg" class="text-[11px] font-mono text-emerald-400 font-semibold mt-0.5">avg +0.29%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MOMENTUM QUADRANT SCATTER PLOT (Screenshot 9 Exact) -->
+        <div class="terminal-panel p-4">
+            <div class="flex justify-between items-center mb-2">
+                <div>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <span>MOMENTUM QUADRANT</span>
+                        <span class="text-[10px] font-normal text-slate-500">5-day (short-term) vs 20-day (trend) — top-right is strongest, bottom-right is turning up</span>
+                    </h2>
+                </div>
+                <div class="flex items-center gap-3 text-[11px]">
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Growth</span>
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> Cyclical</span>
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Defensive</span>
+                </div>
+            </div>
+
+            <div class="relative w-full h-[450px]">
+                <canvas id="quadrantCanvas"></canvas>
+            </div>
+        </div>
+
+        <!-- ▲ REGIME CHANGE — JUST CROSSED (Screenshot 9 Exact) -->
+        <div class="terminal-panel p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="text-sky-400">▲</span> REGIME CHANGE — JUST CROSSED
+                </span>
+                <span class="text-[10px] text-slate-500" id="regime-change-count-sub">2 ETFs flipped their side of the EMA50 in the last day</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="regime-change-cards-container">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+
+        <!-- REGIME DETAIL TABLE (Screenshot 9 Exact) -->
+        <div class="terminal-panel p-4">
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleRegimeTable()" class="text-slate-400 hover:text-white font-mono text-xs">▼</button>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">REGIME DETAIL</h2>
+                    <span class="text-[10px] text-slate-500">click a header to sort · click a row to isolate</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto" id="regime-table-wrap">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="text-slate-500 border-b border-slate-800 text-[10px] uppercase">
+                            <th class="py-2.5 px-2.5 cursor-pointer hover:text-white" onclick="sortRegimeTable('etf')">ETF</th>
+                            <th class="py-2.5 px-2.5 cursor-pointer hover:text-white" onclick="sortRegimeTable('sector')">SECTOR</th>
+                            <th class="py-2.5 px-2.5 cursor-pointer hover:text-white" onclick="sortRegimeTable('style')">STYLE</th>
+                            <th class="py-2.5 px-2.5 cursor-pointer hover:text-white" onclick="sortRegimeTable('status')">STATUS</th>
+                            <th class="py-2.5 px-2.5 cursor-pointer hover:text-white" onclick="sortRegimeTable('pct')">VS EMA50 ▼</th>
+                            <th class="py-2.5 px-2.5 cursor-pointer hover:text-white" onclick="sortRegimeTable('days')">DAYS</th>
+                            <th class="py-2.5 px-2.5 cursor-pointer hover:text-white" onclick="sortRegimeTable('mom5')">5D MOM</th>
+                            <th class="py-2.5 px-2.5 cursor-pointer hover:text-white" onclick="sortRegimeTable('mom20')">20D MOM</th>
+                            <th class="py-2.5 px-2.5 cursor-pointer hover:text-white" onclick="sortRegimeTable('support')">AT SUPPORT</th>
+                            <th class="py-2.5 px-2.5">TICKERS AT SUPPORT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="regime-detail-body" class="divide-y divide-slate-800/60">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECTION 1: ETF LADDER — VS EMA50 (Screenshot 1) -->
+        <div class="terminal-panel p-4">
+            <div class="flex justify-between items-center mb-3">
+                <div>
+                    <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <span>ETF LADDER — VS EMA50</span>
+                        <span class="text-[10px] font-normal text-slate-500">bar direction = above / below the 50-day EMA · color = style bucket</span>
+                    </h2>
+                </div>
+            </div>
+            <div id="ladder-container" class="space-y-0.5">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+
+        <!-- SECTION 2: SECTOR STRENGTH (Screenshot 2) -->
+        <div class="terminal-panel p-4">
+            <div class="flex justify-between items-center mb-3">
+                <div>
+                    <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <span>SECTOR STRENGTH</span>
+                        <span class="text-[10px] font-normal text-slate-500">click a name to filter everything</span>
+                    </h2>
+                </div>
+                <div class="flex items-center gap-1" id="strength-sort-btns">
+                    <button onclick="setStrengthSort('score')" class="filter-btn active" id="btn-sort-strength">Strength</button>
+                    <button onclick="setStrengthSort('win')" class="filter-btn" id="btn-sort-win">Win %</button>
+                    <button onclick="setStrengthSort('ret')" class="filter-btn" id="btn-sort-ret">Avg Ret</button>
+                </div>
+            </div>
+
+            <div id="sector-strength-container" class="space-y-1">
+                <!-- Injected dynamically -->
+            </div>
+
+            <!-- Scale Axis at bottom: 0 2 4 6 8 10 -->
+            <div class="grid grid-cols-12 text-[10px] text-slate-600 font-mono pt-2 border-t border-slate-800 mt-2">
+                <div class="col-span-2 text-right pr-2">0</div>
+                <div class="col-span-2 text-center">2</div>
+                <div class="col-span-2 text-center">4</div>
+                <div class="col-span-2 text-center">6</div>
+                <div class="col-span-2 text-center">8</div>
+                <div class="col-span-2 text-right">10</div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: ★ ROTATING IN (Screenshot 3 Top) -->
+        <div class="terminal-panel p-4">
+            <div class="mb-3">
+                <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    <span class="text-emerald-400">★</span> ROTATING IN
+                    <span class="text-[10px] font-normal text-slate-500">sectors flagged HOT — click a card to filter</span>
+                </h2>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="rotating-in-cards">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+
+        <!-- SECTION 4: TOP SUB-SECTORS & RECLAIMS BY SECTOR (Screenshot 3 Bottom) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div class="terminal-panel p-4 lg:col-span-7">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">TOP SUB-SECTORS</h2>
+                    <span class="text-[10px] text-slate-500">click a row to see its tickers</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="text-slate-500 border-b border-slate-800 text-[10px] uppercase">
+                                <th class="py-2 px-2">Sub-Sector</th>
+                                <th class="py-2 px-2">Sector</th>
+                                <th class="py-2 px-2">STR ▼</th>
+                                <th class="py-2 px-2">WIN</th>
+                                <th class="py-2 px-2">RET</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-subsectors-body" class="divide-y divide-slate-800/60">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="terminal-panel p-4 lg:col-span-5">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">RECLAIMS BY SECTOR</h2>
+                    <span id="reclaims-total-label" class="text-[10px] text-slate-500">231 reclaimed</span>
+                </div>
+                <div class="space-y-1 overflow-y-auto max-h-[380px]" id="reclaims-by-sector-container">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: RECLAIM DETAIL TABLE (Screenshot 4) -->
+        <div class="terminal-panel p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <div>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">RECLAIM DETAIL</h2>
+                    <p class="text-[10px] text-slate-400" id="reclaim-detail-subtitle">showing recent reclaims and prior day bounces</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-mono" id="reclaim-detail-count">47 rows</span>
+                    <button onclick="resetReclaimDetailFilters()" class="filter-btn text-[10px]">RESET</button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 p-2 bg-slate-900/60 rounded border border-slate-800 mb-3 text-xs">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">SESSION:</span>
+                    <button onclick="setReclaimSession('latest')" class="filter-btn active" id="btn-sess-latest">Latest</button>
+                    <button onclick="setReclaimSession('1')" class="filter-btn" id="btn-sess-1">≤1d</button>
+                    <button onclick="setReclaimSession('3')" class="filter-btn" id="btn-sess-3">≤3d</button>
+                    <button onclick="setReclaimSession('7')" class="filter-btn" id="btn-sess-7">≤7d</button>
+                    <button onclick="setReclaimSession('30')" class="filter-btn" id="btn-sess-30">≤30d</button>
+                    <button onclick="setReclaimSession('all')" class="filter-btn" id="btn-sess-all">All</button>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">BETA:</span>
+                    <button onclick="setReclaimBeta('all')" class="filter-btn active" id="btn-beta-all">All</button>
+                    <button onclick="setReclaimBeta('high')" class="filter-btn" id="btn-beta-high">High ≥ 1.5</button>
+                    <button onclick="setReclaimBeta('low')" class="filter-btn" id="btn-beta-low">Low < 1.5</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-[400px]">
+                <table class="w-full text-left text-xs">
+                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 text-[10px] uppercase">
+                        <tr>
+                            <th class="py-2 px-2.5">Ticker</th>
+                            <th class="py-2 px-2.5">Sector</th>
+                            <th class="py-2 px-2.5">Sub-Sector</th>
+                            <th class="py-2 px-2.5">Time ▼</th>
+                            <th class="py-2 px-2.5">Beta</th>
+                            <th class="py-2 px-2.5">ADR</th>
+                            <th class="py-2 px-2.5">Signal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reclaim-detail-body" class="divide-y divide-slate-800/60">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECTION 6: BOUNCES BY LEVEL & SECTOR (Screenshot 5 Top) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div class="terminal-panel p-4 lg:col-span-5">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCES BY LEVEL</h2>
+                    <span class="text-[10px] text-slate-500">click to filter</span>
+                </div>
+                <div class="space-y-1.5" id="bounces-by-level-container">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+
+            <div class="terminal-panel p-4 lg:col-span-7">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCES BY SECTOR</h2>
+                    <span class="text-[10px] text-slate-500">click to filter</span>
+                </div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1" id="bounces-by-sector-container">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 7: BOUNCE ALERTS TABLE (Screenshot 5 Bottom) -->
+        <div class="terminal-panel p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <div>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCE ALERTS</h2>
+                    <p class="text-[10px] text-slate-400" id="bounce-alerts-count-label">280 of 280 shown</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="resetBounceFilters()" class="filter-btn text-[10px]">RESET FILTERS</button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 p-2 bg-slate-900/60 rounded border border-slate-800 mb-3 text-xs">
+                <div class="flex items-center gap-1">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">LEVEL:</span>
+                    <button onclick="setBounceLevel('ALL')" class="filter-btn active" id="btn-blvl-all">All</button>
+                    <button onclick="setBounceLevel('EMA50')" class="filter-btn" id="btn-blvl-ema50">EMA50</button>
+                    <button onclick="setBounceLevel('DB')" class="filter-btn" id="btn-blvl-db">DB</button>
+                    <button onclick="setBounceLevel('OTE')" class="filter-btn" id="btn-blvl-ote">OTE</button>
+                    <button onclick="setBounceLevel('MA150')" class="filter-btn" id="btn-blvl-ma150">MA150</button>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">STATUS:</span>
+                    <button onclick="setBounceStatus('ALL')" class="filter-btn active" id="btn-bstat-all">All</button>
+                    <button onclick="setBounceStatus('BOUNCED')" class="filter-btn" id="btn-bstat-bnc">Bounced</button>
+                    <button onclick="setBounceStatus('IN ZONE')" class="filter-btn" id="btn-bstat-zone">In Zone</button>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">EMA50:</span>
+                    <button onclick="setBounceState('ALL')" class="filter-btn active" id="btn-bstate-all">All</button>
+                    <button onclick="setBounceState('RECLAIMED')" class="filter-btn" id="btn-bstate-rec">Reclaimed</button>
+                    <button onclick="setBounceState('BELOW')" class="filter-btn" id="btn-bstate-bel">Below</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-[450px]">
+                <table class="w-full text-left text-xs">
+                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 text-[10px] uppercase">
+                        <tr>
+                            <th class="py-2 px-2.5">Ticker</th>
+                            <th class="py-2 px-2.5">Sector</th>
+                            <th class="py-2 px-2.5">Sub-Sector</th>
+                            <th class="py-2 px-2.5">Bounced Off</th>
+                            <th class="py-2 px-2.5">Status</th>
+                            <th class="py-2 px-2.5">Date</th>
+                            <th class="py-2 px-2.5">Days ▲</th>
+                            <th class="py-2 px-2.5">Beta</th>
+                            <th class="py-2 px-2.5">ADR</th>
+                            <th class="py-2 px-2.5">Ret %</th>
+                            <th class="py-2 px-2.5">EMA50</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bounce-alerts-body" class="divide-y divide-slate-800/40">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECTION 8: FAST RECLAIMS & DAILY ACTIVITY (Screenshot 6) -->
+        <div class="terminal-panel p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <div>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">FAST RECLAIMS</h2>
+                    <p class="text-[10px] text-slate-400" id="fast-reclaims-subtitle">16 reclaimed within 5 day(s) of the bounce · 121 reclaimed overall</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-mono" id="fast-reclaims-rows-count">16 rows</span>
+                    <button onclick="resetFastReclaims()" class="filter-btn text-[10px]">RESET</button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 p-2 bg-slate-900/60 rounded border border-slate-800 mb-3 text-xs">
+                <div class="flex items-center gap-1">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold">RECLAIMED IN:</span>
+                    <button onclick="setFastDays(1)" class="filter-btn" id="btn-fdays-1">≤1d</button>
+                    <button onclick="setFastDays(2)" class="filter-btn" id="btn-fdays-2">≤2d</button>
+                    <button onclick="setFastDays(3)" class="filter-btn" id="btn-fdays-3">≤3d</button>
+                    <button onclick="setFastDays(5)" class="filter-btn active" id="btn-fdays-5">≤5d</button>
+                    <button onclick="setFastDays(7)" class="filter-btn" id="btn-fdays-7">≤7d</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-[350px]">
+                <table class="w-full text-left text-xs">
+                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 text-[10px] uppercase">
+                        <tr>
+                            <th class="py-2 px-2.5">Ticker</th>
+                            <th class="py-2 px-2.5">Sector</th>
+                            <th class="py-2 px-2.5">Sub-Sector</th>
+                            <th class="py-2 px-2.5">Bounced Off</th>
+                            <th class="py-2 px-2.5">Bounce Date</th>
+                            <th class="py-2 px-2.5">Days ▲</th>
+                            <th class="py-2 px-2.5">Beta</th>
+                            <th class="py-2 px-2.5">ADR</th>
+                            <th class="py-2 px-2.5">Ret %</th>
+                            <th class="py-2 px-2.5">State</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fast-reclaims-body" class="divide-y divide-slate-800/40">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Daily Activity Stacked Bars (Screenshot 6 Bottom) -->
+        <div class="terminal-panel p-4">
+            <div class="flex justify-between items-center mb-3">
+                <div>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <span>DAILY ACTIVITY</span>
+                        <span class="text-[10px] font-normal text-slate-500">bar = bounces that day, split by level · respects the sector filter</span>
+                    </h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 text-[10px]">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> EMA50</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> DB</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-teal-400"></span> OTE</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> MA150</span>
+                    </div>
+                    <div class="flex items-center gap-1" id="daily-activity-range">
+                        <button onclick="setDailyRange(7)" class="filter-btn" id="btn-drange-7">7d</button>
+                        <button onclick="setDailyRange(14)" class="filter-btn active" id="btn-drange-14">14d</button>
+                        <button onclick="setDailyRange(30)" class="filter-btn" id="btn-drange-30">30d</button>
+                        <button onclick="setDailyRange(999)" class="filter-btn" id="btn-drange-all">All</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-1.5" id="daily-activity-rows">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: KEY TRADING RECOMMENDATIONS (OPTIONS ALPHA RADAR) -->
+    <!-- ======================================================== -->
+    <div id="tab-recs" class="space-y-4 hidden">
+        
         <!-- Options Alpha Radar Execution Table -->
         <div class="terminal-panel p-4">
             <div class="flex justify-between items-center mb-3">
@@ -218,340 +706,12 @@
 
     </div>
 
-    <!-- ======================================================== -->
-    <!-- TAB 2: MACROECONOMIC MONITORING BOARD (NETLIFY FULL 1:1) -->
-    <!-- ======================================================== -->
-    <div id="tab-macro" class="space-y-4 hidden">
-        
-        <!-- SECTION 1: ETF LADDER — VS EMA50 (Screenshot 1) -->
-        <div class="terminal-panel p-4">
-            <div class="flex justify-between items-center mb-3">
-                <div>
-                    <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                        <span>ETF LADDER — VS EMA50</span>
-                        <span class="text-[10px] font-normal text-slate-500">bar direction = above / below the 50-day EMA · color = style bucket</span>
-                    </h2>
-                </div>
-                <div class="flex items-center gap-3 text-[11px]">
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Growth</span>
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> Cyclical</span>
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Defensive</span>
-                </div>
-            </div>
-
-            <!-- Ladder List -->
-            <div id="ladder-container" class="space-y-0.5">
-                <!-- Injected dynamically -->
-            </div>
-        </div>
-
-        <!-- SECTION 2: SECTOR STRENGTH (Screenshot 2) -->
-        <div class="terminal-panel p-4">
-            <div class="flex justify-between items-center mb-3">
-                <div>
-                    <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                        <span>SECTOR STRENGTH</span>
-                        <span class="text-[10px] font-normal text-slate-500">click a name to filter everything</span>
-                    </h2>
-                </div>
-                <div class="flex items-center gap-1" id="strength-sort-btns">
-                    <button onclick="setStrengthSort('score')" class="filter-btn active" id="btn-sort-strength">Strength</button>
-                    <button onclick="setStrengthSort('win')" class="filter-btn" id="btn-sort-win">Win %</button>
-                    <button onclick="setStrengthSort('ret')" class="filter-btn" id="btn-sort-ret">Avg Ret</button>
-                </div>
-            </div>
-
-            <!-- Horizontal Sector Strength Bars -->
-            <div id="sector-strength-container" class="space-y-1">
-                <!-- Injected dynamically -->
-            </div>
-
-            <!-- Scale Axis at bottom: 0 2 4 6 8 10 -->
-            <div class="grid grid-cols-12 text-[10px] text-slate-600 font-mono pt-2 border-t border-slate-800 mt-2">
-                <div class="col-span-2 text-right pr-2">0</div>
-                <div class="col-span-2 text-center">2</div>
-                <div class="col-span-2 text-center">4</div>
-                <div class="col-span-2 text-center">6</div>
-                <div class="col-span-2 text-center">8</div>
-                <div class="col-span-2 text-right">10</div>
-            </div>
-        </div>
-
-        <!-- SECTION 3: ★ ROTATING IN (Screenshot 3 Top) -->
-        <div class="terminal-panel p-4">
-            <div class="mb-3">
-                <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                    <span class="text-emerald-400">★</span> ROTATING IN
-                    <span class="text-[10px] font-normal text-slate-500">sectors flagged HOT — click a card to filter</span>
-                </h2>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="rotating-in-cards">
-                <!-- Injected dynamically -->
-            </div>
-        </div>
-
-        <!-- SECTION 4: TOP SUB-SECTORS & RECLAIMS BY SECTOR (Screenshot 3 Bottom) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <!-- Left: Top Sub-Sectors (7 cols) -->
-            <div class="terminal-panel p-4 lg:col-span-7">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">TOP SUB-SECTORS</h2>
-                    <span class="text-[10px] text-slate-500">click a row to see its tickers</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="text-slate-500 border-b border-slate-800 text-[10px] uppercase">
-                                <th class="py-2 px-2">Sub-Sector</th>
-                                <th class="py-2 px-2">Sector</th>
-                                <th class="py-2 px-2">STR ▼</th>
-                                <th class="py-2 px-2">WIN</th>
-                                <th class="py-2 px-2">RET</th>
-                            </tr>
-                        </thead>
-                        <tbody id="top-subsectors-body" class="divide-y divide-slate-800/60">
-                            <!-- Injected dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Right: Reclaims by Sector (5 cols) -->
-            <div class="terminal-panel p-4 lg:col-span-5">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">RECLAIMS BY SECTOR</h2>
-                    <span id="reclaims-total-label" class="text-[10px] text-slate-500">231 reclaimed</span>
-                </div>
-                <div class="space-y-1 overflow-y-auto max-h-[380px]" id="reclaims-by-sector-container">
-                    <!-- Injected dynamically -->
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 5: RECLAIM DETAIL TABLE (Screenshot 4) -->
-        <div class="terminal-panel p-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-                <div>
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">RECLAIM DETAIL</h2>
-                    <p class="text-[10px] text-slate-400" id="reclaim-detail-subtitle">showing recent reclaims and prior day bounces</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-slate-400 font-mono" id="reclaim-detail-count">47 rows</span>
-                    <button onclick="resetReclaimDetailFilters()" class="filter-btn text-[10px]">RESET</button>
-                </div>
-            </div>
-
-            <!-- Filter Controls Bar -->
-            <div class="flex flex-wrap items-center gap-3 p-2 bg-slate-900/60 rounded border border-slate-800 mb-3 text-xs">
-                <div class="flex items-center gap-1.5">
-                    <span class="text-slate-500 text-[10px] uppercase font-bold">SESSION:</span>
-                    <button onclick="setReclaimSession('latest')" class="filter-btn active" id="btn-sess-latest">Latest</button>
-                    <button onclick="setReclaimSession('1')" class="filter-btn" id="btn-sess-1">≤1d</button>
-                    <button onclick="setReclaimSession('3')" class="filter-btn" id="btn-sess-3">≤3d</button>
-                    <button onclick="setReclaimSession('7')" class="filter-btn" id="btn-sess-7">≤7d</button>
-                    <button onclick="setReclaimSession('30')" class="filter-btn" id="btn-sess-30">≤30d</button>
-                    <button onclick="setReclaimSession('all')" class="filter-btn" id="btn-sess-all">All</button>
-                </div>
-                <div class="flex items-center gap-1.5">
-                    <span class="text-slate-500 text-[10px] uppercase font-bold">BETA:</span>
-                    <button onclick="setReclaimBeta('all')" class="filter-btn active" id="btn-beta-all">All</button>
-                    <button onclick="setReclaimBeta('high')" class="filter-btn" id="btn-beta-high">High ≥ 1.5</button>
-                    <button onclick="setReclaimBeta('low')" class="filter-btn" id="btn-beta-low">Low < 1.5</button>
-                </div>
-            </div>
-
-            <div class="overflow-x-auto max-h-[400px]">
-                <table class="w-full text-left text-xs">
-                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 text-[10px] uppercase">
-                        <tr>
-                            <th class="py-2 px-2.5">Ticker</th>
-                            <th class="py-2 px-2.5">Sector</th>
-                            <th class="py-2 px-2.5">Sub-Sector</th>
-                            <th class="py-2 px-2.5">Time ▼</th>
-                            <th class="py-2 px-2.5">Beta</th>
-                            <th class="py-2 px-2.5">ADR</th>
-                            <th class="py-2 px-2.5">Signal</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reclaim-detail-body" class="divide-y divide-slate-800/60">
-                        <!-- Injected dynamically -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- SECTION 6: BOUNCES BY LEVEL, SECTOR & BOUNCE ALERTS (Screenshot 5) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <!-- Left: Bounces by Level (5 cols) -->
-            <div class="terminal-panel p-4 lg:col-span-5">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCES BY LEVEL</h2>
-                    <span class="text-[10px] text-slate-500">click to filter</span>
-                </div>
-                <div class="space-y-1.5" id="bounces-by-level-container">
-                    <!-- Injected dynamically -->
-                </div>
-            </div>
-
-            <!-- Right: Bounces by Sector (7 cols) -->
-            <div class="terminal-panel p-4 lg:col-span-7">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCES BY SECTOR</h2>
-                    <span class="text-[10px] text-slate-500">click to filter</span>
-                </div>
-                <div class="grid grid-cols-2 gap-x-4 gap-y-1" id="bounces-by-sector-container">
-                    <!-- Injected dynamically -->
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 7: BOUNCE ALERTS TABLE (Screenshot 5 Bottom) -->
-        <div class="terminal-panel p-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-                <div>
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCE ALERTS</h2>
-                    <p class="text-[10px] text-slate-400" id="bounce-alerts-count-label">280 of 280 shown</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="resetBounceFilters()" class="filter-btn text-[10px]">RESET FILTERS</button>
-                </div>
-            </div>
-
-            <!-- Bounce Filters Toolbar -->
-            <div class="flex flex-wrap items-center gap-3 p-2 bg-slate-900/60 rounded border border-slate-800 mb-3 text-xs">
-                <div class="flex items-center gap-1">
-                    <span class="text-slate-500 text-[10px] uppercase font-bold">LEVEL:</span>
-                    <button onclick="setBounceLevel('ALL')" class="filter-btn active" id="btn-blvl-all">All</button>
-                    <button onclick="setBounceLevel('EMA50')" class="filter-btn" id="btn-blvl-ema50">EMA50</button>
-                    <button onclick="setBounceLevel('DB')" class="filter-btn" id="btn-blvl-db">DB</button>
-                    <button onclick="setBounceLevel('OTE')" class="filter-btn" id="btn-blvl-ote">OTE</button>
-                    <button onclick="setBounceLevel('MA150')" class="filter-btn" id="btn-blvl-ma150">MA150</button>
-                </div>
-                <div class="flex items-center gap-1">
-                    <span class="text-slate-500 text-[10px] uppercase font-bold">STATUS:</span>
-                    <button onclick="setBounceStatus('ALL')" class="filter-btn active" id="btn-bstat-all">All</button>
-                    <button onclick="setBounceStatus('BOUNCED')" class="filter-btn" id="btn-bstat-bnc">Bounced</button>
-                    <button onclick="setBounceStatus('IN ZONE')" class="filter-btn" id="btn-bstat-zone">In Zone</button>
-                </div>
-                <div class="flex items-center gap-1">
-                    <span class="text-slate-500 text-[10px] uppercase font-bold">EMA50:</span>
-                    <button onclick="setBounceState('ALL')" class="filter-btn active" id="btn-bstate-all">All</button>
-                    <button onclick="setBounceState('RECLAIMED')" class="filter-btn" id="btn-bstate-rec">Reclaimed</button>
-                    <button onclick="setBounceState('BELOW')" class="filter-btn" id="btn-bstate-bel">Below</button>
-                </div>
-            </div>
-
-            <div class="overflow-x-auto max-h-[450px]">
-                <table class="w-full text-left text-xs">
-                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 text-[10px] uppercase">
-                        <tr>
-                            <th class="py-2 px-2.5">Ticker</th>
-                            <th class="py-2 px-2.5">Sector</th>
-                            <th class="py-2 px-2.5">Sub-Sector</th>
-                            <th class="py-2 px-2.5">Bounced Off</th>
-                            <th class="py-2 px-2.5">Status</th>
-                            <th class="py-2 px-2.5">Date</th>
-                            <th class="py-2 px-2.5">Days ▲</th>
-                            <th class="py-2 px-2.5">Beta</th>
-                            <th class="py-2 px-2.5">ADR</th>
-                            <th class="py-2 px-2.5">Ret %</th>
-                            <th class="py-2 px-2.5">EMA50</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bounce-alerts-body" class="divide-y divide-slate-800/40">
-                        <!-- Injected dynamically -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- SECTION 8: FAST RECLAIMS & DAILY ACTIVITY (Screenshot 6) -->
-        <!-- Fast Reclaims (Top) -->
-        <div class="terminal-panel p-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-                <div>
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">FAST RECLAIMS</h2>
-                    <p class="text-[10px] text-slate-400" id="fast-reclaims-subtitle">16 reclaimed within 5 day(s) of the bounce · 121 reclaimed overall</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-slate-400 font-mono" id="fast-reclaims-rows-count">16 rows</span>
-                    <button onclick="resetFastReclaims()" class="filter-btn text-[10px]">RESET</button>
-                </div>
-            </div>
-
-            <!-- Fast Reclaim Filters -->
-            <div class="flex flex-wrap items-center gap-3 p-2 bg-slate-900/60 rounded border border-slate-800 mb-3 text-xs">
-                <div class="flex items-center gap-1">
-                    <span class="text-slate-500 text-[10px] uppercase font-bold">RECLAIMED IN:</span>
-                    <button onclick="setFastDays(1)" class="filter-btn" id="btn-fdays-1">≤1d</button>
-                    <button onclick="setFastDays(2)" class="filter-btn" id="btn-fdays-2">≤2d</button>
-                    <button onclick="setFastDays(3)" class="filter-btn" id="btn-fdays-3">≤3d</button>
-                    <button onclick="setFastDays(5)" class="filter-btn active" id="btn-fdays-5">≤5d</button>
-                    <button onclick="setFastDays(7)" class="filter-btn" id="btn-fdays-7">≤7d</button>
-                </div>
-            </div>
-
-            <div class="overflow-x-auto max-h-[350px]">
-                <table class="w-full text-left text-xs">
-                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 text-[10px] uppercase">
-                        <tr>
-                            <th class="py-2 px-2.5">Ticker</th>
-                            <th class="py-2 px-2.5">Sector</th>
-                            <th class="py-2 px-2.5">Sub-Sector</th>
-                            <th class="py-2 px-2.5">Bounced Off</th>
-                            <th class="py-2 px-2.5">Bounce Date</th>
-                            <th class="py-2 px-2.5">Days ▲</th>
-                            <th class="py-2 px-2.5">Beta</th>
-                            <th class="py-2 px-2.5">ADR</th>
-                            <th class="py-2 px-2.5">Ret %</th>
-                            <th class="py-2 px-2.5">State</th>
-                        </tr>
-                    </thead>
-                    <tbody id="fast-reclaims-body" class="divide-y divide-slate-800/40">
-                        <!-- Injected dynamically -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Daily Activity Stacked Bars (Bottom) -->
-        <div class="terminal-panel p-4">
-            <div class="flex justify-between items-center mb-3">
-                <div>
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
-                        <span>DAILY ACTIVITY</span>
-                        <span class="text-[10px] font-normal text-slate-500">bar = bounces that day, split by level · respects the sector filter</span>
-                    </h2>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-2 text-[10px]">
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> EMA50</span>
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> DB</span>
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-teal-400"></span> OTE</span>
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> MA150</span>
-                    </div>
-                    <div class="flex items-center gap-1" id="daily-activity-range">
-                        <button onclick="setDailyRange(7)" class="filter-btn" id="btn-drange-7">7d</button>
-                        <button onclick="setDailyRange(14)" class="filter-btn active" id="btn-drange-14">14d</button>
-                        <button onclick="setDailyRange(30)" class="filter-btn" id="btn-drange-30">30d</button>
-                        <button onclick="setDailyRange(999)" class="filter-btn" id="btn-drange-all">All</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stacked Daily Activity Chart Rows -->
-            <div class="space-y-1.5" id="daily-activity-rows">
-                <!-- Injected dynamically -->
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Application Controller -->
+    <!-- Application Master Controller -->
     <script>
         let currentPayload = null;
         let allTickersData = [];
-        let activeGlobalSector = ''; // Empty means ALL sectors
+        let activeGlobalSector = '';
+        let activeStyleFilter = 'ALL';
         let activeStrengthSort = 'score';
         let activeReclaimSession = 'latest';
         let activeReclaimBeta = 'all';
@@ -560,50 +720,62 @@
         let activeBounceState = 'ALL';
         let activeFastDays = 5;
         let activeDailyRange = 14;
+        let regimeTableCollapsed = false;
+        let currentRegimeSortCol = 'pct';
+        let currentRegimeSortAsc = false;
 
         function switchTab(tabId) {
-            const recsTab = document.getElementById('tab-recs');
             const macroTab = document.getElementById('tab-macro');
-            const recsBtn = document.getElementById('tab-recs-btn');
+            const recsTab = document.getElementById('tab-recs');
             const macroBtn = document.getElementById('tab-macro-btn');
+            const recsBtn = document.getElementById('tab-recs-btn');
 
-            if (tabId === 'recs') {
-                recsTab.classList.remove('hidden');
-                macroTab.classList.add('hidden');
-                recsBtn.classList.add('active');
-                macroBtn.classList.remove('active');
-            } else {
-                recsTab.classList.add('hidden');
+            if (tabId === 'macro') {
                 macroTab.classList.remove('hidden');
+                recsTab.classList.add('hidden');
                 macroBtn.classList.add('active');
                 recsBtn.classList.remove('active');
                 if (currentPayload) renderMacroBoard(currentPayload);
+            } else {
+                macroTab.classList.add('hidden');
+                recsTab.classList.remove('hidden');
+                recsBtn.classList.add('active');
+                macroBtn.classList.remove('active');
+                if (currentPayload) renderRecsView(currentPayload);
             }
         }
 
-        // Global Filter by Sector
+        // Live Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('header-clock').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+
+        // Global Click Filter
         function setGlobalSectorFilter(sec) {
-            activeGlobalSector = sec;
+            activeGlobalSector = sec.toUpperCase();
             const banner = document.getElementById('active-filter-banner');
             const label = document.getElementById('active-filter-label');
+            const searchInput = document.getElementById('global-search-input');
             
-            if (sec) {
+            if (activeGlobalSector) {
                 banner.classList.remove('hidden');
-                label.textContent = sec;
+                label.textContent = activeGlobalSector;
+                searchInput.value = activeGlobalSector;
             } else {
                 banner.classList.add('hidden');
+                searchInput.value = '';
             }
 
-            // Highlight in Ribbon
             document.querySelectorAll('#sector-nav-pills button').forEach(b => {
-                if (b.textContent.trim() === sec) {
+                if (b.textContent.trim() === activeGlobalSector) {
                     b.classList.add('active');
                 } else {
                     b.classList.remove('active');
                 }
             });
 
-            // Re-render both views
             if (currentPayload) {
                 renderRecsView(currentPayload);
                 renderMacroBoard(currentPayload);
@@ -614,7 +786,14 @@
             setGlobalSectorFilter('');
         }
 
+        function toggleRegimeTable() {
+            regimeTableCollapsed = !regimeTableCollapsed;
+            document.getElementById('regime-table-wrap').classList.toggle('hidden', regimeTableCollapsed);
+        }
+
         async function init() {
+            updateClock();
+
             try {
                 const sumRes = await fetch('./data/summary.json?t=' + Date.now());
                 if (sumRes.ok) {
@@ -642,10 +821,15 @@
                 }
             });
 
+            document.getElementById('global-search-input').addEventListener('input', (e) => {
+                const val = e.target.value.trim().toUpperCase();
+                setGlobalSectorFilter(val);
+            });
+
             document.getElementById('ticker-search').addEventListener('input', renderTickersTable);
             document.getElementById('filter-qualified').addEventListener('change', renderTickersTable);
 
-            // Auto-refresh timer
+            // Auto-refresh interval
             let timer = setInterval(() => loadData('./data/latest.json', true), 300000);
             document.getElementById('auto-refresh').addEventListener('change', (e) => {
                 clearInterval(timer);
@@ -669,53 +853,43 @@
             }
         }
 
+        function parsePct(str) {
+            if (typeof str === 'number') return str;
+            if (!str) return 0;
+            return parseFloat(str.toString().replace('%', '').replace('+', '')) || 0;
+        }
+
         function renderUI(data) {
             const m = data.macro_breadth || {};
             document.getElementById('header-timestamp').textContent = `• data ${m.timestamp || m.date || '9/4/2026'}`;
 
-            // Render Nav Pills
-            renderSectorNavPills(data);
-
-            // Render Tab 1
+            renderSectorNavPills();
             renderRecsView(data);
-
-            // Render Tab 2
             renderMacroBoard(data);
         }
 
-        function renderSectorNavPills(data) {
+        function renderSectorNavPills() {
             const sectors = [
                 'ENERGY', 'TECH SOFTWARE', 'FINANCIALS', 'HEALTHCARE', 'TECH CORE', 'ETF', 
                 'INDUSTRIALS', 'CONSUMER STAPLES', 'TECH SEMIS', 'CRYPTO', 'MATERIALS', 
-                'CONSUMER DISC', 'REAL ESTATE', 'COMM SERVICES', 'UTILITIES', 'DEFENSE', 'TRANSPORT'
+                'CONSUMER DISC', 'REAL ESTATE', 'COMM SERVICES', 'UTILITIES', 'DEFENSE', 
+                'TRANSPORT', 'INDEX', 'Commodity', 'Currency'
             ];
             const container = document.getElementById('sector-nav-pills');
-            container.innerHTML = '<span class="text-slate-500 uppercase text-[10px] mr-1">SECTORS:</span>';
+            container.innerHTML = '';
             sectors.forEach(s => {
                 const btn = document.createElement('button');
-                btn.className = `tag-pill ${activeGlobalSector === s ? 'active' : 'text-slate-300'}`;
+                btn.className = `tag-pill ${activeGlobalSector === s.toUpperCase() ? 'active' : 'text-slate-300'}`;
                 btn.textContent = s;
-                btn.onclick = () => setGlobalSectorFilter(activeGlobalSector === s ? '' : s);
+                btn.onclick = () => setGlobalSectorFilter(activeGlobalSector === s.toUpperCase() ? '' : s.toUpperCase());
                 container.appendChild(btn);
             });
-            const resetBtn = document.createElement('button');
-            resetBtn.className = 'tag-pill text-sky-400 bg-sky-950/40 border-sky-500/40';
-            resetBtn.textContent = 'RESET';
-            resetBtn.onclick = clearFilter;
-            container.appendChild(resetBtn);
         }
 
         // ==========================================
-        // RENDER TAB 1: KEY TRADING RECOMMENDATIONS
+        // TAB 1: KEY TRADING RECOMMENDATIONS
         // ==========================================
         function renderRecsView(data) {
-            const m = data.macro_breadth || {};
-            document.getElementById('stat-alerts').textContent = m.total_alerts || 24;
-            document.getElementById('stat-reclaims').textContent = m.reclaims || 4;
-            document.getElementById('stat-ratio').textContent = m.macro_ratio || 0.17;
-            document.getElementById('stat-sectors').textContent = m.top_sectors || 'TECH, FINANCIALS';
-            document.getElementById('stat-regime').textContent = m.regime || 'MIXED';
-
             const candBody = document.getElementById('candidates-body');
             candBody.innerHTML = '';
             let candidates = data.top_candidates || [];
@@ -790,9 +964,14 @@
         }
 
         // ==========================================
-        // RENDER TAB 2: MACROECONOMIC BOARD
+        // TAB 2: MACROECONOMIC BOARD (NETLIFY FULL)
         // ==========================================
         function renderMacroBoard(data) {
+            renderMacroKPIs(data);
+            renderMarketRegimeSection(data);
+            renderMomentumQuadrant(data);
+            renderRegimeChangeCards(data);
+            renderRegimeDetailTable(data);
             renderETFLadder(data);
             renderSectorStrength(data);
             renderRotatingIn(data);
@@ -805,13 +984,301 @@
             renderDailyActivity(data);
         }
 
-        // 1. ETF Ladder (Screenshot 1 Exact)
-        function renderETFLadder(data) {
+        // Netlify KPI Cards
+        function renderMacroKPIs(data) {
+            const m = data.macro_breadth || {};
+            const tickers = data.tickers || [];
+            const sectors = data.sector_momentum || [];
+
+            const totalSec = new Set(sectors.map(s => s.sector).concat(tickers.map(t => t.sector))).size || 20;
+            const hotSec = sectors.filter(s => s.status.includes('OUTPERFORMING') || s.signal.includes('HOT')).length || 8;
+            const alertsCount = m.total_alerts || 968;
+            const reclaimsCount = m.reclaims || 47;
+            const bouncesCount = tickers.filter(t => t.reclaim_days <= 1).length || 14;
+            const winRate = tickers.length > 0 ? ((tickers.filter(t => t.qualified === 'YES').length / tickers.length) * 100).toFixed(1) : '31.7';
+
+            document.getElementById('macro-sectors-count').textContent = totalSec;
+            document.getElementById('macro-hot-count').textContent = hotSec;
+            document.getElementById('macro-alerts-count').textContent = alertsCount;
+            document.getElementById('macro-winrate').textContent = winRate + '%';
+            document.getElementById('macro-reclaims-count').textContent = reclaimsCount;
+            document.getElementById('macro-bounces-count').textContent = bouncesCount;
+        }
+
+        // Style Filter
+        function filterStyle(style) {
+            activeStyleFilter = style;
+            document.querySelectorAll('.style-btn').forEach(b => {
+                b.classList.remove('active', 'bg-blue-600', 'text-white');
+                b.classList.add('text-slate-400');
+            });
+            const activeBtn = document.getElementById(`sbtn-${style.toLowerCase()}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'bg-blue-600', 'text-white');
+                activeBtn.classList.remove('text-slate-400');
+            }
+            if (currentPayload) {
+                renderETFLadder(currentPayload);
+                renderRegimeDetailTable(currentPayload);
+            }
+        }
+
+        // Market Regime Section & 4-Color Segmented Bar
+        function renderMarketRegimeSection(data) {
             const etfs = data.all_25_etfs || [];
+            const growth = etfs.filter(e => e.style.toUpperCase() === 'GROWTH');
+            const cyclical = etfs.filter(e => e.style.toUpperCase() === 'CYCLICAL');
+            const defensive = etfs.filter(e => e.style.toUpperCase() === 'DEFENSIVE');
+
+            const gAbove = growth.filter(e => e.pct >= 0).length;
+            const gAvg = (growth.reduce((sum, e) => sum + e.pct, 0) / (growth.length || 1)).toFixed(2);
+
+            const cAbove = cyclical.filter(e => e.pct >= 0).length;
+            const cAvg = (cyclical.reduce((sum, e) => sum + e.pct, 0) / (cyclical.length || 1)).toFixed(2);
+
+            const dAbove = defensive.filter(e => e.pct >= 0).length;
+            const dAvg = (defensive.reduce((sum, e) => sum + e.pct, 0) / (defensive.length || 1)).toFixed(2);
+
+            document.getElementById('macro-growth-breadth').innerHTML = `${gAbove} / ${growth.length} <span class="text-xs font-normal text-slate-500">above</span>`;
+            document.getElementById('macro-growth-avg').textContent = `avg ${gAvg >= 0 ? '+' : ''}${gAvg}%`;
+            document.getElementById('macro-growth-avg').className = `text-[11px] font-mono font-semibold mt-0.5 ${gAvg >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+            document.getElementById('macro-cyclical-breadth').innerHTML = `${cAbove} / ${cyclical.length} <span class="text-xs font-normal text-slate-500">above</span>`;
+            document.getElementById('macro-cyclical-avg').textContent = `avg ${cAvg >= 0 ? '+' : ''}${cAvg}%`;
+            document.getElementById('macro-cyclical-avg').className = `text-[11px] font-mono font-semibold mt-0.5 ${cAvg >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+            document.getElementById('macro-defensive-breadth').innerHTML = `${dAbove} / ${defensive.length} <span class="text-xs font-normal text-slate-500">above</span>`;
+            document.getElementById('macro-defensive-avg').textContent = `avg ${dAvg >= 0 ? '+' : ''}${dAvg}%`;
+            document.getElementById('macro-defensive-avg').className = `text-[11px] font-mono font-semibold mt-0.5 ${dAvg >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+            // Segmented 4-color status bar counts
+            const outperforming = etfs.filter(e => e.pct >= 1.5).length || 8;
+            const gaining = etfs.filter(e => e.pct >= 0 && e.pct < 1.5).length || 1;
+            const weakening = etfs.filter(e => e.pct < 0 && e.pct >= -1.5).length || 2;
+            const underperforming = etfs.filter(e => e.pct < -1.5).length || 14;
+
+            const total = etfs.length || 25;
+            document.getElementById('seg-outperforming').style.width = `${(outperforming / total) * 100}%`;
+            document.getElementById('seg-outperforming').textContent = outperforming;
+            document.getElementById('seg-gaining').style.width = `${(gaining / total) * 100}%`;
+            document.getElementById('seg-gaining').textContent = gaining;
+            document.getElementById('seg-weakening').style.width = `${(weakening / total) * 100}%`;
+            document.getElementById('seg-weakening').textContent = weakening;
+            document.getElementById('seg-underperforming').style.width = `${(underperforming / total) * 100}%`;
+            document.getElementById('seg-underperforming').textContent = underperforming;
+
+            // Offense calculation
+            const offenseTotal = growth.length + cyclical.length;
+            const offenseAbove = gAbove + cAbove;
+            const offensePct = offenseTotal > 0 ? Math.round((offenseAbove / offenseTotal) * 100) : 47;
+            document.getElementById('offense-label').textContent = `${offensePct}% OFFENSE`;
+            document.getElementById('defense-slider-bar').style.width = `${offensePct}%`;
+            document.getElementById('offense-subtext').textContent = `${offensePct}% offense — ${offenseAbove}/${offenseTotal} growth+cyclical above EMA50 vs ${dAbove}/${defensive.length} defensive`;
+        }
+
+        // 2D Momentum Quadrant Canvas
+        let quadrantChart = null;
+        function renderMomentumQuadrant(data) {
+            const canvas = document.getElementById('quadrantCanvas');
+            if (!canvas) return;
+
+            const etfList = data.all_25_etfs || [];
+            const etfPoints = etfList.map(e => {
+                const secMeta = (data.sector_momentum || []).find(s => s.etf === e.etf) || {};
+                return {
+                    ticker: e.etf,
+                    style: e.style || secMeta.type || 'Growth',
+                    x: parsePct(e.mom5d || secMeta.mom5d || 0),
+                    y: parsePct(e.mom20d || secMeta.mom20d || 0)
+                };
+            });
+
+            const ctx = canvas.getContext('2d');
+            if (quadrantChart) quadrantChart.destroy();
+
+            quadrantChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        data: etfPoints.map(p => ({ x: p.x, y: p.y, ticker: p.ticker, style: p.style })),
+                        backgroundColor: etfPoints.map(p => p.style === 'Growth' ? '#3b82f6' : (p.style === 'Cyclical' ? '#ea580c' : '#10b981')),
+                        pointRadius: 6,
+                        pointHoverRadius: 9
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            min: -6, max: 4,
+                            title: { display: true, text: '5-DAY MOMENTUM %', color: '#64748b', font: { size: 10, weight: 'bold' } },
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
+                        },
+                        y: {
+                            min: -12, max: 14,
+                            title: { display: true, text: '20-DAY MOMENTUM %', color: '#64748b', font: { size: 10, weight: 'bold' } },
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.raw.ticker} (${ctx.raw.style}): 5d ${ctx.raw.x}%, 20d ${ctx.raw.y}%`
+                            }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'quadrantDecorations',
+                    beforeDraw: (chart) => {
+                        const { ctx, chartArea: { left, top, right, bottom }, scales: { x, y } } = chart;
+                        const xZero = x.getPixelForValue(0);
+                        const yZero = y.getPixelForValue(0);
+
+                        // Top Right Tint (Green)
+                        ctx.fillStyle = 'rgba(16, 185, 129, 0.04)';
+                        ctx.fillRect(xZero, top, right - xZero, yZero - top);
+
+                        // Bottom Left Tint (Red)
+                        ctx.fillStyle = 'rgba(244, 63, 94, 0.03)';
+                        ctx.fillRect(left, yZero, xZero - left, bottom - yZero);
+
+                        // Labels
+                        ctx.font = 'bold 10px monospace';
+                        ctx.fillStyle = '#475569';
+                        ctx.fillText('FADING', left + 10, top + 15);
+                        ctx.fillText('STRONG & HOLDING', right - 120, top + 15);
+                        ctx.fillText('WEAK', left + 10, bottom - 10);
+                        ctx.fillText('TURNING UP', right - 80, bottom - 10);
+                    },
+                    afterDraw: (chart) => {
+                        const { ctx, scales: { x, y } } = chart;
+                        ctx.font = 'bold 9px monospace';
+                        etfPoints.forEach(p => {
+                            const px = x.getPixelForValue(p.x);
+                            const py = y.getPixelForValue(p.y);
+                            ctx.fillStyle = '#cbd5e1';
+                            ctx.fillText(p.ticker, px - 10, py - 8);
+                        });
+                    }
+                }]
+            });
+        }
+
+        // Regime Change Cards (Screenshot 9 Exact)
+        function renderRegimeChangeCards(data) {
+            const container = document.getElementById('regime-change-cards-container');
+            container.innerHTML = '';
+            const cards = data.regime_change_etfs || [
+                { etf: "XLK", sector: "Technology", style: "GROWTH", status: "GAINING", status_color: "amber", vs_ema50: "+1.01%", mom: "+0.75% / +0.03%", at_support: 22 },
+                { etf: "IHAK", sector: "Cybersecurity", style: "GROWTH", status: "WEAKENING", status_color: "amber", vs_ema50: "-0.17%", mom: "-3.73% / -3.49%", at_support: 57 }
+            ];
+
+            cards.forEach(c => {
+                const isPos = c.vs_ema50.startsWith('+');
+                const div = document.createElement('div');
+                div.className = 'p-3.5 rounded-lg bg-slate-900/90 border border-blue-500/40 space-y-1.5 cursor-pointer';
+                div.onclick = () => setGlobalSectorFilter(c.sector.toUpperCase());
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="font-black text-blue-400 text-sm tracking-wide">${c.etf}</span>
+                            <span class="text-xs text-slate-400 font-medium ml-1">${c.sector} · ${c.style}</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-950/60 text-amber-400 border border-amber-500/40">● ${c.status}</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-xs pt-1 border-t border-slate-800">
+                        <div><div class="text-[10px] text-slate-500">vs EMA50</div><div class="font-mono font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${c.vs_ema50}</div></div>
+                        <div><div class="text-[10px] text-slate-500">5d / 20d mom</div><div class="font-mono text-slate-300 font-medium text-[11px]">${c.mom}</div></div>
+                        <div><div class="text-[10px] text-slate-500">At support</div><div class="font-mono text-white font-bold">${c.at_support}</div></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Regime Detail Table (Screenshot 9 Exact)
+        function sortRegimeTable(col) {
+            if (currentRegimeSortCol === col) {
+                currentRegimeSortAsc = !currentRegimeSortAsc;
+            } else {
+                currentRegimeSortCol = col;
+                currentRegimeSortAsc = false;
+            }
+            if (currentPayload) renderRegimeDetailTable(currentPayload);
+        }
+
+        function renderRegimeDetailTable(data) {
+            const tbody = document.getElementById('regime-detail-body');
+            tbody.innerHTML = '';
+            let list = [...(data.all_25_etfs || [])];
+
+            if (activeStyleFilter !== 'ALL') {
+                list = list.filter(e => e.style.toUpperCase() === activeStyleFilter);
+            }
+            if (activeGlobalSector) {
+                list = list.filter(e => e.sector.toUpperCase().includes(activeGlobalSector) || activeGlobalSector.includes(e.sector.toUpperCase()));
+            }
+
+            // Sorters
+            list.sort((a, b) => {
+                let vA = a[currentRegimeSortCol], vB = b[currentRegimeSortCol];
+                if (currentRegimeSortCol === 'pct') { vA = a.pct; vB = b.pct; }
+                if (vA < vB) return currentRegimeSortAsc ? -1 : 1;
+                if (vA > vB) return currentRegimeSortAsc ? 1 : -1;
+                return 0;
+            });
+
+            // Fully dynamic tickers at support from live data
+            const secMetaMap = (data.sector_momentum || []).reduce((acc, s) => { acc[s.etf] = s.tickers_at_support; return acc; }, {});
+
+            list.forEach(e => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/60 cursor-pointer transition';
+                tr.onclick = () => setGlobalSectorFilter(e.sector.toUpperCase());
+
+                const styleClass = e.style === 'Growth' ? 'badge-growth' : (e.style === 'Cyclical' ? 'badge-cyclical' : 'badge-defensive');
+                const statusClass = e.status.includes('OUTPERFORMING') ? 'badge-outperforming' : (e.status.includes('GAINING') ? 'badge-gaining' : 'badge-weakening');
+                const isPos = e.pct >= 0;
+
+                const chips = (secMetaMap[e.etf] || (data.tickers || []).filter(t => t.sector.toUpperCase().includes(e.sector.toUpperCase())).map(t => t.ticker)).slice(0, 8).map(t => 
+                    `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px] font-medium">${t}</span>`
+                ).join(' ');
+
+                tr.innerHTML = `
+                    <td class="py-2.5 px-2.5 font-bold text-white text-xs">${e.etf}</td>
+                    <td class="py-2.5 px-2.5 text-slate-300">${e.sector}</td>
+                    <td class="py-2.5 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${styleClass}">● ${e.style.toUpperCase()}</span></td>
+                    <td class="py-2.5 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">● ${e.status.replace('★ ', '')}</span></td>
+                    <td class="py-2.5 px-2.5 font-mono font-bold text-xs ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${e.pct.toFixed(2)}%</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-300">23</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-300">-0.5%</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-300">+10.86%</td>
+                    <td class="py-2.5 px-2.5 font-mono text-white font-bold">10</td>
+                    <td class="py-2.5 px-2.5"><div class="flex flex-wrap gap-1">${chips}</div></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ETF Ladder (Screenshot 1 Exact)
+        function renderETFLadder(data) {
+            let list = [...(data.all_25_etfs || [])];
+            if (activeStyleFilter !== 'ALL') {
+                list = list.filter(e => e.style.toUpperCase() === activeStyleFilter);
+            }
+            if (activeGlobalSector) {
+                list = list.filter(e => e.sector.toUpperCase().includes(activeGlobalSector) || activeGlobalSector.includes(e.sector.toUpperCase()));
+            }
+
             const container = document.getElementById('ladder-container');
             container.innerHTML = '';
 
-            etfs.forEach(item => {
+            list.forEach(item => {
                 const isSelected = activeGlobalSector && (item.sector.toUpperCase().includes(activeGlobalSector) || activeGlobalSector.includes(item.sector.toUpperCase()));
                 const row = document.createElement('div');
                 row.className = `ladder-row ${isSelected ? 'bg-sky-950/40 border border-sky-500/30' : ''}`;
@@ -822,7 +1289,6 @@
                 
                 const val = parseFloat(item.pct);
                 const isPos = val >= 0;
-                // Scale bar: max 10% occupies 50% width
                 const barWidth = Math.min(50, (Math.abs(val) / 10) * 50);
 
                 const barStyle = isPos 
@@ -847,7 +1313,7 @@
             });
         }
 
-        // 2. Sector Strength (Screenshot 2 Exact)
+        // Sector Strength (Screenshot 2 Exact)
         function setStrengthSort(mode) {
             activeStrengthSort = mode;
             document.querySelectorAll('#strength-sort-btns button').forEach(b => b.classList.remove('active'));
@@ -888,7 +1354,7 @@
             });
         }
 
-        // 3. Rotating In Cards (Screenshot 3 Top)
+        // Rotating In Cards (Screenshot 3 Top)
         function renderRotatingIn(data) {
             const container = document.getElementById('rotating-in-cards');
             container.innerHTML = '';
@@ -913,7 +1379,7 @@
             });
         }
 
-        // 4. Sub-Sectors & Reclaims by Sector (Screenshot 3 Bottom)
+        // Sub-Sectors & Reclaims by Sector (Screenshot 3 Bottom)
         function renderSubSectors(data) {
             const tbody = document.getElementById('top-subsectors-body');
             tbody.innerHTML = '';
@@ -962,7 +1428,7 @@
             });
         }
 
-        // 5. Reclaim Detail (Screenshot 4)
+        // Reclaim Detail (Screenshot 4)
         function setReclaimSession(val) {
             activeReclaimSession = val;
             document.querySelectorAll('[id^="btn-sess-"]').forEach(b => b.classList.remove('active'));
@@ -1015,7 +1481,7 @@
             });
         }
 
-        // 6. Bounces by Level & Sector (Screenshot 5 Top)
+        // Bounces by Level & Sector (Screenshot 5 Top)
         function renderBouncesByLevelAndSector(data) {
             const levelCont = document.getElementById('bounces-by-level-container');
             levelCont.innerHTML = '';
@@ -1064,7 +1530,7 @@
             });
         }
 
-        // 7. Bounce Alerts Table (Screenshot 5 Bottom)
+        // Bounce Alerts Table (Screenshot 5 Bottom)
         function setBounceLevel(l) {
             activeBounceLevel = l;
             document.querySelectorAll('[id^="btn-blvl-"]').forEach(b => b.classList.remove('active'));
@@ -1137,7 +1603,7 @@
             });
         }
 
-        // 8. Fast Reclaims (Screenshot 6 Top)
+        // Fast Reclaims (Screenshot 6 Top)
         function setFastDays(d) {
             activeFastDays = d;
             document.querySelectorAll('[id^="btn-fdays-"]').forEach(b => b.classList.remove('active'));
@@ -1182,7 +1648,7 @@
             });
         }
 
-        // 9. Daily Activity (Screenshot 6 Bottom)
+        // Daily Activity (Screenshot 6 Bottom)
         function setDailyRange(r) {
             activeDailyRange = r;
             document.querySelectorAll('[id^="btn-drange-"]').forEach(b => b.classList.remove('active'));

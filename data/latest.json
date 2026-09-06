@@ -3669,323 +3669,194 @@
       "qualified": "NO"
     }
   ],
-  "all_25_etfs": [
-    {
-      "etf": "GDX",
-      "sector": "Gold Miners",
-      "style": "Defensive",
-      "pct": 9.1,
-      "status": "\u2605 OUTPERFORMING"
-    },
-    {
-      "etf": "IBB",
-      "sector": "Biotech",
-      "style": "Growth",
-      "pct": 5.13,
-      "status": "\u2605 OUTPERFORMING"
-    },
-    {
-      "etf": "XLE",
-      "sector": "Energy",
-      "style": "Cyclical",
-      "pct": 4.32,
-      "status": "\u2605 OUTPERFORMING"
-    },
-    {
-      "etf": "IGV",
-      "sector": "Tech Software",
-      "style": "Growth",
-      "pct": 3.45,
-      "status": "\u2605 OUTPERFORMING"
-    },
-    {
-      "etf": "XBI",
-      "sector": "Biotech Small Cap",
-      "style": "Growth",
-      "pct": 3.02,
-      "status": "\u2605 OUTPERFORMING"
-    },
-    {
-      "etf": "XME",
-      "sector": "Metals & Mining",
-      "style": "Cyclical",
-      "pct": 2.63,
-      "status": "\u2605 OUTPERFORMING"
-    },
-    {
-      "etf": "XLV",
-      "sector": "Healthcare",
-      "style": "Defensive",
-      "pct": 1.76,
-      "status": "\u2605 OUTPERFORMING"
-    },
-    {
-      "etf": "XLK",
-      "sector": "Technology",
-      "style": "Growth",
-      "pct": 1.01,
-      "status": "GAINING"
-    },
-    {
-      "etf": "XLF",
-      "sector": "Financials",
-      "style": "Cyclical",
-      "pct": 0.84,
-      "status": "\u2605 OUTPERFORMING"
-    },
-    {
-      "etf": "IHAK",
-      "sector": "Cybersecurity",
-      "style": "Growth",
-      "pct": -0.17,
-      "status": "WEAKENING"
-    },
-    {
-      "etf": "QQQ",
-      "sector": "Nasdaq 100",
-      "style": "Growth",
-      "pct": -0.43,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "KRE",
-      "sector": "Regional Banks",
-      "style": "Cyclical",
-      "pct": -0.94,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "XLB",
-      "sector": "Materials",
-      "style": "Cyclical",
-      "pct": -1.04,
-      "status": "WEAKENING"
-    },
-    {
-      "etf": "XLC",
-      "sector": "Comm Services",
-      "style": "Growth",
-      "pct": -1.11,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "SMH",
-      "sector": "Semiconductors",
-      "style": "Growth",
-      "pct": -1.52,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "XRT",
-      "sector": "Retail",
-      "style": "Cyclical",
-      "pct": -1.83,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "XLP",
-      "sector": "Consumer Staples",
-      "style": "Defensive",
-      "pct": -2.28,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "XLY",
-      "sector": "Consumer Disc",
-      "style": "Growth",
-      "pct": -2.97,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "XLRE",
-      "sector": "Real Estate",
-      "style": "Defensive",
-      "pct": -3.29,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "IYT",
-      "sector": "Transportation",
-      "style": "Cyclical",
-      "pct": -3.59,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "XLU",
-      "sector": "Utilities",
-      "style": "Defensive",
-      "pct": -3.83,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "XLI",
-      "sector": "Industrials",
-      "style": "Cyclical",
-      "pct": -3.95,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "ITB",
-      "sector": "Homebuilders",
-      "style": "Cyclical",
-      "pct": -4.67,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "JETS",
-      "sector": "Airlines",
-      "style": "Cyclical",
-      "pct": -6.06,
-      "status": "UNDERPERFORMING"
-    },
-    {
-      "etf": "TAN",
-      "sector": "Solar",
-      "style": "Growth",
-      "pct": -9.4,
-      "status": "UNDERPERFORMING"
-    }
-  ],
   "sector_strength": [
     {
       "sector": "ENERGY",
+      "strength_str": "7/10",
       "score": 7,
-      "display": "7/10",
-      "win_pct": "78%",
-      "avg_ret": "5.20%"
+      "alerts": 14,
+      "won": 14,
+      "win_rate": "100%",
+      "avg_return": "7.20%",
+      "recent_3d": 4,
+      "signal": "08/17"
+    },
+    {
+      "sector": "ENERGY",
+      "strength_str": "7/10",
+      "score": 7,
+      "alerts": 5,
+      "won": 5,
+      "win_rate": "100%",
+      "avg_return": "7.90%",
+      "recent_3d": 2,
+      "signal": "08/10"
+    },
+    {
+      "sector": "ENERGY",
+      "strength_str": "6/10",
+      "score": 6,
+      "alerts": 3,
+      "won": 3,
+      "win_rate": "100%",
+      "avg_return": "12.80%",
+      "recent_3d": 1,
+      "signal": "09/04"
+    },
+    {
+      "sector": "ENERGY",
+      "strength_str": "6/10",
+      "score": 6,
+      "alerts": 4,
+      "won": 4,
+      "win_rate": "100%",
+      "avg_return": "14.20%",
+      "recent_3d": 0,
+      "signal": "08/26"
+    },
+    {
+      "sector": "ENERGY",
+      "strength_str": "5/10",
+      "score": 5,
+      "alerts": 4,
+      "won": 3,
+      "win_rate": "75%",
+      "avg_return": "5%",
+      "recent_3d": 0,
+      "signal": "08/31"
+    },
+    {
+      "sector": "ENERGY",
+      "strength_str": "7/10",
+      "score": 7,
+      "alerts": 49,
+      "won": 38,
+      "win_rate": "78%",
+      "avg_return": "5.20%",
+      "recent_3d": 3,
+      "signal": "GOOD \u2014 Trade 3rd+ alerts"
     },
     {
       "sector": "TECH SOFTWARE",
+      "strength_str": "6/10",
       "score": 6,
-      "display": "6/10",
-      "win_pct": "49%",
-      "avg_ret": "3.30%"
+      "alerts": 168,
+      "won": 82,
+      "win_rate": "49%",
+      "avg_return": "3.30%",
+      "recent_3d": 12,
+      "signal": "GOOD \u2014 Trade 3rd+ alerts"
     },
     {
       "sector": "FINANCIALS",
+      "strength_str": "6/10",
       "score": 6,
-      "display": "6/10",
-      "win_pct": "52%",
-      "avg_ret": "0.10%"
+      "alerts": 122,
+      "won": 63,
+      "win_rate": "52%",
+      "avg_return": "0.10%",
+      "recent_3d": 29,
+      "signal": "GOOD \u2014 Trade 3rd+ alerts"
     },
     {
       "sector": "HEALTHCARE",
+      "strength_str": "6/10",
       "score": 6,
-      "display": "6/10",
-      "win_pct": "43%",
-      "avg_ret": "4.00%"
+      "alerts": 115,
+      "won": 50,
+      "win_rate": "43%",
+      "avg_return": "4.00%",
+      "recent_3d": 12,
+      "signal": "GOOD \u2014 Trade 3rd+ alerts"
     },
     {
       "sector": "TECH CORE",
+      "strength_str": "5/10",
       "score": 5,
-      "display": "5/10",
-      "win_pct": "32%",
-      "avg_ret": "-3.90%"
+      "alerts": 71,
+      "won": 23,
+      "win_rate": "32%",
+      "avg_return": "-3.90%",
+      "recent_3d": 7,
+      "signal": "MODERATE \u2014 Selective only"
+    }
+  ],
+  "top_subsectors": [
+    {
+      "subsector": "Oil & Gas Exploration & Production",
+      "sector": "ENERGY",
+      "strength_str": "7/10",
+      "score": 7,
+      "alerts": 14,
+      "win_rate": "100%",
+      "avg_return": "7.20%",
+      "tickers": [
+        "OXY",
+        "EOG",
+        "COP",
+        "DVN",
+        "FANG"
+      ]
     },
     {
-      "sector": "ETF",
+      "subsector": "Integrated Oil & Gas",
+      "sector": "ENERGY",
+      "strength_str": "7/10",
+      "score": 7,
+      "alerts": 5,
+      "win_rate": "100%",
+      "avg_return": "7.90%",
+      "tickers": [
+        "CVX",
+        "XOM",
+        "XOM",
+        "XOM",
+        "CVX"
+      ]
+    },
+    {
+      "subsector": "Thermal Coal Mining",
+      "sector": "ENERGY",
+      "strength_str": "6/10",
+      "score": 6,
+      "alerts": 3,
+      "win_rate": "100%",
+      "avg_return": "12.80%",
+      "tickers": [
+        "BTU",
+        "BTU",
+        "BTU"
+      ]
+    },
+    {
+      "subsector": "Oil & Gas Refining",
+      "sector": "ENERGY",
+      "strength_str": "6/10",
+      "score": 6,
+      "alerts": 4,
+      "win_rate": "100%",
+      "avg_return": "14.20%",
+      "tickers": [
+        "VLO",
+        "VLO",
+        "VLO",
+        "VLO"
+      ]
+    },
+    {
+      "subsector": "Oilfield Services & Equipment",
+      "sector": "ENERGY",
+      "strength_str": "5/10",
       "score": 5,
-      "display": "5/10",
-      "win_pct": "40%",
-      "avg_ret": "1.20%"
-    },
-    {
-      "sector": "INDUSTRIALS",
-      "score": 5,
-      "display": "5/10",
-      "win_pct": "45%",
-      "avg_ret": "2.10%"
-    },
-    {
-      "sector": "CONSUMER STAPLES",
-      "score": 5,
-      "display": "5/10",
-      "win_pct": "50%",
-      "avg_ret": "1.80%"
-    },
-    {
-      "sector": "TECH SEMIS",
-      "score": 5,
-      "display": "5/10",
-      "win_pct": "48%",
-      "avg_ret": "3.50%"
-    },
-    {
-      "sector": "CRYPTO",
-      "score": 5,
-      "display": "5/10",
-      "win_pct": "60%",
-      "avg_ret": "4.10%"
-    },
-    {
-      "sector": "MATERIALS",
-      "score": 4,
-      "display": "4/10",
-      "win_pct": "42%",
-      "avg_ret": "1.50%"
-    },
-    {
-      "sector": "CONSUMER DISC",
-      "score": 4,
-      "display": "4/10",
-      "win_pct": "38%",
-      "avg_ret": "-1.20%"
-    },
-    {
-      "sector": "REAL ESTATE",
-      "score": 4,
-      "display": "4/10",
-      "win_pct": "35%",
-      "avg_ret": "-0.80%"
-    },
-    {
-      "sector": "COMM SERVICES",
-      "score": 4,
-      "display": "4/10",
-      "win_pct": "41%",
-      "avg_ret": "0.90%"
-    },
-    {
-      "sector": "UTILITIES",
-      "score": 3,
-      "display": "3/10",
-      "win_pct": "30%",
-      "avg_ret": "-2.10%"
-    },
-    {
-      "sector": "DEFENSE",
-      "score": 2,
-      "display": "2/10",
-      "win_pct": "25%",
-      "avg_ret": "-1.50%"
-    },
-    {
-      "sector": "TRANSPORT",
-      "score": 2,
-      "display": "2/10",
-      "win_pct": "20%",
-      "avg_ret": "-3.10%"
-    },
-    {
-      "sector": "INDEX",
-      "score": 0,
-      "display": "0/10",
-      "win_pct": "0%",
-      "avg_ret": "0.00%"
-    },
-    {
-      "sector": "Commodity",
-      "score": 0,
-      "display": "0/10",
-      "win_pct": "0%",
-      "avg_ret": "0.00%"
-    },
-    {
-      "sector": "Currency",
-      "score": 0,
-      "display": "0/10",
-      "win_pct": "0%",
-      "avg_ret": "0.00%"
+      "alerts": 4,
+      "win_rate": "75%",
+      "avg_return": "5%",
+      "tickers": [
+        "SLB",
+        "SLB",
+        "SLB",
+        "SLB"
+      ]
     }
   ],
   "rotating_in": [
@@ -4046,78 +3917,6 @@
       "avg_return": "1.82%"
     }
   ],
-  "top_subsectors": [
-    {
-      "subsector": "Optical Communication Lasers",
-      "sector": "TECH CORE",
-      "str": "5/10",
-      "win": "100%",
-      "ret": "+15.50%"
-    },
-    {
-      "subsector": "E-Commerce & Digital Payments",
-      "sector": "CONSUMER DISC",
-      "str": "5/10",
-      "win": "100%",
-      "ret": "+4.10%"
-    },
-    {
-      "subsector": "Medical Devices & Tech",
-      "sector": "HEALTHCARE",
-      "str": "4/10",
-      "win": "100%",
-      "ret": "+3.40%"
-    },
-    {
-      "subsector": "Land Drilling Services",
-      "sector": "ENERGY",
-      "str": "4/10",
-      "win": "67%",
-      "ret": "+5.00%"
-    },
-    {
-      "subsector": "Data Center REITs",
-      "sector": "REAL ESTATE",
-      "str": "3/10",
-      "win": "100%",
-      "ret": "+2.50%"
-    },
-    {
-      "subsector": "Telecom Tower REITs",
-      "sector": "REAL ESTATE",
-      "str": "3/10",
-      "win": "67%",
-      "ret": "-0.10%"
-    },
-    {
-      "subsector": "Telecom Industry ETF",
-      "sector": "ETF",
-      "str": "3/10",
-      "win": "50%",
-      "ret": "-0.30%"
-    },
-    {
-      "subsector": "Industrial Conglomerates",
-      "sector": "INDUSTRIALS",
-      "str": "2/10",
-      "win": "50%",
-      "ret": "-5.00%"
-    },
-    {
-      "subsector": "Interactive Media & Services",
-      "sector": "COMM SERVICES",
-      "str": "2/10",
-      "win": "50%",
-      "ret": "-0.10%"
-    },
-    {
-      "subsector": "Aerospace & Defense (eVTOL)",
-      "sector": "DEFENSE",
-      "str": "2/10",
-      "win": "50%",
-      "ret": "-1.60%"
-    }
-  ],
   "reclaims_by_sector": [
     {
       "sector": "TECH SOFTWARE",
@@ -4164,20 +3963,20 @@
       "count": 8
     },
     {
-      "sector": "CRYPTO",
-      "count": 5
-    },
-    {
       "sector": "TECH SEMIS",
       "count": 5
     },
     {
-      "sector": "MATERIALS",
-      "count": 3
+      "sector": "CRYPTO",
+      "count": 5
     },
     {
       "sector": "REAL ESTATE",
       "count": 4
+    },
+    {
+      "sector": "MATERIALS",
+      "count": 3
     },
     {
       "sector": "DEFENSE",
@@ -4188,12 +3987,6 @@
       "count": 1
     }
   ],
-  "bounces_by_level": {
-    "EMA50": 140,
-    "DB": 83,
-    "OTE": 27,
-    "MA150": 30
-  },
   "bounces_by_sector": [
     {
       "sector": "TECH SOFTWARE",
@@ -4232,15 +4025,15 @@
       "count": 16
     },
     {
-      "sector": "MATERIALS",
-      "count": 7
-    },
-    {
       "sector": "ENERGY",
       "count": 8
     },
     {
       "sector": "TRANSPORT",
+      "count": 7
+    },
+    {
+      "sector": "MATERIALS",
       "count": 7
     },
     {
@@ -4264,6 +4057,12 @@
       "count": 2
     }
   ],
+  "bounces_by_level": {
+    "EMA50": 140,
+    "DB": 83,
+    "OTE": 27,
+    "MA150": 30
+  },
   "fast_reclaims": [
     {
       "ticker": "ORCL",
@@ -4598,6 +4397,205 @@
       "bounce": 11,
       "alert": 35,
       "reclaim": "--"
+    }
+  ],
+  "all_25_etfs": [
+    {
+      "etf": "GDX",
+      "sector": "Gold Miners",
+      "style": "Defensive",
+      "pct": 9.1,
+      "status": "\u2605 OUTPERFORMING"
+    },
+    {
+      "etf": "IBB",
+      "sector": "Biotech",
+      "style": "Growth",
+      "pct": 5.13,
+      "status": "\u2605 OUTPERFORMING"
+    },
+    {
+      "etf": "XLE",
+      "sector": "Energy",
+      "style": "Cyclical",
+      "pct": 4.32,
+      "status": "\u2605 OUTPERFORMING"
+    },
+    {
+      "etf": "IGV",
+      "sector": "Tech Software",
+      "style": "Growth",
+      "pct": 3.45,
+      "status": "\u2605 OUTPERFORMING"
+    },
+    {
+      "etf": "XBI",
+      "sector": "Biotech Small Cap",
+      "style": "Growth",
+      "pct": 3.02,
+      "status": "\u2605 OUTPERFORMING"
+    },
+    {
+      "etf": "XME",
+      "sector": "Metals & Mining",
+      "style": "Cyclical",
+      "pct": 2.63,
+      "status": "\u2605 OUTPERFORMING"
+    },
+    {
+      "etf": "XLV",
+      "sector": "Healthcare",
+      "style": "Defensive",
+      "pct": 1.76,
+      "status": "\u2605 OUTPERFORMING"
+    },
+    {
+      "etf": "XLK",
+      "sector": "Technology",
+      "style": "Growth",
+      "pct": 1.01,
+      "status": "GAINING"
+    },
+    {
+      "etf": "XLF",
+      "sector": "Financials",
+      "style": "Cyclical",
+      "pct": 0.84,
+      "status": "\u2605 OUTPERFORMING"
+    },
+    {
+      "etf": "IHAK",
+      "sector": "Cybersecurity",
+      "style": "Growth",
+      "pct": -0.17,
+      "status": "WEAKENING"
+    },
+    {
+      "etf": "QQQ",
+      "sector": "Nasdaq 100",
+      "style": "Growth",
+      "pct": -0.43,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "KRE",
+      "sector": "Regional Banks",
+      "style": "Cyclical",
+      "pct": -0.94,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "XLB",
+      "sector": "Materials",
+      "style": "Cyclical",
+      "pct": -1.04,
+      "status": "WEAKENING"
+    },
+    {
+      "etf": "XLC",
+      "sector": "Comm Services",
+      "style": "Growth",
+      "pct": -1.11,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "SMH",
+      "sector": "Semiconductors",
+      "style": "Growth",
+      "pct": -1.52,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "XRT",
+      "sector": "Retail",
+      "style": "Cyclical",
+      "pct": -1.83,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "XLP",
+      "sector": "Consumer Staples",
+      "style": "Defensive",
+      "pct": -2.28,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "XLY",
+      "sector": "Consumer Disc",
+      "style": "Growth",
+      "pct": -2.97,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "XLRE",
+      "sector": "Real Estate",
+      "style": "Defensive",
+      "pct": -3.29,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "IYT",
+      "sector": "Transportation",
+      "style": "Cyclical",
+      "pct": -3.59,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "XLU",
+      "sector": "Utilities",
+      "style": "Defensive",
+      "pct": -3.83,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "XLI",
+      "sector": "Industrials",
+      "style": "Cyclical",
+      "pct": -3.95,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "ITB",
+      "sector": "Homebuilders",
+      "style": "Cyclical",
+      "pct": -4.67,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "JETS",
+      "sector": "Airlines",
+      "style": "Cyclical",
+      "pct": -6.06,
+      "status": "UNDERPERFORMING"
+    },
+    {
+      "etf": "TAN",
+      "sector": "Solar",
+      "style": "Growth",
+      "pct": -9.4,
+      "status": "UNDERPERFORMING"
+    }
+  ],
+  "regime_change_etfs": [
+    {
+      "etf": "XLK",
+      "sector": "Technology",
+      "style": "GROWTH",
+      "status": "GAINING",
+      "status_color": "amber",
+      "vs_ema50": "+1.01%",
+      "mom": "+0.75% / +0.03%",
+      "at_support": 22
+    },
+    {
+      "etf": "IHAK",
+      "sector": "Cybersecurity",
+      "style": "GROWTH",
+      "status": "WEAKENING",
+      "status_color": "amber",
+      "vs_ema50": "-0.17%",
+      "mom": "-3.73% / -3.49%",
+      "at_support": 57
     }
   ]
 }
