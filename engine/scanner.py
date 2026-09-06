@@ -46,7 +46,7 @@ def prune_old_history():
     if pruned_count > 0:
         print(f"[*] Pruned {pruned_count} historical files older than {RETENTION_DAYS} days (cutoff: {cutoff_date}).")
 
-def fetch_market_data(tickers, period="6mo", interval="1d"):
+def fetch_market_data(tickers, period="1y", interval="1d"):
     """
     Downloads data in batches of 75 tickers to prevent Yahoo Finance HTTP 429 rate limits.
     Merges batch dataframes cleanly.
@@ -594,11 +594,16 @@ if __name__ == "__main__":
 
     print("[*] Running ABI Strategy Scanner Engine...")
     universe = get_full_universe()
-    data = fetch_market_data(universe)
     
     if args.backfill > 0:
+        # If backfilling, determine required period so 200MA has enough historical runway
+        # 365 calendar days is ~252 trading days; computing a 200MA 252 days ago requires ~2 years of data.
+        fetch_period = "2y" if args.backfill >= 100 else "1y"
+        print(f"[*] Backfill mode detected ({args.backfill} days). Pulling {fetch_period} historical data...")
+        data = fetch_market_data(universe, period=fetch_period)
         run_backfill(data, days=args.backfill)
     else:
+        data = fetch_market_data(universe, period="1y")
         payload = process_universe(data)
         save_payloads(payload)
         
