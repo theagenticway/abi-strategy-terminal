@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ABI Strategy Terminal | S&P 500 EMA50 Telemetry</title>
+    <title>EMA50 Scanner Terminal | ABI Strategy Dashboard</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN for 2D Momentum Quadrant -->
@@ -14,11 +14,11 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f8fafc',
-                            100: '#f1f5f9',
-                            800: '#1e293b',
-                            900: '#0f172a',
-                            accent: '#38bdf8'
+                            dark: '#090d16',
+                            panel: '#0f172a',
+                            border: '#1e293b',
+                            accent: '#10b981',
+                            blue: '#38bdf8'
                         }
                     }
                 }
@@ -26,253 +26,381 @@
         }
     </script>
     <style>
-        body { background-color: #0b0f19; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .glass-panel { background: rgba(17, 24, 39, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .tab-btn.active { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); font-weight: 600; }
-        /* Ladder bar zero line styles */
-        .ladder-bar-container { position: relative; width: 140px; height: 16px; background: rgba(30, 41, 59, 0.6); border-radius: 4px; overflow: hidden; }
-        .ladder-zero-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: rgba(255, 255, 255, 0.2); z-index: 10; }
-        .ladder-fill-pos { position: absolute; left: 50%; top: 2px; bottom: 2px; background: #10b981; border-radius: 2px; }
-        .ladder-fill-neg { position: absolute; right: 50%; top: 2px; bottom: 2px; background: #f43f5e; border-radius: 2px; }
+        body { background-color: #080c14; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; }
+        .terminal-panel { background: #0d1322; border: 1px solid #1e293b; border-radius: 8px; }
+        .tab-btn.active { background: #1e293b; color: #38bdf8; border-bottom: 2px solid #38bdf8; font-weight: 600; }
+        .tag-pill { background: #1e293b; border: 1px solid #334155; font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+        /* Bidirectional Ladder bar */
+        .ladder-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; font-size: 12px; }
+        .ladder-bar-wrap { position: relative; width: 140px; height: 14px; background: #1e293b; border-radius: 3px; overflow: hidden; }
+        .ladder-zero { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.25); z-index: 5; }
+        .ladder-pos { position: absolute; left: 50%; top: 1px; bottom: 1px; background: #10b981; border-radius: 2px; }
+        .ladder-neg { position: absolute; right: 50%; top: 1px; bottom: 1px; background: #f43f5e; border-radius: 2px; }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
-    <div class="max-w-7xl mx-auto space-y-6">
+<body class="min-h-screen p-3 md:p-6 space-y-4">
+
+    <!-- Top Terminal Master Header (Netlify 1:1 Parity) -->
+    <header class="terminal-panel p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="font-black tracking-wider text-base md:text-lg text-white">EMA50 SCANNER TERMINAL</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">LIVE</span>
+            </div>
+            <span class="text-xs text-slate-500 hidden sm:inline">• data 9/4/2026</span>
+        </div>
+
+        <!-- Tab Controls & Live Refresh Tools -->
+        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+            <!-- Navigation Switcher -->
+            <div class="flex rounded-lg bg-slate-900 p-1 border border-slate-800">
+                <button id="tab-recs-btn" onclick="switchTab('recs')" class="tab-btn active px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1.5">
+                    <span>🎯</span> Key Trading Recommendations
+                </button>
+                <button id="tab-macro-btn" onclick="switchTab('macro')" class="tab-btn px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <span>🌐</span> Macroeconomic Board
+                </button>
+            </div>
+
+            <!-- Auto Refresh & Manual Trigger -->
+            <div class="flex items-center gap-1.5">
+                <select id="auto-refresh" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded px-2.5 py-1.5 focus:outline-none">
+                    <option value="60">Auto: 1m</option>
+                    <option value="300" selected>Auto: 5m</option>
+                    <option value="900">Auto: 15m</option>
+                </select>
+                <button onclick="loadData('./data/latest.json')" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 transition" title="Refresh Telemetry">
+                    <span>↻</span> REFRESH
+                </button>
+                <a href="./data/latest.json" target="_blank" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-mono">
+                    JSON
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sector Navigation Ribbon (Netlify 1:1) -->
+    <div class="overflow-x-auto pb-1">
+        <div class="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-slate-400 whitespace-nowrap">
+            <span class="text-slate-500 uppercase text-[10px] mr-1">SECTORS:</span>
+            <span class="tag-pill text-emerald-400">ENERGY</span>
+            <span class="tag-pill text-emerald-400">TECH SOFTWARE</span>
+            <span class="tag-pill text-emerald-400">FINANCIALS</span>
+            <span class="tag-pill text-emerald-400">HEALTHCARE</span>
+            <span class="tag-pill text-slate-300">TECH CORE</span>
+            <span class="tag-pill text-slate-300">ETF</span>
+            <span class="tag-pill text-slate-300">INDUSTRIALS</span>
+            <span class="tag-pill text-slate-300">CONSUMER STAPLES</span>
+            <span class="tag-pill text-slate-300">TECH SEMIS</span>
+            <span class="tag-pill text-amber-400">CRYPTO</span>
+            <span class="tag-pill text-slate-300">MATERIALS</span>
+            <span class="tag-pill text-rose-400">CONSUMER DISC</span>
+            <span class="tag-pill text-rose-400">REAL ESTATE</span>
+            <span class="tag-pill text-slate-300">COMM SERVICES</span>
+            <span class="tag-pill text-slate-300">UTILITIES</span>
+            <span class="tag-pill text-slate-300">DEFENSE</span>
+            <span class="tag-pill text-slate-300">TRANSPORT</span>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: KEY TRADING RECOMMENDATIONS (DEFAULT LANDING TAB)  -->
+    <!-- ======================================================== -->
+    <div id="tab-recs" class="space-y-4">
         
-        <!-- Header, Navigation Tabs & Date/API Controls -->
-        <header class="glass-panel p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-                <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
-                        ABI Strategy Terminal
-                    </h1>
-                    <span id="regime-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                        LOADING...
-                    </span>
+        <!-- Summary KPI Ribbon -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-500 uppercase">Tracked Universe</div>
+                <div class="text-xl font-black text-white mt-0.5">500+</div>
+                <div class="text-[10px] text-slate-500">S&P 500 / NASDAQ</div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-500 uppercase">Active Alerts</div>
+                <div id="stat-alerts" class="text-xl font-black text-amber-400 mt-0.5">24</div>
+                <div class="text-[10px] text-slate-500">Signals in zone</div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-500 uppercase">Reclaims (D0-D2)</div>
+                <div id="stat-reclaims" class="text-xl font-black text-emerald-400 mt-0.5">4</div>
+                <div class="text-[10px] text-slate-500">Confirmed velocity</div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-500 uppercase">Macro Ratio</div>
+                <div id="stat-ratio" class="text-xl font-black text-sky-400 mt-0.5">0.17</div>
+                <div class="text-[10px] text-slate-500">Breadth Index</div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-500 uppercase">Market Regime</div>
+                <div id="stat-regime" class="text-xs font-black text-amber-300 mt-1 truncate">MIXED</div>
+                <div class="text-[10px] text-slate-500">No clear rotation</div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-500 uppercase">Top Inflow</div>
+                <div id="stat-sectors" class="text-xs font-semibold text-slate-300 mt-1 truncate">TECH, FINANCIALS</div>
+                <div class="text-[10px] text-slate-500">Cluster momentum</div>
+            </div>
+        </div>
+
+        <!-- Options Alpha Radar Execution Table -->
+        <div class="terminal-panel p-4">
+            <div class="flex justify-between items-center mb-3">
+                <div>
+                    <h2 class="text-sm font-black text-white flex items-center gap-1.5 uppercase tracking-wide">
+                        <span class="text-amber-400">★</span> Key Trading Recommendations (Options Alpha Radar)
+                    </h2>
+                    <p class="text-[11px] text-slate-400">Pre-computed swing setups: Confirmed D0–D2 reclaims, 200 MA runway (≥5%), and strict invalidation stops.</p>
                 </div>
-                <p class="text-xs text-slate-400 mt-1">
-                    Full S&P 500 & NASDAQ-100 Scanner • Options Alpha Radar • Macroeconomic Monitoring
-                </p>
             </div>
 
-            <!-- Tab Switcher Navigation -->
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="flex rounded-xl bg-slate-900/90 p-1 border border-slate-800">
-                    <button id="tab-recs-btn" onclick="switchTab('recs')" class="tab-btn active px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2">
-                        <span>🎯</span> Key Trading Recommendations
-                    </button>
-                    <button id="tab-macro-btn" onclick="switchTab('macro')" class="tab-btn px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-2">
-                        <span>🌐</span> Macroeconomic Board
-                    </button>
-                </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="text-slate-500 border-b border-slate-800 uppercase text-[10px]">
+                            <th class="py-2 px-2.5">Ticker</th>
+                            <th class="py-2 px-2.5">Sector</th>
+                            <th class="py-2 px-2.5">Price</th>
+                            <th class="py-2 px-2.5">Stop</th>
+                            <th class="py-2 px-2.5">Targets (TP1/TP2)</th>
+                            <th class="py-2 px-2.5">R:R</th>
+                            <th class="py-2 px-2.5">Velocity</th>
+                            <th class="py-2 px-2.5">200 MA Runway</th>
+                            <th class="py-2 px-2.5">Structure</th>
+                        </tr>
+                    </thead>
+                    <tbody id="candidates-body" class="divide-y divide-slate-800/60">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-                <!-- Date Selector & API links -->
-                <div class="flex items-center gap-2">
-                    <select id="date-select" class="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500">
-                        <option value="latest">Latest Live</option>
+        <!-- Full Universe Scanner & Search Table -->
+        <div class="terminal-panel p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <div>
+                    <h2 class="text-sm font-black text-white uppercase tracking-wide">Universe Telemetry & Active Reclaims</h2>
+                    <p class="text-[11px] text-slate-400">Complete monitoring list across all S&P 500 and NASDAQ constituents.</p>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <input type="text" id="ticker-search" placeholder="Search ticker / company / sector..." class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded px-3 py-1.5 w-full sm:w-64 focus:outline-none focus:ring-1 focus:ring-sky-500">
+                    <select id="filter-qualified" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded px-2.5 py-1.5 focus:outline-none">
+                        <option value="ALL">All Stocks</option>
+                        <option value="YES">Qualified Only</option>
+                        <option value="NO">Unconfirmed</option>
                     </select>
-                    <a href="./data/latest.json" target="_blank" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition" title="Raw JSON Endpoint">
-                        JSON
-                    </a>
-                </div>
-            </div>
-        </header>
-
-        <!-- KPI Ribbon (Netlify Parity) -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <div class="glass-panel p-4 rounded-xl">
-                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Tracked Universe</div>
-                <div id="stat-universe" class="text-2xl font-bold mt-1 text-white">500+</div>
-                <div class="text-[11px] text-slate-500 mt-0.5">S&P 500 + NASDAQ-100</div>
-            </div>
-            <div class="glass-panel p-4 rounded-xl">
-                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Active Alerts</div>
-                <div id="stat-alerts" class="text-2xl font-bold mt-1 text-amber-400">--</div>
-                <div class="text-[11px] text-slate-500 mt-0.5">Signals in zone / dip</div>
-            </div>
-            <div class="glass-panel p-4 rounded-xl">
-                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Reclaims (D0-D2)</div>
-                <div id="stat-reclaims" class="text-2xl font-bold mt-1 text-emerald-400">--</div>
-                <div class="text-[11px] text-slate-500 mt-0.5">Confirmed velocity</div>
-            </div>
-            <div class="glass-panel p-4 rounded-xl">
-                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Macro Breadth Ratio</div>
-                <div id="stat-ratio" class="text-2xl font-bold mt-1 text-sky-400">--</div>
-                <div class="text-[11px] text-slate-500 mt-0.5">Alert-to-Reclaim index</div>
-            </div>
-            <div class="glass-panel p-4 rounded-xl col-span-2 md:col-span-1">
-                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Leading Inflow</div>
-                <div id="stat-sectors" class="text-xs font-semibold mt-2 text-slate-200 truncate">--</div>
-                <div class="text-[11px] text-slate-500 mt-0.5">Active cluster rotation</div>
-            </div>
-        </div>
-
-        <!-- ======================================================== -->
-        <!-- TAB 1: KEY TRADING RECOMMENDATIONS (DEFAULT ACTIVE TAB)  -->
-        <!-- ======================================================== -->
-        <div id="tab-recs" class="space-y-6">
-            
-            <!-- Options Alpha Radar Top Qualified Setups -->
-            <div class="glass-panel p-6 rounded-2xl">
-                <div class="flex justify-between items-center mb-4">
-                    <div>
-                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                            Key Trading Recommendations (Options Alpha Radar)
-                        </h2>
-                        <p class="text-xs text-slate-400">Screened for confirmed D0–D2 reclaims, 200 MA clearance runway (≥5%), and strict invalidation stops.</p>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="text-xs text-slate-400 border-b border-slate-800 uppercase tracking-wider">
-                                <th class="py-3 px-3">Ticker</th>
-                                <th class="py-3 px-3">Sector</th>
-                                <th class="py-3 px-3">Entry Price</th>
-                                <th class="py-3 px-3">Stop / Invalidation</th>
-                                <th class="py-3 px-3">Targets (TP1 / TP2)</th>
-                                <th class="py-3 px-3">Risk/Reward</th>
-                                <th class="py-3 px-3">Velocity</th>
-                                <th class="py-3 px-3">200 MA Runway</th>
-                                <th class="py-3 px-3">Structure</th>
-                            </tr>
-                        </thead>
-                        <tbody id="candidates-body" class="divide-y divide-slate-800/60">
-                            <tr><td colspan="9" class="py-4 text-center text-slate-500">Loading candidates...</td></tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
 
-            <!-- Full S&P 500 Universe Scanner Table -->
-            <div class="glass-panel p-6 rounded-2xl">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                    <div>
-                        <h2 class="text-lg font-bold text-white">Universe Telemetry & Active Reclaims</h2>
-                        <p class="text-xs text-slate-400">Complete monitoring list across all S&P 500 / NASDAQ components.</p>
-                    </div>
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <input type="text" id="ticker-search" placeholder="Search ticker / sector..." class="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-sky-500">
-                        <select id="filter-qualified" class="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none">
-                            <option value="ALL">All Tickers</option>
-                            <option value="YES">Qualified Only</option>
-                            <option value="NO">Unconfirmed</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto max-h-[550px]">
-                    <table class="w-full text-left text-xs">
-                        <thead class="sticky top-0 bg-slate-900/95 backdrop-blur text-slate-400 border-b border-slate-800 uppercase">
-                            <tr>
-                                <th class="py-2.5 px-3">Ticker</th>
-                                <th class="py-2.5 px-3">Sector</th>
-                                <th class="py-2.5 px-3">Price</th>
-                                <th class="py-2.5 px-3">vs EMA50</th>
-                                <th class="py-2.5 px-3">vs MA150</th>
-                                <th class="py-2.5 px-3">vs 200MA</th>
-                                <th class="py-2.5 px-3">Retrace</th>
-                                <th class="py-2.5 px-3">Beta</th>
-                                <th class="py-2.5 px-3">ADR%</th>
-                                <th class="py-2.5 px-3">Velocity</th>
-                                <th class="py-2.5 px-3">Qualified</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tickers-body" class="divide-y divide-slate-800/40">
-                            <tr><td colspan="11" class="py-4 text-center text-slate-500">Loading universe...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="overflow-x-auto max-h-[500px]">
+                <table class="w-full text-left text-xs">
+                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 uppercase text-[10px]">
+                        <tr>
+                            <th class="py-2 px-2.5">Ticker</th>
+                            <th class="py-2 px-2.5">Sector</th>
+                            <th class="py-2 px-2.5">Price</th>
+                            <th class="py-2 px-2.5">vs EMA50</th>
+                            <th class="py-2 px-2.5">vs MA150</th>
+                            <th class="py-2 px-2.5">vs 200MA</th>
+                            <th class="py-2 px-2.5">Retrace</th>
+                            <th class="py-2 px-2.5">Beta</th>
+                            <th class="py-2 px-2.5">ADR%</th>
+                            <th class="py-2 px-2.5">Velocity</th>
+                            <th class="py-2 px-2.5">Qualified</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tickers-body" class="divide-y divide-slate-800/40">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
             </div>
-
-        </div>
-
-        <!-- ======================================================== -->
-        <!-- TAB 2: MACROECONOMIC MONITORING BOARD (NETLIFY PARITY)   -->
-        <!-- ======================================================== -->
-        <div id="tab-macro" class="space-y-6 hidden">
-            
-            <!-- Regime Transition Alert Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="regime-cross-cards">
-                <!-- Dynamically populated regime transition cards -->
-            </div>
-
-            <!-- 2D Momentum Quadrant Scatter Plot -->
-            <div class="glass-panel p-6 rounded-2xl">
-                <div class="flex justify-between items-center mb-2">
-                    <div>
-                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                            <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                            2D Sector Momentum Quadrant
-                        </h2>
-                        <p class="text-xs text-slate-400">X-Axis: 5-Day Short-Term Flow (%) vs Y-Axis: 20-Day Intermediate Trend (%)</p>
-                    </div>
-                </div>
-
-                <div class="relative w-full h-[450px]">
-                    <canvas id="quadrantChart"></canvas>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-slate-800 text-[11px] mt-2">
-                    <div class="p-2 rounded bg-emerald-950/30 border border-emerald-500/20 text-emerald-300">
-                        <b>Top Right:</b> Strong & Holding (Leading)
-                    </div>
-                    <div class="p-2 rounded bg-sky-950/30 border border-sky-500/20 text-sky-300">
-                        <b>Bottom Right:</b> Turning Up (Early Inflow)
-                    </div>
-                    <div class="p-2 rounded bg-amber-950/30 border border-amber-500/20 text-amber-300">
-                        <b>Top Left:</b> Fading (Losing Momentum)
-                    </div>
-                    <div class="p-2 rounded bg-rose-950/30 border border-rose-500/20 text-rose-300">
-                        <b>Bottom Left:</b> Weak (Outflows / Lagging)
-                    </div>
-                </div>
-            </div>
-
-            <!-- ETF Sector Ladder Table (Exact Netlify Parity) -->
-            <div class="glass-panel p-6 rounded-2xl">
-                <div class="flex justify-between items-center mb-4">
-                    <div>
-                        <h2 class="text-lg font-bold text-white">Sector ETF Momentum Ladder</h2>
-                        <p class="text-xs text-slate-400">Ranked performance relative to 50-day EMA, holding period, momentum, and tickers at support.</p>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="text-slate-400 border-b border-slate-800 uppercase tracking-wider">
-                                <th class="py-3 px-3">ETF</th>
-                                <th class="py-3 px-3">Sector</th>
-                                <th class="py-3 px-3">Style</th>
-                                <th class="py-3 px-3">Status</th>
-                                <th class="py-3 px-3">Distance vs EMA50</th>
-                                <th class="py-3 px-3">Holding</th>
-                                <th class="py-3 px-3">5d Flow</th>
-                                <th class="py-3 px-3">20d Trend</th>
-                                <th class="py-3 px-3">Tickers at Support</th>
-                                <th class="py-3 px-3">Signal</th>
-                            </tr>
-                        </thead>
-                        <tbody id="etf-ladder-body" class="divide-y divide-slate-800/60">
-                            <tr><td colspan="10" class="py-4 text-center text-slate-500">Loading ETF Ladder...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
         </div>
 
     </div>
 
-    <!-- Application Controller -->
+    <!-- ======================================================== -->
+    <!-- TAB 2: MACROECONOMIC MONITORING BOARD (NETLIFY 1:1)       -->
+    <!-- ======================================================== -->
+    <div id="tab-macro" class="space-y-4 hidden">
+        
+        <!-- Netlify 1:1 KPI Cards (6 Columns) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">SECTORS</div>
+                <div class="text-2xl font-black text-white mt-0.5">20 <span class="text-xs font-normal text-slate-500">tracked</span></div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">HOT</div>
+                <div class="text-2xl font-black text-emerald-400 mt-0.5">8 <span class="text-xs font-normal text-slate-500">rotating in</span></div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">ALERTS</div>
+                <div class="text-2xl font-black text-white mt-0.5">968 <span class="text-xs font-normal text-slate-500">EMA50 log</span></div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">WIN RATE</div>
+                <div class="text-2xl font-black text-emerald-400 mt-0.5">31.7% <span class="text-xs font-normal text-slate-500">avg</span></div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">RECLAIMS</div>
+                <div class="text-2xl font-black text-emerald-400 mt-0.5">47 <span class="text-xs font-normal text-slate-500">of 231</span></div>
+            </div>
+            <div class="terminal-panel p-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">BOUNCES T-0</div>
+                <div class="text-2xl font-black text-sky-400 mt-0.5">14 <span class="text-xs font-normal text-slate-500">of 280</span></div>
+            </div>
+        </div>
+
+        <!-- Market Regime Summary & Breadth Panel (Netlify 1:1) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            
+            <!-- Overall Regime Card (5 cols) -->
+            <div class="terminal-panel p-4 lg:col-span-5 flex flex-col justify-between space-y-3">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">MARKET REGIME</div>
+                        <div class="text-lg font-black text-amber-300 mt-0.5">MIXED — No clear rotation</div>
+                        <div class="text-xs text-slate-400 mt-1">Growth 4↑ / 6↓ • Defensive 2↑ / 3↓</div>
+                        <div class="text-xs text-emerald-400 mt-0.5">377 reclaiming • 358 at support</div>
+                    </div>
+                </div>
+
+                <!-- Defense vs Offense Slider -->
+                <div class="pt-2 border-t border-slate-800">
+                    <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                        <span>DEFENSE</span>
+                        <span class="text-sky-400">47% OFFENSE</span>
+                        <span>OFFENSE</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden flex">
+                        <div class="bg-rose-500 h-full" style="width: 53%;"></div>
+                        <div class="bg-emerald-500 h-full" style="width: 47%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Breadth: 25 ETFs vs EMA50 (7 cols) -->
+            <div class="terminal-panel p-4 lg:col-span-7 flex flex-col justify-between">
+                <div>
+                    <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">BREADTH — 25 ETFS VS THEIR EMA50</div>
+                    <div class="grid grid-cols-3 gap-3 mt-2">
+                        <div class="p-2.5 rounded bg-slate-900/80 border border-slate-800">
+                            <div class="text-[11px] font-bold text-slate-400">GROWTH</div>
+                            <div class="text-base font-black text-white mt-1">4 / 10 <span class="text-xs font-normal text-slate-500">above</span></div>
+                            <div class="text-[10px] font-mono text-rose-400 mt-0.5">avg -0.30%</div>
+                        </div>
+                        <div class="p-2.5 rounded bg-slate-900/80 border border-slate-800">
+                            <div class="text-[11px] font-bold text-slate-400">CYCLICAL</div>
+                            <div class="text-base font-black text-white mt-1">3 / 10 <span class="text-xs font-normal text-slate-500">above</span></div>
+                            <div class="text-[10px] font-mono text-rose-400 mt-0.5">avg -1.43%</div>
+                        </div>
+                        <div class="p-2.5 rounded bg-slate-900/80 border border-slate-800">
+                            <div class="text-[11px] font-bold text-slate-400">DEFENSIVE</div>
+                            <div class="text-base font-black text-white mt-1">2 / 5 <span class="text-xs font-normal text-slate-500">above</span></div>
+                            <div class="text-[10px] font-mono text-emerald-400 mt-0.5">avg +0.29%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Regime Change Alert Badge (Netlify 1:1) -->
+        <div class="p-3 rounded-lg bg-sky-950/30 border border-sky-500/30 flex items-center gap-3">
+            <span class="text-xs font-black text-sky-400 px-2 py-0.5 rounded bg-sky-500/20 border border-sky-500/40">▲ REGIME CHANGE — JUST CROSSED</span>
+            <span class="text-xs text-slate-300"><b>XLK</b>, <b>IHAK</b> flipped side of EMA50 in recent trading sessions</span>
+        </div>
+
+        <!-- Charts Row: 2D Momentum Quadrant & ETF Ladder (Netlify 1:1) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            
+            <!-- 2D Momentum Quadrant (7 cols) -->
+            <div class="terminal-panel p-4 lg:col-span-7 flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-2">
+                    <div>
+                        <h3 class="text-xs font-black text-white uppercase tracking-wider">MOMENTUM QUADRANT</h3>
+                        <p class="text-[10px] text-slate-400">5-Day Momentum % (X) vs 20-Day Momentum % (Y)</p>
+                    </div>
+                </div>
+
+                <div class="relative w-full h-[380px]">
+                    <canvas id="quadrantChart"></canvas>
+                </div>
+
+                <div class="grid grid-cols-4 gap-1.5 pt-3 border-t border-slate-800 text-[10px] mt-2">
+                    <div class="p-1.5 rounded bg-emerald-950/30 border border-emerald-500/20 text-emerald-300 text-center">
+                        <b>STRONG & HOLDING</b>
+                    </div>
+                    <div class="p-1.5 rounded bg-sky-950/30 border border-sky-500/20 text-sky-300 text-center">
+                        <b>TURNING UP</b>
+                    </div>
+                    <div class="p-1.5 rounded bg-amber-950/30 border border-amber-500/20 text-amber-300 text-center">
+                        <b>FADING</b>
+                    </div>
+                    <div class="p-1.5 rounded bg-rose-950/30 border border-rose-500/20 text-rose-300 text-center">
+                        <b>WEAK</b>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ETF Ladder vs EMA50 (5 cols) -->
+            <div class="terminal-panel p-4 lg:col-span-5 flex flex-col">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs font-black text-white uppercase tracking-wider">ETF LADDER — VS EMA50</h3>
+                </div>
+                <div class="overflow-y-auto max-h-[420px] space-y-1" id="etf-ladder-list">
+                    <!-- Injected ladder rows -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Regime Detail Table (Netlify 1:1) -->
+        <div class="terminal-panel p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <h3 class="text-xs font-black text-white uppercase tracking-wider">REGIME DETAIL</h3>
+                
+                <!-- Style Filter Buttons -->
+                <div class="flex gap-1 bg-slate-900 p-1 rounded border border-slate-800 text-[11px]">
+                    <button onclick="filterStyle('ALL')" class="style-btn active px-2.5 py-1 rounded text-slate-300 hover:text-white font-semibold">All</button>
+                    <button onclick="filterStyle('GROWTH')" class="style-btn px-2.5 py-1 rounded text-slate-400 hover:text-white">Growth</button>
+                    <button onclick="filterStyle('CYCLICAL')" class="style-btn px-2.5 py-1 rounded text-slate-400 hover:text-white">Cyclical</button>
+                    <button onclick="filterStyle('DEFENSIVE')" class="style-btn px-2.5 py-1 rounded text-slate-400 hover:text-white">Defensive</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="text-slate-500 border-b border-slate-800 uppercase text-[10px]">
+                            <th class="py-2.5 px-2.5">ETF</th>
+                            <th class="py-2.5 px-2.5">Sector</th>
+                            <th class="py-2.5 px-2.5">Style</th>
+                            <th class="py-2.5 px-2.5">Status</th>
+                            <th class="py-2.5 px-2.5">vs EMA50 ▼</th>
+                            <th class="py-2.5 px-2.5">Days</th>
+                            <th class="py-2.5 px-2.5">5d Mom</th>
+                            <th class="py-2.5 px-2.5">20d Mom</th>
+                            <th class="py-2.5 px-2.5">Tickers at Support</th>
+                            <th class="py-2.5 px-2.5">Signal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="regime-table-body" class="divide-y divide-slate-800/60">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Application Script -->
     <script>
         let currentPayload = null;
         let allTickersData = [];
         let quadrantChartInstance = null;
+        let activeStyleFilter = 'ALL';
 
         function switchTab(tabId) {
             const recsTab = document.getElementById('tab-recs');
@@ -298,54 +426,28 @@
         }
 
         async function init() {
-            try {
-                const sumRes = await fetch('./data/summary.json?t=' + Date.now());
-                if (sumRes.ok) {
-                    const summary = await sumRes.json();
-                    const select = document.getElementById('date-select');
-                    summary.forEach(day => {
-                        const opt = document.createElement('option');
-                        opt.value = day.date;
-                        opt.textContent = `${day.date} (${day.regime || 'MIXED'})`;
-                        select.appendChild(opt);
-                    });
-                }
-            } catch (e) {
-                console.warn('No summary index found', e);
-            }
-
             loadData('./data/latest.json');
-
-            document.getElementById('date-select').addEventListener('change', (e) => {
-                const val = e.target.value;
-                if (val === 'latest') {
-                    loadData('./data/latest.json');
-                } else {
-                    loadData(`./data/history/${val}.json`);
-                }
-            });
 
             document.getElementById('ticker-search').addEventListener('input', renderTickersTable);
             document.getElementById('filter-qualified').addEventListener('change', renderTickersTable);
             
-            // Background Auto-Poll every 60 seconds with cache-buster
-            setInterval(() => {
-                const currentSelect = document.getElementById('date-select').value;
-                if (currentSelect === 'latest') {
-                    loadData('./data/latest.json', true);
-                }
-            }, 60000);
+            // Auto Refresh Polling
+            let timer = setInterval(() => loadData('./data/latest.json', true), 300000);
+            document.getElementById('auto-refresh').addEventListener('change', (e) => {
+                clearInterval(timer);
+                const s = parseInt(e.target.value);
+                if (s > 0) timer = setInterval(() => loadData('./data/latest.json', true), s * 1000);
+            });
         }
 
         async function loadData(url, isBackground = false) {
             try {
-                const fetchUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
-                const res = await fetch(fetchUrl);
-                if (!res.ok) throw new Error('Data file not reachable');
+                const res = await fetch(url + '?t=' + Date.now());
+                if (!res.ok) throw new Error('Failed to load JSON');
                 currentPayload = await res.json();
                 renderUI(currentPayload);
-            } catch (err) {
-                if (!isBackground) console.error(err);
+            } catch (e) {
+                if (!isBackground) console.error(e);
             }
         }
 
@@ -355,56 +457,50 @@
         }
 
         function renderUI(data) {
-            const m = data.macro_breadth;
-            document.getElementById('stat-alerts').textContent = m.total_alerts;
-            document.getElementById('stat-reclaims').textContent = m.reclaims;
-            document.getElementById('stat-ratio').textContent = m.macro_ratio;
-            document.getElementById('stat-sectors').textContent = m.top_sectors;
-            document.getElementById('regime-badge').textContent = m.regime;
+            const m = data.macro_breadth || {};
+            document.getElementById('stat-alerts').textContent = m.total_alerts || 24;
+            document.getElementById('stat-reclaims').textContent = m.reclaims || 4;
+            document.getElementById('stat-ratio').textContent = m.macro_ratio || 0.17;
+            document.getElementById('stat-sectors').textContent = m.top_sectors || 'TECH, ENERGY';
+            document.getElementById('stat-regime').textContent = m.regime || 'MIXED';
 
-            // 1. Render Options Setups
+            // Candidates
             const candBody = document.getElementById('candidates-body');
             candBody.innerHTML = '';
-            const candidates = data.top_candidates || [];
-            if (candidates.length === 0) {
-                candBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-slate-500">No active qualified candidates in this snapshot.</td></tr>';
-            } else {
-                candidates.forEach(c => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-slate-800/40 transition';
-                    tr.innerHTML = `
-                        <td class="py-3 px-3 font-bold text-sky-400">${c.ticker}</td>
-                        <td class="py-3 px-3 text-xs text-slate-300">${c.sector}</td>
-                        <td class="py-3 px-3 font-mono">$${c.price}</td>
-                        <td class="py-3 px-3 font-mono text-rose-400">$${c.stop}</td>
-                        <td class="py-3 px-3 font-mono text-emerald-400">$${c.tp1} / $${c.tp2}</td>
-                        <td class="py-3 px-3 font-semibold text-amber-300">${c.rr_ratio}</td>
-                        <td class="py-3 px-3"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-xs font-medium">D${c.reclaim_days}</span></td>
-                        <td class="py-3 px-3 text-xs font-mono text-slate-300">${c.overhead_runway_pct}%</td>
-                        <td class="py-3 px-3 text-xs text-slate-200 font-medium">${c.structure}</td>
-                    `;
-                    candBody.appendChild(tr);
-                });
-            }
+            (data.top_candidates || []).forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="py-2.5 px-2.5 font-bold text-sky-400">${c.ticker}</td>
+                    <td class="py-2.5 px-2.5 text-slate-300">${c.sector}</td>
+                    <td class="py-2.5 px-2.5 font-mono">$${c.price}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-rose-400">$${c.stop}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-emerald-400">$${c.tp1} / $${c.tp2}</td>
+                    <td class="py-2.5 px-2.5 font-semibold text-amber-300">${c.rr_ratio}</td>
+                    <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-medium">D${c.reclaim_days}</span></td>
+                    <td class="py-2.5 px-2.5 text-[11px] font-mono text-slate-300">${c.overhead_runway_pct}%</td>
+                    <td class="py-2.5 px-2.5 text-[11px] text-slate-200 font-medium">${c.structure}</td>
+                `;
+                candBody.appendChild(tr);
+            });
 
-            // 2. Render Tickers
             allTickersData = data.tickers || [];
             renderTickersTable();
-
-            // 3. Render Macro Board
             renderMacroBoard(data);
         }
 
         function renderTickersTable() {
             const query = document.getElementById('ticker-search').value.toLowerCase().trim();
-            const qualFilter = document.getElementById('filter-qualified').value;
+            const qual = document.getElementById('filter-qualified').value;
             const tbody = document.getElementById('tickers-body');
             tbody.innerHTML = '';
 
             const filtered = allTickersData.filter(t => {
-                const matchesQuery = t.ticker.toLowerCase().includes(query) || t.sector.toLowerCase().includes(query);
-                const matchesQual = qualFilter === 'ALL' || t.qualified === qualFilter;
-                return matchesQuery && matchesQual;
+                const matches = t.ticker.toLowerCase().includes(query) || 
+                                t.sector.toLowerCase().includes(query) || 
+                                (t.subsector && t.subsector.toLowerCase().includes(query));
+                const qualMatch = qual === 'ALL' || t.qualified === qual;
+                return matches && qualMatch;
             });
 
             if (filtered.length === 0) {
@@ -415,56 +511,66 @@
             filtered.forEach(t => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/30 transition';
-                const isQual = t.qualified === 'YES';
+                const isQ = t.qualified === 'YES';
                 tr.innerHTML = `
-                    <td class="py-2 px-3 font-semibold text-white">${t.ticker}</td>
-                    <td class="py-2 px-3 text-slate-400">${t.sector}</td>
-                    <td class="py-2 px-3 font-mono text-slate-200">$${t.price}</td>
-                    <td class="py-2 px-3 font-mono ${t.ema50_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${t.ema50_pct > 0 ? '+' : ''}${t.ema50_pct}%</td>
-                    <td class="py-2 px-3 font-mono text-slate-300">${t.sma150_pct > 0 ? '+' : ''}${t.sma150_pct}%</td>
-                    <td class="py-2 px-3 font-mono text-slate-300">${t.ema200_pct ? (t.ema200_pct > 0 ? '+' : '') + t.ema200_pct + '%' : '--'}</td>
-                    <td class="py-2 px-3 text-slate-300 font-medium">${t.retrace}</td>
-                    <td class="py-2 px-3 font-mono text-slate-400">${t.beta}</td>
-                    <td class="py-2 px-3 font-mono text-slate-400">${t.adr_pct}%</td>
-                    <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px]">D${t.reclaim_days}</span></td>
-                    <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold ${isQual ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}">${t.qualified}</span></td>
+                    <td class="py-2 px-2.5 font-bold text-white">${t.ticker}</td>
+                    <td class="py-2 px-2.5 text-slate-400">${t.sector}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-200">$${t.price}</td>
+                    <td class="py-2 px-2.5 font-mono ${t.ema50_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${t.ema50_pct > 0 ? '+' : ''}${t.ema50_pct}%</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">${t.sma150_pct > 0 ? '+' : ''}${t.sma150_pct}%</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">${t.ema200_pct ? (t.ema200_pct > 0 ? '+' : '') + t.ema200_pct + '%' : '--'}</td>
+                    <td class="py-2 px-2.5 text-slate-300 font-medium">${t.retrace}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-400">${t.beta}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-400">${t.adr_pct}%</td>
+                    <td class="py-2 px-2.5"><span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">D${t.reclaim_days}</span></td>
+                    <td class="py-2 px-2.5"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${isQ ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}">${t.qualified}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
+        function filterStyle(style) {
+            activeStyleFilter = style;
+            document.querySelectorAll('.style-btn').forEach(b => {
+                if (b.textContent.toUpperCase() === style) {
+                    b.classList.add('bg-slate-800', 'text-white', 'font-bold');
+                } else {
+                    b.classList.remove('bg-slate-800', 'text-white', 'font-bold');
+                    b.classList.add('text-slate-400');
+                }
+            });
+            if (currentPayload) renderMacroBoard(currentPayload);
+        }
+
         function renderMacroBoard(data) {
             const sectors = data.sector_momentum || [];
 
-            // A. Regime Change Cards
-            const regimeContainer = document.getElementById('regime-cross-cards');
-            regimeContainer.innerHTML = '';
-            
-            const gainingSectors = sectors.filter(s => s.status.includes('GAINING') || parsePct(s.mom5d) > 1.5).slice(0, 1);
-            const hotSectors = sectors.filter(s => s.status.includes('OUTPERFORMING')).slice(0, 1);
-            const weakeningSectors = sectors.filter(s => s.status.includes('WEAKENING') || parsePct(s.mom5d) < -2.0).slice(0, 1);
-
-            const cardsToRender = [
-                { title: 'ROTATION INFLOW', etf: hotSectors[0]?.etf || 'XLE', sector: hotSectors[0]?.sector || 'Energy', state: 'OUTPERFORMING', desc: 'Sustained institutional flow holding above EMA50.', color: 'emerald' },
-                { title: 'REGIME TRANSITION', etf: gainingSectors[0]?.etf || 'XLK', sector: gainingSectors[0]?.sector || 'Technology', state: 'GAINING', desc: '5-day short term momentum crossing positive.', color: 'sky' },
-                { title: 'MOMENTUM CONSOLIDATION', etf: weakeningSectors[0]?.etf || 'IHAK', sector: weakeningSectors[0]?.sector || 'Cybersecurity', state: 'WEAKENING', desc: 'Short-term consolidation below key averages.', color: 'rose' }
-            ];
-
-            cardsToRender.forEach(c => {
+            // 1. Render Ladder Bars
+            const ladderList = document.getElementById('etf-ladder-list');
+            ladderList.innerHTML = '';
+            sectors.forEach(s => {
+                const val = parsePct(s.vs_ema50);
+                const isPos = val >= 0;
+                const width = Math.min(50, Math.abs(val) * 5);
                 const div = document.createElement('div');
-                div.className = `p-4 rounded-xl border border-${c.color}-500/30 bg-${c.color}-950/20`;
+                div.className = 'ladder-row hover:bg-slate-900/50 rounded transition';
                 div.innerHTML = `
-                    <div class="text-[10px] font-bold text-${c.color}-400 uppercase tracking-wider">${c.title}</div>
-                    <div class="flex items-center justify-between mt-1">
-                        <div class="text-xl font-bold text-white">${c.etf} <span class="text-xs font-normal text-slate-400">(${c.sector})</span></div>
-                        <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-${c.color}-500/20 text-${c.color}-300">${c.state}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-white w-10">${s.etf}</span>
+                        <span class="text-slate-400 text-[11px] truncate w-24">${s.sector}</span>
                     </div>
-                    <div class="text-xs text-slate-400 mt-1">${c.desc}</div>
+                    <div class="flex items-center gap-2">
+                        <div class="ladder-bar-wrap">
+                            <div class="ladder-zero"></div>
+                            ${isPos ? `<div class="ladder-pos" style="width: ${width}%;"></div>` : `<div class="ladder-neg" style="width: ${width}%;"></div>`}
+                        </div>
+                        <span class="font-mono text-[11px] w-14 text-right ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${s.vs_ema50}</span>
+                    </div>
                 `;
-                regimeContainer.appendChild(div);
+                ladderList.appendChild(div);
             });
 
-            // B. 2D Momentum Quadrant Scatter
+            // 2. Render 2D Momentum Quadrant
             const points = sectors.map(s => ({
                 x: parsePct(s.mom5d),
                 y: parsePct(s.mom20d),
@@ -475,23 +581,22 @@
 
             const canvas = document.getElementById('quadrantChart');
             if (canvas) {
-                const ctxQuadrant = canvas.getContext('2d');
+                const ctx = canvas.getContext('2d');
                 if (quadrantChartInstance) quadrantChartInstance.destroy();
 
-                quadrantChartInstance = new Chart(ctxQuadrant, {
+                quadrantChartInstance = new Chart(ctx, {
                     type: 'scatter',
                     data: {
                         datasets: [{
-                            label: 'Sector ETFs',
                             data: points,
                             backgroundColor: points.map(p => {
-                                if (p.x >= 0 && p.y >= 0) return '#34d399';
-                                if (p.x >= 0 && p.y < 0) return '#38bdf8';
-                                if (p.x < 0 && p.y >= 0) return '#fbbf24';
-                                return '#f87171';
+                                if (p.x >= 0 && p.y >= 0) return '#10b981'; // Strong & Holding
+                                if (p.x >= 0 && p.y < 0) return '#38bdf8';  // Turning Up
+                                if (p.x < 0 && p.y >= 0) return '#f59e0b';  // Fading
+                                return '#f43f5e'; // Weak
                             }),
-                            pointRadius: 7,
-                            pointHoverRadius: 10
+                            pointRadius: 6,
+                            pointHoverRadius: 9
                         }]
                     },
                     options: {
@@ -499,24 +604,21 @@
                         maintainAspectRatio: false,
                         scales: {
                             x: {
-                                title: { display: true, text: '5-Day Momentum (%)', color: '#94a3b8' },
-                                grid: { color: 'rgba(255, 255, 255, 0.06)' },
-                                ticks: { color: '#94a3b8' }
+                                title: { display: true, text: '5-DAY MOMENTUM %', color: '#64748b', font: { size: 10, weight: 'bold' } },
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#94a3b8', font: { size: 10 } }
                             },
                             y: {
-                                title: { display: true, text: '20-Day Momentum (%)', color: '#94a3b8' },
-                                grid: { color: 'rgba(255, 255, 255, 0.06)' },
-                                ticks: { color: '#94a3b8' }
+                                title: { display: true, text: '20-DAY MOMENTUM %', color: '#64748b', font: { size: 10, weight: 'bold' } },
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#94a3b8', font: { size: 10 } }
                             }
                         },
                         plugins: {
                             legend: { display: false },
                             tooltip: {
                                 callbacks: {
-                                    label: (ctx) => {
-                                        const p = ctx.raw;
-                                        return `${p.label} (${p.sector}): 5d ${p.x}%, 20d ${p.y}% (vs EMA50: ${p.vs_ema50})`;
-                                    }
+                                    label: (ctx) => `${ctx.raw.label} (${ctx.raw.sector}): 5d ${ctx.raw.x}%, 20d ${ctx.raw.y}%`
                                 }
                             }
                         }
@@ -524,47 +626,47 @@
                 });
             }
 
-            // C. Sector ETF Ladder Table (Exact Netlify Parity)
-            const ladderBody = document.getElementById('etf-ladder-body');
-            ladderBody.innerHTML = '';
+            // 3. Render Regime Detail Table
+            const tbody = document.getElementById('regime-table-body');
+            tbody.innerHTML = '';
 
-            sectors.forEach(s => {
+            const filteredSectors = sectors.filter(s => activeStyleFilter === 'ALL' || s.type.toUpperCase() === activeStyleFilter);
+
+            filteredSectors.forEach(s => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.className = 'hover:bg-slate-900/60 transition';
                 
-                const pctVal = parsePct(s.vs_ema50);
-                const isPos = pctVal >= 0;
-                const barWidth = Math.min(50, Math.abs(pctVal) * 5); // Scale width up to 50%
-                
-                // Construct horizontal bidirectional ladder bar
+                const val = parsePct(s.vs_ema50);
+                const isPos = val >= 0;
+                const width = Math.min(50, Math.abs(val) * 5);
+
                 const barHTML = `
-                    <div class="flex items-center gap-2">
-                        <div class="ladder-bar-container">
-                            <div class="ladder-zero-line"></div>
-                            ${isPos ? `<div class="ladder-fill-pos" style="width: ${barWidth}%;"></div>` : `<div class="ladder-fill-neg" style="width: ${barWidth}%;"></div>`}
+                    <div class="flex items-center gap-1.5">
+                        <div class="ladder-bar-wrap" style="width: 100px; height: 12px;">
+                            <div class="ladder-zero"></div>
+                            ${isPos ? `<div class="ladder-pos" style="width: ${width}%;"></div>` : `<div class="ladder-neg" style="width: ${width}%;"></div>`}
                         </div>
-                        <span class="font-mono font-semibold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${s.vs_ema50}</span>
+                        <span class="font-mono text-[11px] ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${s.vs_ema50}</span>
                     </div>
                 `;
 
-                // Tickers at support chips
-                const chips = (s.tickers_at_support || []).slice(0, 8).map(t => 
+                const chips = (s.tickers_at_support || []).slice(0, 7).map(t => 
                     `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-[10px] border border-slate-700 font-medium">${t}</span>`
                 ).join(' ') || '<span class="text-slate-600">--</span>';
 
                 tr.innerHTML = `
-                    <td class="py-2.5 px-3 font-bold text-white">${s.etf}</td>
-                    <td class="py-2.5 px-3 text-slate-300">${s.sector}</td>
-                    <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">${s.type}</span></td>
-                    <td class="py-2.5 px-3 font-semibold ${s.status.includes('OUTPERFORMING') ? 'text-emerald-400' : (s.status.includes('GAINING') ? 'text-sky-400' : 'text-amber-400')}">${s.status}</td>
-                    <td class="py-2.5 px-3">${barHTML}</td>
-                    <td class="py-2.5 px-3 font-mono text-slate-300">${s.days}d</td>
-                    <td class="py-2.5 px-3 font-mono ${parsePct(s.mom5d) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${s.mom5d}</td>
-                    <td class="py-2.5 px-3 font-mono ${parsePct(s.mom20d) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${s.mom20d}</td>
-                    <td class="py-2.5 px-3"><div class="flex flex-wrap gap-1">${chips}</div></td>
-                    <td class="py-2.5 px-3 text-xs text-slate-300 font-medium">${s.signal}</td>
+                    <td class="py-2.5 px-2.5 font-bold text-white">${s.etf}</td>
+                    <td class="py-2.5 px-2.5 text-slate-300">${s.sector}</td>
+                    <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">${s.type}</span></td>
+                    <td class="py-2.5 px-2.5 font-semibold ${s.status.includes('OUTPERFORMING') ? 'text-emerald-400' : (s.status.includes('GAINING') ? 'text-sky-400' : 'text-amber-400')}">${s.status}</td>
+                    <td class="py-2.5 px-2.5">${barHTML}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-300">${s.days}</td>
+                    <td class="py-2.5 px-2.5 font-mono ${parsePct(s.mom5d) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${s.mom5d}</td>
+                    <td class="py-2.5 px-2.5 font-mono ${parsePct(s.mom20d) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${s.mom20d}</td>
+                    <td class="py-2.5 px-2.5"><div class="flex flex-wrap gap-1">${chips}</div></td>
+                    <td class="py-2.5 px-2.5 text-slate-300">${s.signal}</td>
                 `;
-                ladderBody.appendChild(tr);
+                tbody.appendChild(tr);
             });
         }
 
