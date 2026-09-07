@@ -981,7 +981,7 @@
                 } else if (driver === 'STAGNATION EXIT') {
                     driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">● STAGNATION</span>';
                 } else if (t.status === 'OPEN') {
-                    driverBadge = '<span class="text-slate-500 text-[10px] font-mono">-- (Holding)</span>';
+                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-950/70 text-sky-400 border border-sky-500/30">● ACTIVE POSITION</span>';
                 } else {
                     driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">★ TARGET HIT</span>';
                 }
@@ -1504,6 +1504,8 @@
                 `;
                 container.appendChild(div);
             });
+            const subEl = document.getElementById("regime-change-count-sub");
+            if (subEl) subEl.textContent = `${cards.length} ETFs flipped their side of the EMA50 recently`;
         }
 
         // Regime Detail Table (Screenshot 9 Exact)
@@ -1685,6 +1687,8 @@
                 `;
                 container.appendChild(div);
             });
+            const subEl = document.getElementById("regime-change-count-sub");
+            if (subEl) subEl.textContent = `${cards.length} ETFs flipped their side of the EMA50 recently`;
         }
 
         // Sub-Sectors & Reclaims by Sector (Screenshot 3 Bottom)
@@ -1758,6 +1762,8 @@
                 `;
                 container.appendChild(div);
             });
+            const subEl = document.getElementById("regime-change-count-sub");
+            if (subEl) subEl.textContent = `${cards.length} ETFs flipped their side of the EMA50 recently`;
         }
 
         // Reclaim Detail (Screenshot 4)
