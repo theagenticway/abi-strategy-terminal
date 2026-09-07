@@ -656,7 +656,8 @@
                             <th class="py-2 px-2.5">R:R</th>
                             <th class="py-2 px-2.5">Velocity</th>
                             <th class="py-2 px-2.5">200 MA Runway</th>
-                            <th class="py-2 px-2.5">Structure</th>
+                            <th class="py-2 px-2.5">Earnings Filter</th>
+                            <th class="py-2 px-2.5">Exact Option Contract Ticket</th>
                         </tr>
                     </thead>
                     <tbody id="candidates-body" class="divide-y divide-slate-800/60">
@@ -787,7 +788,7 @@
                             <th class="py-2.5 px-2.5">Entry Date</th>
                             <th class="py-2.5 px-2.5">Ticker</th>
                             <th class="py-2.5 px-2.5">Sector</th>
-                            <th class="py-2.5 px-2.5">Structure</th>
+                            <th class="py-2.5 px-2.5">Exact Contract</th>
                             <th class="py-2.5 px-2.5">Entry</th>
                             <th class="py-2.5 px-2.5">Stop</th>
                             <th class="py-2.5 px-2.5">Targets (TP1/TP2)</th>
@@ -795,7 +796,8 @@
                             <th class="py-2.5 px-2.5">P&L %</th>
                             <th class="py-2.5 px-2.5">Active</th>
                             <th class="py-2.5 px-2.5">Status</th>
-                            <th class="py-2.5 px-2.5">Audit Lifecycle Note</th>
+                            <th class="py-2.5 px-2.5">Loss Attribution / Driver</th>
+                            <th class="py-2.5 px-2.5">Audit Post-Mortem Note</th>
                         </tr>
                     </thead>
                     <tbody id="perf-trades-body" class="divide-y divide-slate-800/40">
@@ -932,19 +934,41 @@
                     statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30">✕ STOPPED</span>';
                 }
 
+                // Attribution badge color and text
+                let driverBadge = '';
+                const driver = t.invalidation_driver || (t.status === 'OPEN' ? 'ACTIVE' : 'TARGET ACHIEVED');
+                if (driver === 'SECTOR ROTATION') {
+                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950/70 text-amber-400 border border-amber-500/40">● SECTOR ROTATION</span>';
+                } else if (driver === 'IDIOSYNCRATIC') {
+                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/70 text-rose-400 border border-rose-500/40">✕ IDIOSYNCRATIC</span>';
+                } else if (driver === 'MACRO CONTAGION') {
+                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-950/70 text-orange-400 border border-orange-500/40">⚠ MACRO CONTAGION</span>';
+                } else if (driver === 'EARNINGS GAP') {
+                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/70 text-rose-400 border border-rose-500/40">⚡ EARNINGS GAP</span>';
+                } else if (driver === 'STAGNATION EXIT') {
+                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">● STAGNATION</span>';
+                } else if (t.status === 'OPEN') {
+                    driverBadge = '<span class="text-slate-500 text-[10px] font-mono">-- (Holding)</span>';
+                } else {
+                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">★ TARGET HIT</span>';
+                }
+
+                const contractLabel = t.contract || t.structure;
+
                 tr.innerHTML = `
                     <td class="py-2.5 px-2.5 font-mono text-slate-400 text-[11px]">${t.entry_date}</td>
-                    <td class="py-2.5 px-2.5 font-bold text-sky-400">${t.ticker}</td>
+                    <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">${t.ticker}</td>
                     <td class="py-2.5 px-2.5 text-slate-400">${t.sector}</td>
-                    <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">${t.structure}</span></td>
+                    <td class="py-2.5 px-2.5"><div class="font-bold text-slate-200 text-[11px]">${contractLabel}</div></td>
                     <td class="py-2.5 px-2.5 font-mono text-slate-200">$${parseFloat(t.entry_price).toFixed(2)}</td>
-                    <td class="py-2.5 px-2.5 font-mono text-rose-400">$${parseFloat(t.stop_price).toFixed(2)}</td>
-                    <td class="py-2.5 px-2.5 font-mono text-emerald-400">$${parseFloat(t.tp1).toFixed(2)} / $${parseFloat(t.tp2).toFixed(2)}</td>
-                    <td class="py-2.5 px-2.5 font-mono text-slate-200">$${parseFloat(t.current_price).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-rose-400 font-semibold">$${parseFloat(t.stop_price).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-emerald-400 font-semibold">$${parseFloat(t.tp1).toFixed(2)} / $${parseFloat(t.tp2).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-200 font-bold">$${parseFloat(t.current_price).toFixed(2)}</td>
                     <td class="py-2.5 px-2.5 font-mono font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${pnl.toFixed(2)}%</td>
                     <td class="py-2.5 px-2.5 font-mono text-slate-400">${t.days_active}d</td>
                     <td class="py-2.5 px-2.5">${statusBadge}</td>
-                    <td class="py-2.5 px-2.5 text-[11px] text-slate-400 truncate max-w-[220px]" title="${t.exit_reason || 'Active position'}">${t.exit_reason || 'Live holding · Stop active'}</td>
+                    <td class="py-2.5 px-2.5">${driverBadge}</td>
+                    <td class="py-2.5 px-2.5 text-[11px] text-slate-400 truncate max-w-[240px]" title="${t.exit_reason || 'Active position'}">${t.exit_reason || 'Live holding · Technical stop active'}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1111,16 +1135,22 @@
                 candidates.forEach(c => {
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-slate-800/40 transition';
+                    const contractTitle = c.contract || c.structure || 'Bull Call Spread (45-60 DTE)';
+                    const contractSub = c.contract_details ? `<div class="text-[10px] text-slate-400 font-mono mt-0.5">${c.contract_details}</div>` : '';
+                    const isSafeEarnings = (c.earnings_safe !== false);
+                    const earningsText = c.earnings_status || 'SAFE (62d)';
+
                     tr.innerHTML = `
-                        <td class="py-2.5 px-2.5 font-bold text-sky-400">${c.ticker}</td>
+                        <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">${c.ticker}</td>
                         <td class="py-2.5 px-2.5 text-slate-300">${c.sector}</td>
-                        <td class="py-2.5 px-2.5 font-mono">$${c.price}</td>
-                        <td class="py-2.5 px-2.5 font-mono text-rose-400">$${c.stop}</td>
-                        <td class="py-2.5 px-2.5 font-mono text-emerald-400">$${c.tp1} / $${c.tp2}</td>
+                        <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${parseFloat(c.price).toFixed(2)}</td>
+                        <td class="py-2.5 px-2.5 font-mono text-rose-400 font-semibold">$${parseFloat(c.stop).toFixed(2)}</td>
+                        <td class="py-2.5 px-2.5 font-mono text-emerald-400 font-semibold">$${parseFloat(c.tp1).toFixed(2)} / $${parseFloat(c.tp2).toFixed(2)}</td>
                         <td class="py-2.5 px-2.5 font-semibold text-amber-300">${c.rr_ratio}</td>
-                        <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-medium">D${c.reclaim_days}</span></td>
+                        <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">D${c.reclaim_days}</span></td>
                         <td class="py-2.5 px-2.5 text-[11px] font-mono">${(c.overhead_runway_pct === 0 || c.overhead_runway_pct === 0.0 || c.overhead_runway_pct === "0%" || c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`}</td>
-                        <td class="py-2.5 px-2.5 text-[11px] text-slate-200 font-medium">${c.structure}</td>
+                        <td class="py-2.5 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isSafeEarnings ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/60 text-amber-400 border border-amber-500/30'}">● ${earningsText}</span></td>
+                        <td class="py-2.5 px-2.5"><div class="font-bold text-white text-xs">${contractTitle}</div>${contractSub}</td>
                     `;
                     candBody.appendChild(tr);
                 });

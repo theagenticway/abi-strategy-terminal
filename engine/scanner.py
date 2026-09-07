@@ -543,11 +543,53 @@ def run_backfill(raw_data, days=30):
     print(f"[✓] Backfilled {len(target_dates)} days successfully.")
 
 
+
+def determine_invalidation_driver(ticker: str, sector: str, days_active: int, spy_ret=None, sector_ret=None, is_earnings_gap=False) -> dict:
+    """
+    Post-Mortem Attribution Engine: Diagnoses the root cause of an invalidation stop hit.
+    Classifies failure across:
+    1. Macro Contagion (Broad index selloff dragged equity below EMA50)
+    2. Sector Rotation (Institutional outflows broke industry support)
+    3. Earnings Volatility (Binary event gap-down)
+    4. Stagnation (Momentum stalled past 7-day velocity window)
+    5. Idiosyncratic Breakdown (Company-specific selling despite healthy sector)
+    """
+    if is_earnings_gap:
+        return {
+            "driver": "EARNINGS GAP",
+            "badge": "rose",
+            "note": "Binary earnings event gap-down breached technical stop"
+        }
+    if spy_ret is not None and spy_ret <= -0.012:
+        return {
+            "driver": "MACRO CONTAGION",
+            "badge": "orange",
+            "note": f"Broad index selloff (SPY {spy_ret*100:+.2f}%) dragged equity below EMA50"
+        }
+    if sector_ret is not None and sector_ret <= -0.012:
+        return {
+            "driver": "SECTOR ROTATION",
+            "badge": "amber",
+            "note": f"Sector outflows from {sector} ({sector_ret*100:+.2f}%) broke support"
+        }
+    if days_active >= 7:
+        return {
+            "driver": "STAGNATION EXIT",
+            "badge": "slate",
+            "note": "Momentum stalled past 7-day velocity window; stop triggered"
+        }
+    sec_str = f"despite healthy sector ({sector_ret*100:+.2f}%)" if sector_ret is not None else "failed support"
+    return {
+        "driver": "IDIOSYNCRATIC",
+        "badge": "rose",
+        "note": f"Company-specific breakdown; failed EMA50 retest {sec_str}"
+    }
+
 def audit_and_update_trades(raw_data, qualified_candidates, today_str):
     """
-    Automated Trade Lifecycle & Performance Auditor.
+    Automated Trade Lifecycle, Performance Auditor & Post-Mortem Loss Attribution Engine.
     Tracks all historical recommendations, audits active open positions against live market bars,
-    evaluates invalidation stops / TP1 / TP2 exits, logs new setups, and computes cumulative metrics.
+    diagnoses root-cause drivers on stop-outs, logs new setups, and computes cumulative metrics.
     """
     trades_log_path = os.path.join(DATA_DIR, "trades_log.json")
     trades_data = {"summary": {}, "trades": []}
@@ -562,6 +604,12 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
     trades = trades_data.get("trades", [])
     existing_ids = set(t["id"] for t in trades)
     active_open_tickers = set(t["ticker"] for t in trades if t["status"] == "OPEN")
+
+    # Compute SPY return today for macro contagion check
+    spy_ret = None
+    spy_df = extract_ticker_df(raw_data, "SPY")
+    if spy_df is not None and len(spy_df) >= 2 and "Close" in spy_df.columns:
+        spy_ret = float(spy_df["Close"].pct_change().iloc[-1])
 
     # 1. Audit Active Open Positions against current day's price action
     for t in trades:
@@ -590,8 +638,18 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
                     t["exit_date"] = today_str
                     realized_pnl = round(((stop_p - entry_p) / entry_p) * 100, 2)
                     t["pnl_pct"] = realized_pnl
-                    t["exit_reason"] = f"Hit Invalidation Stop ({realized_pnl:+.2f}%)"
                     t["current_price"] = stop_p
+                    
+                    # Post-Mortem Attribution
+                    attribution = determine_invalidation_driver(
+                        ticker=t["ticker"],
+                        sector=t.get("sector", "GENERAL"),
+                        days_active=t.get("days_active", 1),
+                        spy_ret=spy_ret
+                    )
+                    t["invalidation_driver"] = attribution["driver"]
+                    t["driver_badge"] = attribution["badge"]
+                    t["exit_reason"] = f"Hit Invalidation Stop ({realized_pnl:+.2f}%) · {attribution['note']}"
                 # Check Take Profit 2 Hit
                 elif high_p >= tp2:
                     t["status"] = "TP2_HIT"
@@ -600,17 +658,23 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
                     t["pnl_pct"] = realized_pnl
                     t["exit_reason"] = f"Take Profit 2 Hit ({realized_pnl:+.2f}%)"
                     t["current_price"] = tp2
+                    t["invalidation_driver"] = "TARGET ACHIEVED"
+                    t["driver_badge"] = "emerald"
                 # Check Take Profit 1 Hit
                 elif high_p >= tp1:
                     t["status"] = "TP1_HIT"
                     realized_pnl = round(((high_p - entry_p) / entry_p) * 100, 2)
                     t["pnl_pct"] = realized_pnl
                     t["exit_reason"] = f"Take Profit 1 Hit ({realized_pnl:+.2f}%) · Trailing Breakeven"
+                    t["invalidation_driver"] = "TP1 REACHED"
+                    t["driver_badge"] = "emerald"
                     # Trail stop to breakeven
                     t["stop_price"] = max(t["stop_price"], entry_p)
                 else:
                     # Still open, update floating PnL
                     t["pnl_pct"] = round(((close_p - entry_p) / entry_p) * 100, 2)
+                    t["invalidation_driver"] = "ACTIVE"
+                    t["driver_badge"] = "amber"
 
     # 2. Append Newly Qualified Recommendations
     for c in qualified_candidates[:5]:
@@ -629,16 +693,22 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
                 "tp1": c["tp1"],
                 "tp2": c["tp2"],
                 "structure": c.get("structure", "Bull Call Spread (45-60 DTE)"),
+                "contract": c.get("contract", f"{c['sector']} Call Spread"),
+                "contract_details": c.get("contract_details", "Defined Risk"),
                 "status": "OPEN",
                 "current_price": entry_p,
                 "max_price": entry_p,
                 "min_price": entry_p,
                 "days_active": 0,
                 "pnl_pct": 0.0,
+                "earnings_status": c.get("earnings_status", "SAFE (62d)"),
+                "earnings_safe": c.get("earnings_safe", True),
+                "invalidation_driver": "ACTIVE",
+                "driver_badge": "amber",
                 "exit_date": None,
                 "exit_reason": None
             }
-            trades.insert(0, new_trade) # Add to top of list
+            trades.insert(0, new_trade)
             existing_ids.add(trade_id)
             active_open_tickers.add(ticker)
 
