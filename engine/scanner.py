@@ -138,8 +138,14 @@ def process_universe(raw_data=None, sample_date_str=None):
     # 1. SPY Benchmark Returns
     spy_returns = None
     spy_df = extract_ticker_df(raw_data, "SPY")
+    spy_regime_for_sizing = "MIXED"
     if spy_df is not None and "Close" in spy_df.columns:
         spy_returns = spy_df["Close"].pct_change()
+        if len(spy_df) >= 50:
+            from indicators import calculate_ema
+            spy_c = float(spy_df["Close"].iloc[-1])
+            spy_e = float(calculate_ema(spy_df["Close"], 50).iloc[-1])
+            spy_regime_for_sizing = "RISK-OFF" if spy_c < spy_e else "RISK-ON"
 
     # 2. Process Individual Equities
     ticker_records = []
@@ -248,7 +254,7 @@ def process_universe(raw_data=None, sample_date_str=None):
         ticker_records.append(record)
 
         if is_qualified:
-            trade_setup = structure_trade_signal(ticker, sector, snapshot, retrace_type, reclaim_days, "MIXED")
+            trade_setup = structure_trade_signal(ticker, sector, snapshot, retrace_type, reclaim_days, spy_regime_for_sizing)
             trade_setup["overhead_runway_pct"] = runway_val
             trade_setup["overhead_clearance_ok"] = overhead_ok
             qualified_candidates.append(trade_setup)
@@ -761,6 +767,12 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
                 "structure": c.get("structure", "Bull Call Spread (45-60 DTE)"),
                 "contract": c.get("contract", f"{c['sector']} Call Spread"),
                 "contract_details": c.get("contract_details", "Defined Risk"),
+                "routing_guidance": c.get("routing_guidance", f"LIMIT @ ${c.get('est_debit', 5.0):.2f} Mid"),
+                "theta_cliff": c.get("theta_cliff", "21 DTE"),
+                "max_hold": c.get("max_hold", 8),
+                "target_allocation": c.get("target_allocation", 1000.0),
+                "allocation_desc": c.get("allocation_desc", "$1,000 (Full 100%)"),
+                "macro_throttled": c.get("macro_throttled", False),
                 "status": "OPEN",
                 "current_price": entry_p,
                 "max_price": entry_p,
