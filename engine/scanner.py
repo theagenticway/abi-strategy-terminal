@@ -692,13 +692,13 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
                     t["invalidation_driver"] = "ACTIVE"
                     t["driver_badge"] = "amber"
 
-    # 2. Append Newly Qualified Recommendations
-    for c in qualified_candidates[:5]:
+    # 2. Append Newly Qualified Recommendations (Spreads + LEAPS)
+    for c in qualified_candidates:
         ticker = c["ticker"]
         trade_id = f"{today_str}_{ticker}"
         if trade_id not in existing_ids and ticker not in active_open_tickers:
             entry_p = c["price"]
-            stop_p = c["stop"]
+            stop_p = c.get("stop") or c.get("macro_stop") or round(entry_p * 0.90, 2)
             new_trade = {
                 "id": trade_id,
                 "entry_date": today_str,
@@ -772,6 +772,13 @@ def save_payloads(payload: dict, raw_data=None):
             return
 
     date_str = payload["macro_breadth"]["date"]
+    
+    # Audit and update paper trades log (Spreads + LEAPS)
+    try:
+        combined_recs = payload.get("top_candidates", []) + payload.get("strategic_leaps", [])
+        audit_and_update_trades(raw_data, combined_recs, date_str)
+    except Exception as audit_err:
+        print(f"[!] Warning updating trades log: {audit_err}")
     
     with open(latest_path, "w") as f:
         json.dump(payload, f, indent=2)

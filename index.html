@@ -917,13 +917,13 @@
             const sum = data.summary || {};
             allTradesLog = data.trades || [];
 
-            document.getElementById('perf-winrate').textContent = (sum.win_rate_pct || 60.0) + '%';
-            document.getElementById('perf-profitfactor').textContent = (sum.profit_factor || 1.99) + 'x';
-            document.getElementById('perf-total').textContent = sum.total_recommendations || allTradesLog.length;
-            document.getElementById('perf-open').textContent = sum.active_open || 0;
-            document.getElementById('perf-avgwin').textContent = (sum.avg_winner_pct > 0 ? '+' : '') + (sum.avg_winner_pct || 11.0) + '%';
-            document.getElementById('perf-avgloss').textContent = (sum.avg_loser_pct || -8.3) + '%';
-            document.getElementById('perf-holding').textContent = (sum.avg_holding_days || 6.5) + 'd';
+            document.getElementById('perf-winrate').textContent = (sum.win_rate_pct !== undefined ? sum.win_rate_pct : 0.0) + '%';
+            document.getElementById('perf-profitfactor').textContent = (sum.profit_factor !== undefined ? sum.profit_factor : 0.0) + 'x';
+            document.getElementById('perf-total').textContent = (sum.total_recommendations !== undefined ? sum.total_recommendations : allTradesLog.length);
+            document.getElementById('perf-open').textContent = (sum.active_open !== undefined ? sum.active_open : 0);
+            document.getElementById('perf-avgwin').textContent = (sum.avg_winner_pct > 0 ? '+' : '') + (sum.avg_winner_pct !== undefined ? sum.avg_winner_pct : 0.0) + '%';
+            document.getElementById('perf-avgloss').textContent = (sum.avg_loser_pct !== undefined ? sum.avg_loser_pct : 0.0) + '%';
+            document.getElementById('perf-holding').textContent = (sum.avg_holding_days !== undefined ? sum.avg_holding_days : 0.0) + 'd';
 
             renderTradesLedgerTable();
         }
