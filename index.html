@@ -1664,6 +1664,14 @@
                 row.onclick = () => setGlobalSectorFilter(activeGlobalSector === item.sector.toUpperCase() ? '' : item.sector.toUpperCase());
 
                 const pctWidth = (item.score / 10) * 100;
+                let badgeText = item.display || (item.score ? item.score + "/10" : "5/10");
+                if (activeStrengthSort === 'win') {
+                    badgeText = item.win_pct || '50%';
+                } else if (activeStrengthSort === 'ret') {
+                    badgeText = item.avg_ret || '+0.00%';
+                }
+                const isPosRet = !badgeText.includes('-');
+
                 row.innerHTML = `
                     <div class="col-span-3 text-[11px] font-bold text-slate-300 truncate">${item.sector}</div>
                     <div class="col-span-8 px-2">
@@ -1671,7 +1679,7 @@
                             <div class="h-full bg-blue-600 rounded transition-all duration-300" style="width: ${pctWidth}%;"></div>
                         </div>
                     </div>
-                    <div class="col-span-1 text-right font-mono text-[11px] text-slate-400 font-bold">${item.display || item.strength_str || (item.score ? item.score + "/10" : "5/10")}</div>
+                    <div class="col-span-1 text-right font-mono text-[11px] font-bold ${activeStrengthSort === 'ret' ? (isPosRet ? 'text-emerald-400' : 'text-rose-400') : 'text-slate-300'}">${badgeText}</div>
                 `;
                 container.appendChild(row);
             });
