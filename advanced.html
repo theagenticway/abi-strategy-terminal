@@ -257,7 +257,6 @@
             if (!container) return;
 
             if (!activeChart) {
-                // Initialize Lightweight Chart once without clearing container.innerHTML
                 activeChart = LightweightCharts.createChart(container, {
                     width: container.clientWidth || 700,
                     height: 360,
@@ -279,7 +278,6 @@
                 ema50Series = activeChart.addLineSeries({ color: '#3b82f6', lineWidth: 2, title: 'EMA50' });
                 ema200Series = activeChart.addLineSeries({ color: '#eab308', lineWidth: 2, title: 'EMA200' });
 
-                // Responsive auto-resize
                 window.addEventListener('resize', () => {
                     if (activeChart && container) {
                         activeChart.applyOptions({ width: container.clientWidth });
@@ -304,14 +302,22 @@
             const currentEma200 = parseFloat(targetTicker.ema200) || (basePrice * 0.92);
             const adrPct = (parseFloat(targetTicker.adr_pct) || 2.5) / 100;
 
-            // Generate high-fidelity 90-day trading series anchored to live technical levels
             const candles = [];
             const ema50Data = [];
             const ema200Data = [];
-
             const totalBars = 90;
-            const endDate = new Date(2026, 8, 4); // September 4, 2026
-            
+
+            // 1. Generate 90 strictly unique, ascending business day dates (TradingView requirement)
+            const businessDates = [];
+            let walkDate = new Date(2026, 8, 4); // September 4, 2026
+            while (businessDates.length < totalBars) {
+                const day = walkDate.getDay();
+                if (day !== 0 && day !== 6) { // Skip weekends
+                    businessDates.unshift(walkDate.toISOString().split('T')[0]);
+                }
+                walkDate.setDate(walkDate.getDate() - 1);
+            }
+
             // Build historical price path ending exactly at live basePrice
             let p = basePrice * 0.88;
             const prices = [];
@@ -326,18 +332,14 @@
                 }
             }
 
-            // Calculate moving averages on the generated series
+            // 2. Generate candlesticks and technical indicators
             for (let i = 0; i < totalBars; i++) {
-                const d = new Date(endDate.getTime() - (totalBars - 1 - i) * 86400000);
-                if (d.getDay() === 0) d.setDate(d.getDate() - 2);
-                if (d.getDay() === 6) d.setDate(d.getDate() - 1);
-                const dateStr = d.toISOString().split('T')[0];
-
+                const dateStr = businessDates[i];
                 const c = prices[i];
                 const o = i > 0 ? prices[i - 1] : c * 0.99;
-                const spread = Math.abs(c - o);
-                const h = Math.max(o, c) + (Math.random() * spread * 0.5);
-                const l = Math.min(o, c) - (Math.random() * spread * 0.5);
+                const spread = Math.max(0.05, Math.abs(c - o));
+                const h = Math.max(o, c) + (Math.random() * spread * 0.4);
+                const l = Math.min(o, c) - (Math.random() * spread * 0.4);
 
                 candles.push({
                     time: dateStr,
