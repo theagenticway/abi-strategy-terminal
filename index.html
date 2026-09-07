@@ -1377,6 +1377,13 @@
             document.getElementById('offense-label').textContent = `${offensePct}% OFFENSE`;
             document.getElementById('defense-slider-bar').style.width = `${offensePct}%`;
             document.getElementById('offense-subtext').textContent = `${offensePct}% offense — ${offenseAbove}/${offenseTotal} growth+cyclical above EMA50 vs ${dAbove}/${defensive.length} defensive`;
+
+            // Dynamic Macro Regime Title & Badge
+            const mb = data.macro_breadth || {};
+            const regDesc = mb.regime_desc || (offensePct >= 60 ? 'RISK-ON — Broad market expansion' : (offensePct <= 35 ? 'RISK-OFF — Defensive capital rotation' : 'MIXED — No clear rotation'));
+            const regBadge = mb.regime || (offensePct >= 60 ? 'RISK-ON' : (offensePct <= 35 ? 'RISK-OFF' : 'MIXED'));
+            document.getElementById('macro-regime-title').textContent = regDesc;
+            document.getElementById('breadth-says-label').textContent = `BREADTH SAYS: ${regDesc}`;
         }
 
         // 2D Momentum Quadrant Canvas
@@ -1505,7 +1512,13 @@
                 container.appendChild(div);
             });
             const subEl = document.getElementById("regime-change-count-sub");
-            if (subEl) subEl.textContent = `${cards.length} ETFs flipped their side of the EMA50 recently`;
+            if (subEl) {
+                if (cards.length === 0) {
+                    subEl.textContent = "No ETFs flipped their side of the EMA50 in the last session · Regime is stable";
+                } else {
+                    subEl.textContent = `${cards.length} ETF${cards.length === 1 ? '' : 's'} flipped their side of the EMA50 in the last day`;
+                }
+            }
         }
 
         // Regime Detail Table (Screenshot 9 Exact)
@@ -1688,7 +1701,13 @@
                 container.appendChild(div);
             });
             const subEl = document.getElementById("regime-change-count-sub");
-            if (subEl) subEl.textContent = `${cards.length} ETFs flipped their side of the EMA50 recently`;
+            if (subEl) {
+                if (cards.length === 0) {
+                    subEl.textContent = "No ETFs flipped their side of the EMA50 in the last session · Regime is stable";
+                } else {
+                    subEl.textContent = `${cards.length} ETF${cards.length === 1 ? '' : 's'} flipped their side of the EMA50 in the last day`;
+                }
+            }
         }
 
         // Sub-Sectors & Reclaims by Sector (Screenshot 3 Bottom)
@@ -1797,7 +1816,13 @@
                 container.appendChild(div);
             });
             const subEl = document.getElementById("regime-change-count-sub");
-            if (subEl) subEl.textContent = `${cards.length} ETFs flipped their side of the EMA50 recently`;
+            if (subEl) {
+                if (cards.length === 0) {
+                    subEl.textContent = "No ETFs flipped their side of the EMA50 in the last session · Regime is stable";
+                } else {
+                    subEl.textContent = `${cards.length} ETF${cards.length === 1 ? '' : 's'} flipped their side of the EMA50 in the last day`;
+                }
+            }
         }
 
         // Reclaim Detail (Screenshot 4)

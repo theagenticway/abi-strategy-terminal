@@ -278,9 +278,41 @@ def process_universe(raw_data=None, sample_date_str=None):
             vs_ema50 = snapshot["ema50_dist_pct"]
             mom5 = snapshot["d5_return"]
             mom20 = snapshot["d20_return"]
-            status = "★ OUTPERFORMING" if vs_ema50 > 1.5 else ("WEAKENING" if vs_ema50 < -1.5 else "GAINING")
-            holding_days = 23 if vs_ema50 > 1.5 else (1 if abs(vs_ema50) <= 1.2 else 15)
-            crossed = "YES" if abs(vs_ema50) <= 1.2 else "NO"
+            
+            raw_c = snapshot["raw_close"]
+            raw_e = snapshot["raw_ema50"]
+            
+            # True Mathematical Crossover Check & Consecutive Holding Days
+            if len(raw_c) >= 2 and len(raw_e) >= 2:
+                yesterday_diff = float(raw_c.iloc[-2]) - float(raw_e.iloc[-2])
+                today_diff = float(raw_c.iloc[-1]) - float(raw_e.iloc[-1])
+                did_flip = (np.sign(yesterday_diff) != np.sign(today_diff))
+                crossed = "YES" if did_flip else "NO"
+                
+                # Calculate exact consecutive holding days on current side
+                current_sign = np.sign(today_diff)
+                holding_days = 0
+                diff_series = raw_c - raw_e
+                for pos in range(len(diff_series) - 1, -1, -1):
+                    val = float(diff_series.iloc[pos])
+                    if np.sign(val) == current_sign:
+                        holding_days += 1
+                    else:
+                        break
+            else:
+                crossed = "NO"
+                holding_days = 15
+                today_diff = vs_ema50
+
+            # Mathematical Status Classification
+            if vs_ema50 > 1.5 and holding_days >= 5:
+                status = "★ OUTPERFORMING"
+            elif vs_ema50 < -1.5 and holding_days >= 5:
+                status = "WEAKENING"
+            elif today_diff >= 0:
+                status = "GAINING"
+            else:
+                status = "WEAKENING"
 
         # Populate tickers at support using ETF_SECTOR_MAP
         rule = ETF_SECTOR_MAP.get(etf, {"sectors": [meta["name"].upper()], "keywords": []})
@@ -339,7 +371,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             "tickers_at_support": matched_tickers[:12]
         })
 
-        if crossed == "YES":
+        if crossed == "YES" or (holding_days <= 2 and abs(vs_ema50) <= 2.0):
             regime_change_etfs.append({
                 "etf": etf,
                 "sector": meta["name"],
@@ -504,7 +536,9 @@ def process_universe(raw_data=None, sample_date_str=None):
         "beta_gt_1_5": beta_buckets[">1.5"],
         "top_sectors": top_sectors_str,
         "macro_ratio": round(reclaim_count / max(1, alert_count), 2),
-        "regime": "RISK-ON" if (reclaim_count / max(1, alert_count)) > 0.4 else "MIXED"
+        "offense_pct": round((len([e for e in all_25_etfs if e["style"] in ["Growth", "Cyclical"] and e["pct"] >= 0]) / 20) * 100),
+        "regime": "RISK-ON" if (len([e for e in all_25_etfs if e["style"] in ["Growth", "Cyclical"] and e["pct"] >= 0]) / 20) >= 0.60 else ("RISK-OFF" if (len([e for e in all_25_etfs if e["style"] in ["Growth", "Cyclical"] and e["pct"] >= 0]) / 20) <= 0.35 else "MIXED"),
+        "regime_desc": "RISK-ON — Broad market expansion" if (len([e for e in all_25_etfs if e["style"] in ["Growth", "Cyclical"] and e["pct"] >= 0]) / 20) >= 0.60 else ("RISK-OFF — Defensive capital rotation" if (len([e for e in all_25_etfs if e["style"] in ["Growth", "Cyclical"] and e["pct"] >= 0]) / 20) <= 0.35 else "MIXED — No clear rotation")
     }
 
     # 11. Multi-factor Alpha Radar Candidate Sorting
