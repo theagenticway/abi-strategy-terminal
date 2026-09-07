@@ -552,7 +552,7 @@ def run_backfill(raw_data, days=30):
         try:
             sliced_df = raw_data.loc[:dt_str]
             payload = process_universe(sliced_df, sample_date_str=dt_str)
-            save_payloads(payload, data)
+            save_payloads(payload, raw_data=sliced_df)
             print(f"    -> Backfilled {dt_str} ({len(payload.get('tickers', []))} tickers)")
         except Exception as e:
             print(f"    [!] Error on {dt_str}: {e}")
