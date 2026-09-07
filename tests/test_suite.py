@@ -191,6 +191,38 @@ class TestDataIntegrity(unittest.TestCase):
         nojekyll_path = os.path.join(ROOT_DIR, ".nojekyll")
         self.assertTrue(os.path.exists(nojekyll_path), ".nojekyll file must exist in repo root to prevent 404s on GitHub Pages")
 
+    def test_strategic_leaps_data(self):
+        self.assertIn("strategic_leaps", self.data, "Payload must contain strategic_leaps")
+        leaps = self.data.get("strategic_leaps", [])
+        self.assertGreater(len(leaps), 0, "Must have strategic LEAPS candidates")
+        for item in leaps:
+            self.assertIn("ticker", item)
+            self.assertIn("macro_stop", item)
+            self.assertIn("contract", item)
+            self.assertLess(item["macro_stop"], item["price"], "Macro stop must be below share price")
+            self.assertGreater(item["tp1"], item["price"], "Target must be above share price")
+            self.assertIn("LEAPS", item["contract"])
+
+def test_trades_log_integrity(self):
+        log_path = os.path.join(DATA_DIR, "trades_log.json")
+        self.assertTrue(os.path.exists(log_path), "data/trades_log.json must exist")
+        with open(log_path, "r") as f:
+            log_data = json.load(f)
+        self.assertIn("summary", log_data)
+        self.assertIn("trades", log_data)
+        summary = log_data["summary"]
+        self.assertIn("win_rate_pct", summary)
+        self.assertIn("profit_factor", summary)
+        self.assertGreater(summary["total_recommendations"], 0)
+        self.assertGreater(len(log_data["trades"]), 0)
+        for t in log_data["trades"]:
+            self.assertIn("ticker", t)
+            self.assertIn("entry_price", t)
+            self.assertIn("stop_price", t)
+            self.assertIn("tp1", t)
+            self.assertIn("status", t)
+            self.assertIn(t["status"], ["OPEN", "TP1_HIT", "TP2_HIT", "STOPPED_OUT"])
+
 class TestFrontendLogic(unittest.TestCase):
     def setUp(self):
         index_path = os.path.join(ROOT_DIR, "index.html")
@@ -233,7 +265,7 @@ class TestFrontendLogic(unittest.TestCase):
             "top-subsectors-body", "reclaims-by-sector-container",
             "reclaim-detail-body", "bounces-by-level-container", "bounces-by-sector-container",
             "bounce-alerts-body", "fast-reclaims-body", "daily-activity-rows",
-            "candidates-body", "tickers-body", "active-filter-banner"
+            "candidates-body", "leaps-body", "tickers-body", "active-filter-banner", "tab-perf-btn", "tab-perf", "perf-winrate", "perf-profitfactor", "perf-total", "perf-open", "perf-avgwin", "perf-avgloss", "perf-holding", "perf-trades-body"
         ]
         for dom_id in expected_ids:
             self.assertIn(f'id="{dom_id}"', self.html, f"Missing essential DOM ID in index.html: {dom_id}")
