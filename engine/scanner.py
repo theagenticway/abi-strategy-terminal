@@ -15,7 +15,7 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from universe import SECTOR_ETFS, get_complete_taxonomy, get_full_universe
 from indicators import compute_technical_snapshot
-from patterns import detect_retrace_pattern, calculate_reclaim_velocity, structure_trade_signal
+from patterns import detect_retrace_pattern, calculate_reclaim_velocity, structure_trade_signal, screen_strategic_leaps_candidate
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 HISTORY_DIR = os.path.join(DATA_DIR, "history")
@@ -144,6 +144,7 @@ def process_universe(raw_data=None, sample_date_str=None):
     # 2. Process Individual Equities
     ticker_records = []
     qualified_candidates = []
+    strategic_leaps_candidates = []
     alert_count = 0
     reclaim_count = 0
     confirmed_count = 0
@@ -251,6 +252,11 @@ def process_universe(raw_data=None, sample_date_str=None):
             trade_setup["overhead_runway_pct"] = runway_val
             trade_setup["overhead_clearance_ok"] = overhead_ok
             qualified_candidates.append(trade_setup)
+
+        # Screen for multi-quarter Strategic LEAPS accumulation (Approach 2)
+        leaps_setup = screen_strategic_leaps_candidate(ticker, sector, snapshot)
+        if leaps_setup is not None:
+            strategic_leaps_candidates.append(leaps_setup)
 
     # 3. Process All 25 Sector ETFs
     sector_results = []
@@ -502,6 +508,15 @@ def process_universe(raw_data=None, sample_date_str=None):
         )
     )
 
+    # Sort Strategic LEAPS candidates (prioritize secular tech leaders & high quality)
+    strategic_leaps_candidates = sorted(
+        strategic_leaps_candidates,
+        key=lambda x: (
+            -sector_priority.get(x.get("sector", "").upper(), 1),
+            x.get("price", 100.0) # Larger institutional market cap proxy
+        )
+    )
+
     return {
         "macro_breadth": macro_breadth,
         "all_25_etfs": all_25_etfs,
@@ -517,6 +532,7 @@ def process_universe(raw_data=None, sample_date_str=None):
         "regime_change_etfs": regime_change_etfs,
         "top_candidates": qualified_candidates[:5],
         "all_qualified": qualified_candidates,
+        "strategic_leaps": strategic_leaps_candidates[:5],
         "sector_momentum": sector_results,
         "tickers": ticker_records
     }

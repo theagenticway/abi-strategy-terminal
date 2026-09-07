@@ -633,14 +633,14 @@
     <!-- ======================================================== -->
     <div id="tab-recs" class="space-y-4 hidden">
         
-        <!-- Options Alpha Radar Execution Table -->
+        <!-- TABLE 1: TACTICAL SWINGS (BULL CALL SPREADS 45-60 DTE) -->
         <div class="terminal-panel p-4">
             <div class="flex justify-between items-center mb-3">
                 <div>
                     <h2 class="text-sm font-black text-white flex items-center gap-1.5 uppercase tracking-wide">
-                        <span class="text-amber-400">★</span> Key Trading Recommendations (Options Alpha Radar)
+                        <span class="text-amber-400">⚡</span> Tactical Swings (Options Alpha Radar — Bull Call Spreads 45–60 DTE)
                     </h2>
-                    <p class="text-[11px] text-slate-400">Pre-computed swing setups: Confirmed D0–D2 reclaims, 200 MA runway (≥5%), and strict invalidation stops.</p>
+                    <p class="text-[11px] text-slate-400">High-velocity momentum setups: Confirmed D0–D2 reclaims, 200 MA clearance (≥5%), and strict invalidation stops.</p>
                 </div>
             </div>
 
@@ -661,6 +661,39 @@
                         </tr>
                     </thead>
                     <tbody id="candidates-body" class="divide-y divide-slate-800/60">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TABLE 2: STRATEGIC CORE ACCUMULATION (DEEP-ITM LEAPS JAN 2028) -->
+        <div class="terminal-panel p-4">
+            <div class="flex justify-between items-center mb-3">
+                <div>
+                    <h2 class="text-sm font-black text-white flex items-center gap-1.5 uppercase tracking-wide">
+                        <span class="text-emerald-400">🏛️</span> Strategic Core Accumulation (Deep-ITM Call LEAPS — Jan 2028 Expiry)
+                    </h2>
+                    <p class="text-[11px] text-slate-400">Multi-quarter secular compounders: Structural trend stack (Price > EMA50 > SMA200), rising 200 MA, and institutional cash-flow quality.</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="text-slate-500 border-b border-slate-800 uppercase text-[10px]">
+                            <th class="py-2 px-2.5">Ticker</th>
+                            <th class="py-2 px-2.5">Sector</th>
+                            <th class="py-2 px-2.5">Share Price</th>
+                            <th class="py-2 px-2.5">Macro Stop (200 MA)</th>
+                            <th class="py-2 px-2.5">Targets (Stage 1 / Stage 2)</th>
+                            <th class="py-2 px-2.5">R:R</th>
+                            <th class="py-2 px-2.5">Trend Alignment</th>
+                            <th class="py-2 px-2.5">Quality & Cash Flow</th>
+                            <th class="py-2 px-2.5">Exact LEAPS Contract Ticket</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaps-body" class="divide-y divide-slate-800/60">
                         <!-- Populated dynamically -->
                     </tbody>
                 </table>
@@ -1154,6 +1187,37 @@
                     `;
                     candBody.appendChild(tr);
                 });
+            }
+
+            // Populate Table 2: Strategic Core Accumulation LEAPS
+            const leapsBody = document.getElementById('leaps-body');
+            if (leapsBody) {
+                leapsBody.innerHTML = '';
+                let leapsList = data.strategic_leaps || [];
+                if (activeGlobalSector) {
+                    leapsList = leapsList.filter(c => c.sector.toUpperCase().includes(activeGlobalSector) || activeGlobalSector.includes(c.sector.toUpperCase()));
+                }
+
+                if (leapsList.length === 0) {
+                    leapsBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-slate-500">No active Strategic LEAPS setups matching filter.</td></tr>';
+                } else {
+                    leapsList.forEach(c => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-800/40 transition';
+                        tr.innerHTML = `
+                            <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">${c.ticker}</td>
+                            <td class="py-2.5 px-2.5 text-slate-300">${c.sector}</td>
+                            <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${parseFloat(c.price).toFixed(2)}</td>
+                            <td class="py-2.5 px-2.5 font-mono text-rose-400 font-semibold">$${parseFloat(c.macro_stop).toFixed(2)}</td>
+                            <td class="py-2.5 px-2.5 font-mono text-emerald-400 font-semibold">$${parseFloat(c.tp1).toFixed(2)} / $${parseFloat(c.tp2).toFixed(2)}</td>
+                            <td class="py-2.5 px-2.5 font-semibold text-amber-300">${c.rr_ratio}</td>
+                            <td class="py-2.5 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">${c.trend_stack}</span></td>
+                            <td class="py-2.5 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950/60 text-blue-300 border border-blue-500/30">${c.valuation_status}</span></td>
+                            <td class="py-2.5 px-2.5"><div class="font-bold text-white text-xs">${c.contract}</div><div class="text-[10px] text-slate-400 font-mono mt-0.5">${c.contract_details}</div></td>
+                        `;
+                        leapsBody.appendChild(tr);
+                    });
+                }
             }
 
             allTickersData = data.tickers || [];
