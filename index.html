@@ -1170,8 +1170,11 @@
                     tr.className = 'hover:bg-slate-800/40 transition';
                     const contractTitle = c.contract || c.structure || 'Bull Call Spread (45-60 DTE)';
                     const contractSub = c.contract_details ? `<div class="text-[10px] text-slate-400 font-mono mt-0.5">${c.contract_details}</div>` : '';
+                    const routingSub = c.routing_guidance ? `<div class="text-[10px] text-sky-400 font-mono mt-0.5">↳ ${c.routing_guidance}</div>` : '';
                     const isSafeEarnings = (c.earnings_safe !== false);
                     const earningsText = c.earnings_status || 'SAFE (62d)';
+                    const allocText = c.allocation_desc || '$1,000 (Full 100%)';
+                    const isThrottled = (c.macro_throttled === true);
 
                     tr.innerHTML = `
                         <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">${c.ticker}</td>
@@ -1182,8 +1185,15 @@
                         <td class="py-2.5 px-2.5 font-semibold text-amber-300">${c.rr_ratio}</td>
                         <td class="py-2.5 px-2.5"><span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">D${c.reclaim_days}</span></td>
                         <td class="py-2.5 px-2.5 text-[11px] font-mono">${(c.overhead_runway_pct === 0 || c.overhead_runway_pct === 0.0 || c.overhead_runway_pct === "0%" || c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`}</td>
-                        <td class="py-2.5 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isSafeEarnings ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/60 text-amber-400 border border-amber-500/30'}">● ${earningsText}</span></td>
-                        <td class="py-2.5 px-2.5"><div class="font-bold text-white text-xs">${contractTitle}</div>${contractSub}</td>
+                        <td class="py-2.5 px-2.5 space-y-1">
+                            <div><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isSafeEarnings ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/60 text-amber-400 border border-amber-500/30'}">● ${earningsText}</span></div>
+                            <div class="text-[10px] font-mono ${isThrottled ? 'text-amber-400' : 'text-slate-400'}">${allocText}</div>
+                        </td>
+                        <td class="py-2.5 px-2.5">
+                            <div class="font-bold text-white text-xs">${contractTitle}</div>
+                            ${contractSub}
+                            ${routingSub}
+                        </td>
                     `;
                     candBody.appendChild(tr);
                 });

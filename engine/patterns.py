@@ -161,9 +161,17 @@ def model_options_contract(ticker: str, price: float, tp1: float, reclaim_days: 
         rr = round(max_profit / max(0.01, est_debit), 2)
         breakeven = round(long_strike + est_debit, 2)
         
+        # Feature 2: 21-Day Theta Cliff & Max Hold Window
+        theta_cliff_date = exp_date - datetime.timedelta(days=21)
+        theta_cliff_str = theta_cliff_date.strftime("%b %d")
+        max_hold_sessions = 8 # Exit by Day 8 if trade has not reached 50% of TP1
+        
+        # Feature 4: Natural Mid-Price Limit Order Routing
+        routing_guidance = f"LIMIT @ ${est_debit:.2f} Mid (Do not cross spread; step $0.05; cancel after 30m)"
+        
         month_str = exp_date.strftime("%b %d")
         ticket_str = f"{month_str} ${long_strike:.0f}/${short_strike:.0f} Call Spread"
-        detail_str = f"Width: ${width:.2f} | Est. Debit: ${est_debit:.2f} | Max Gain: ${max_profit:.2f} (1:{rr}) | Breakeven: ${breakeven:.2f}"
+        detail_str = f"Width: ${width:.2f} | Est. Debit: ${est_debit:.2f} | Max Gain: ${max_profit:.2f} (1:{rr}) | Theta Cliff: {theta_cliff_str} (21 DTE) | Max Hold: {max_hold_sessions}d"
         
         return {
             "vehicle": "Bull Call Spread",
@@ -171,6 +179,10 @@ def model_options_contract(ticker: str, price: float, tp1: float, reclaim_days: 
             "expiry": exp_date.strftime("%Y-%m-%d"),
             "expiry_label": month_str,
             "dte": dte,
+            "theta_cliff_date": theta_cliff_date.strftime("%Y-%m-%d"),
+            "theta_cliff_label": theta_cliff_str,
+            "max_hold_sessions": max_hold_sessions,
+            "routing_guidance": routing_guidance,
             "long_strike": long_strike,
             "short_strike": short_strike,
             "width": width,
@@ -281,8 +293,24 @@ def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_typ
     tp2 = round(price + (risk_per_share * 3.5), 2)
     rr_ratio = round((tp1 - price) / risk_per_share, 1)
     
-    # 1000 base position sizing
-    target_allocation = 1000.0
+    # Feature 3: Macro Regime Position Size Throttler
+    # Evaluates broad market health and scales allocation to protect capital:
+    # - Risk-On (Offense >= 60% and SPY >= EMA50): Full $1,000 Allocation (100%)
+    # - Mixed Market (Offense 35-60%): Moderate $750 Allocation (75%)
+    # - Risk-Off (Offense <= 35% or SPY < EMA50): Defensive $500 Allocation (50% Throttled)
+    if regime == "RISK-ON":
+        target_allocation = 1000.0
+        allocation_desc = "$1,000 (Full 100% Sizing)"
+        macro_throttled = False
+    elif regime == "RISK-OFF":
+        target_allocation = 500.0
+        allocation_desc = "$500 (50% Throttled — Macro Risk)"
+        macro_throttled = True
+    else: # MIXED
+        target_allocation = 750.0
+        allocation_desc = "$750 (75% Sizing — Mixed Regime)"
+        macro_throttled = True
+
     shares = max(1, int(target_allocation / price))
     total_position_val = round(shares * price, 2)
     total_risk_val = round(shares * risk_per_share, 2)
@@ -329,6 +357,12 @@ def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_typ
         "earnings_status": earnings_info["status"],
         "earnings_badge": earnings_info["badge"],
         "liquidity": liquidity_status,
+        "target_allocation": target_allocation,
+        "allocation_desc": allocation_desc,
+        "macro_throttled": macro_throttled,
+        "theta_cliff": contract_info.get("theta_cliff_label", "21 DTE"),
+        "max_hold": contract_info.get("max_hold_sessions", 8),
+        "routing_guidance": contract_info.get("routing_guidance", f"LIMIT @ ${contract_info.get('est_debit', 5.0):.2f} Mid"),
         "regime": regime
     }
 
