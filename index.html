@@ -1269,21 +1269,21 @@
         // TAB 2: MACROECONOMIC BOARD (NETLIFY FULL)
         // ==========================================
         function renderMacroBoard(data) {
-            renderMacroKPIs(data);
-            renderMarketRegimeSection(data);
-            renderMomentumQuadrant(data);
-            renderRegimeChangeCards(data);
-            renderRegimeDetailTable(data);
-            renderETFLadder(data);
-            renderSectorStrength(data);
-            renderRotatingIn(data);
-            renderSubSectors(data);
-            renderReclaimsBySector(data);
-            renderReclaimDetail(data);
-            renderBouncesByLevelAndSector(data);
-            renderBounceAlerts(data);
-            renderFastReclaims(data);
-            renderDailyActivity(data);
+            try { renderMacroKPIs(data); } catch(e) { console.error('Error renderMacroKPIs', e); }
+            try { renderMarketRegimeSection(data); } catch(e) { console.error('Error renderMarketRegimeSection', e); }
+            try { renderMomentumQuadrant(data); } catch(e) { console.error('Error renderMomentumQuadrant', e); }
+            try { renderRegimeChangeCards(data); } catch(e) { console.error('Error renderRegimeChangeCards', e); }
+            try { renderRegimeDetailTable(data); } catch(e) { console.error('Error renderRegimeDetailTable', e); }
+            try { renderETFLadder(data); } catch(e) { console.error('Error renderETFLadder', e); }
+            try { renderSectorStrength(data); } catch(e) { console.error('Error renderSectorStrength', e); }
+            try { renderRotatingIn(data); } catch(e) { console.error('Error renderRotatingIn', e); }
+            try { renderSubSectors(data); } catch(e) { console.error('Error renderSubSectors', e); }
+            try { renderReclaimsBySector(data); } catch(e) { console.error('Error renderReclaimsBySector', e); }
+            try { renderReclaimDetail(data); } catch(e) { console.error('Error renderReclaimDetail', e); }
+            try { renderBouncesByLevelAndSector(data); } catch(e) { console.error('Error renderBouncesByLevelAndSector', e); }
+            try { renderBounceAlerts(data); } catch(e) { console.error('Error renderBounceAlerts', e); }
+            try { renderFastReclaims(data); } catch(e) { console.error('Error renderFastReclaims', e); }
+            try { renderDailyActivity(data); } catch(e) { console.error('Error renderDailyActivity', e); }
         }
 
         // Netlify KPI Cards
@@ -1694,9 +1694,9 @@
         // Sub-Sectors & Reclaims by Sector (Screenshot 3 Bottom)
         function renderSubSectors(data) {
             const tbody = document.getElementById('top-subsectors-body');
+            if (!tbody) return;
             tbody.innerHTML = '';
             
-            // Derive dynamically from all_subsectors, top_subsectors, or tickers
             let list = data.all_subsectors || data.top_subsectors || [];
             
             if (activeGlobalSector) {
@@ -1704,6 +1704,40 @@
                     const sec = (s.sector || '').toUpperCase();
                     return sec === activeGlobalSector || sec.includes(activeGlobalSector) || activeGlobalSector.includes(sec);
                 });
+            }
+
+            // Fallback: If no subsectors in list, dynamically aggregate from data.tickers!
+            if (!list || list.length === 0) {
+                const matchingTickers = (data.tickers || []).filter(t => {
+                    const sec = (t.sector || '').toUpperCase();
+                    return !activeGlobalSector || sec === activeGlobalSector || sec.includes(activeGlobalSector);
+                });
+
+                if (matchingTickers.length > 0) {
+                    const subMap = {};
+                    matchingTickers.forEach(t => {
+                        const sub = t.subsector || 'General';
+                        if (!subMap[sub]) subMap[sub] = { sector: t.sector, tickers: [] };
+                        subMap[sub].tickers.push(t);
+                    });
+
+                    list = Object.entries(subMap).map(([sub, info]) => {
+                        const tList = info.tickers;
+                        const qual = tList.filter(t => t.qualified === 'YES' || (t.ema50_pct || 0) >= 0).length;
+                        const win = Math.round((qual / tList.length) * 100);
+                        const rets = tList.map(t => t.return_pct || 0);
+                        const avgRet = (rets.reduce((a, b) => a + b, 0) / Math.max(1, rets.length)).toFixed(2);
+                        return {
+                            subsector: `${sub} • ${tList.length}`,
+                            subsector_raw: sub,
+                            sector: info.sector,
+                            str: '6/10',
+                            win: `${win}%`,
+                            ret: `${avgRet >= 0 ? '+' : ''}${avgRet}%`,
+                            tickers: tList.map(t => t.ticker)
+                        };
+                    });
+                }
             }
 
             if (!list || list.length === 0) {
@@ -1718,7 +1752,7 @@
                 const strVal = s.str || s.strength_str || (s.score ? `${s.score}/10` : '5/10');
                 const winVal = s.win || s.win_rate || '50%';
                 const retVal = s.ret || s.avg_return || '+0.00%';
-                const isNeg = retVal.toString().includes('-');
+                const isNeg = (retVal || '').toString().includes('-');
                 const tickersList = (s.tickers || []).join(', ') || 'Tickers';
 
                 tr.title = `Click to filter | Tickers: ${tickersList}`;
@@ -1737,7 +1771,7 @@
                 tbody.appendChild(tr);
             });
         }
-
+        
         function renderReclaimsBySector(data) {
             const container = document.getElementById('reclaims-by-sector-container');
             container.innerHTML = '';
