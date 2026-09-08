@@ -77,6 +77,9 @@ jobs:
             echo "No telemetry changes detected."
           else
             git commit -m "chore(telemetry): scan & backfill update [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]"
+            # Discard any stray artifacts outside data/ so the worktree is pristine for rebase
+            git checkout -- .
+            git clean -fd
             git pull --rebase origin main
             git push origin main
           fi
