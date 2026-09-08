@@ -38,6 +38,9 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -74,5 +77,6 @@ jobs:
             echo "No telemetry changes detected."
           else
             git commit -m "chore(telemetry): scan & backfill update [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]"
-            git push
+            git pull --rebase origin main
+            git push origin main
           fi
