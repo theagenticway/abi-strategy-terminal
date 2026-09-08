@@ -1,7 +1,7 @@
 [
   {
     "date": "2026-09-08",
-    "timestamp": "2026-09-08 20:11:04",
+    "timestamp": "2026-09-08 21:32:27",
     "total_alerts": 454,
     "reclaims": 159,
     "confirmed": 159,
@@ -16,7 +16,7 @@
     "beta_gt_1_5": 78,
     "top_sectors": "FINANCIALS(67), INDUSTRIALS(57), HEALTHCARE(57)",
     "macro_ratio": 0.35,
-    "offense_pct": 50,
+    "offense_pct": 55,
     "regime": "MIXED",
     "regime_desc": "MIXED \u2014 No clear rotation"
   },
