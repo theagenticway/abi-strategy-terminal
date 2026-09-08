@@ -1,5 +1,26 @@
 [
   {
+    "date": "2026-09-08",
+    "timestamp": "2026-09-08 16:53:14",
+    "total_alerts": 454,
+    "reclaims": 165,
+    "confirmed": 165,
+    "below": 289,
+    "dead": 0,
+    "retrace_ote": 23,
+    "retrace_db": 76,
+    "retrace_ema50": 329,
+    "retrace_ma150": 26,
+    "beta_lt_1": 334,
+    "beta_1_to_1_5": 42,
+    "beta_gt_1_5": 78,
+    "top_sectors": "FINANCIALS(67), INDUSTRIALS(57), HEALTHCARE(57)",
+    "macro_ratio": 0.36,
+    "offense_pct": 60,
+    "regime": "RISK-ON",
+    "regime_desc": "RISK-ON \u2014 Broad market expansion"
+  },
+  {
     "date": "2026-09-07",
     "timestamp": "2026-09-07 23:17:48",
     "total_alerts": 454,
