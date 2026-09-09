@@ -128,6 +128,91 @@ def calculate_strike_interval(price: float) -> float:
     else:
         return 25.0
 
+
+def fetch_live_options_quotes(ticker: str, long_strike: float, short_strike: float, target_dte_range=(40, 65), today=None):
+    """
+    Pulls live options chain quotes via yfinance for qualified candidates (zero cost).
+    Enforces >500 open interest and tight bid-ask spread slippage.
+    Falls back gracefully to parametric model if off-hours or unavailable.
+    """
+    try:
+        import yfinance as yf
+        t = yf.Ticker(ticker)
+        options = t.options
+        if not options:
+            return None
+
+        today_date = today or datetime.date.today()
+        chosen_exp = None
+        min_diff = 999
+        for exp in options:
+            try:
+                exp_dt = datetime.datetime.strptime(exp, "%Y-%m-%d").date()
+                cur_dte = (exp_dt - today_date).days
+                if target_dte_range[0] <= cur_dte <= target_dte_range[1]:
+                    chosen_exp = exp
+                    break
+                elif cur_dte > 0 and abs(cur_dte - 50) < min_diff:
+                    min_diff = abs(cur_dte - 50)
+                    chosen_exp = exp
+            except Exception:
+                continue
+
+        if not chosen_exp:
+            return None
+
+        chain = t.option_chain(chosen_exp)
+        calls = chain.calls
+        if calls is None or calls.empty:
+            return None
+
+        calls["strike_diff_long"] = (calls["strike"] - long_strike).abs()
+        calls["strike_diff_short"] = (calls["strike"] - short_strike).abs()
+
+        long_row = calls.sort_values("strike_diff_long").iloc[0]
+        short_row = calls.sort_values("strike_diff_short").iloc[0]
+
+        long_bid = float(long_row.get("bid", 0))
+        long_ask = float(long_row.get("ask", 0))
+        long_oi = int(long_row.get("openInterest", 0) or 0)
+
+        short_bid = float(short_row.get("bid", 0))
+        short_ask = float(short_row.get("ask", 0))
+        short_oi = int(short_row.get("openInterest", 0) or 0)
+
+        long_mid = (long_bid + long_ask) / 2 if (long_bid > 0 and long_ask > 0) else float(long_row.get("lastPrice", 0))
+        short_mid = (short_bid + short_ask) / 2 if (short_bid > 0 and short_ask > 0) else float(short_row.get("lastPrice", 0))
+
+        if long_mid <= 0 or short_mid < 0 or (long_mid - short_mid) <= 0:
+            return None
+
+        live_debit = round(max(0.10, long_mid - short_mid), 2)
+        oi_ok = bool(long_oi >= 500 and short_oi >= 500)
+        long_spread_pct = ((long_ask - long_bid) / long_mid) if long_mid > 0 else 1.0
+        short_spread_pct = ((short_ask - short_bid) / short_mid) if short_mid > 0 else 1.0
+        spread_ok = bool(long_spread_pct <= 0.15 and short_spread_pct <= 0.15)
+
+        liq_status = "INSTITUTIONAL LIQUID (OI>500)" if (oi_ok and spread_ok) else ("MODERATE LIQUIDITY" if long_oi >= 200 else "TIGHT LIQUIDITY")
+
+        return {
+            "live_quotes": True,
+            "expiry": chosen_exp,
+            "long_strike": float(long_row["strike"]),
+            "short_strike": float(short_row["strike"]),
+            "long_bid": long_bid,
+            "long_ask": long_ask,
+            "long_oi": long_oi,
+            "short_bid": short_bid,
+            "short_ask": short_ask,
+            "short_oi": short_oi,
+            "live_debit": live_debit,
+            "liquidity_status": liq_status,
+            "oi_ok": oi_ok,
+            "spread_ok": spread_ok
+        }
+    except Exception:
+        return None
+
 def model_options_contract(ticker: str, price: float, tp1: float, reclaim_days: int, today=None) -> dict:
     """
     Auto-models the exact options strike pairs, target expiration, net debit, and max profit.

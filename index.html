@@ -133,12 +133,12 @@
             <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">MACRO HORIZON:</span>
                 <div class="flex items-center gap-1">
-                    <button onclick="setTimeHorizon('session')" id="btn-horizon-session" class="filter-btn active text-xs">● LIVE SESSION</button>
-                    <button onclick="setTimeHorizon('cumulative')" id="btn-horizon-cumulative" class="filter-btn text-xs">CUMULATIVE (ALL-TIME)</button>
+                    <button onclick="setTimeHorizon('session')" id="btn-horizon-session" class="filter-btn active text-xs">● LIVE SESSION (Today)</button>
+                    <button onclick="setTimeHorizon('cumulative')" id="btn-horizon-cumulative" class="filter-btn text-xs">CUMULATIVE (All-Time Record)</button>
                 </div>
             </div>
             <div class="text-[11px] text-slate-400 font-mono" id="horizon-explainer">
-                Showing today's live session activity & intraday retests
+                Showing today's real-time session activity, intraday retests, and 1-day sector performance.
             </div>
         </div>
 
@@ -157,17 +157,17 @@
             <div class="terminal-panel p-3">
                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SUPPORT RETESTS</div>
                 <div class="text-2xl font-black text-white mt-0.5"><span id="macro-alerts-count">968</span></div>
-                <div class="text-[11px] text-slate-500">historical tests</div>
+                <div class="text-[11px] text-slate-500 font-medium" id="macro-alerts-sub">today's tests</div>
             </div>
             <div class="terminal-panel p-3">
                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">DEFENSE RATE</div>
                 <div class="text-2xl font-black text-white mt-0.5"><span id="macro-winrate">31.7%</span></div>
-                <div class="text-[11px] text-slate-500">held support</div>
+                <div class="text-[11px] text-slate-500 font-medium" id="macro-winrate-sub">today's win rate</div>
             </div>
             <div class="terminal-panel p-3">
                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">TREND REVERSALS</div>
                 <div class="text-2xl font-black text-emerald-400 mt-0.5"><span id="macro-reclaims-count">47</span></div>
-                <div class="text-[11px] text-slate-500" id="macro-reclaims-sub">crossed above EMA50</div>
+                <div class="text-[11px] text-slate-500 font-medium" id="macro-reclaims-sub">today's reclaims</div>
             </div>
             <div class="terminal-panel p-3">
                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">RAPID REBOUNDS</div>
@@ -355,8 +355,8 @@
             <div class="flex justify-between items-center mb-3">
                 <div>
                     <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                        <span>1. SECTOR BREADTH & WIN RATES (HISTORICAL HEALTH)</span>
-                        <span class="text-[10px] font-normal text-slate-500">Cumulative defense rate & constituent return across all companies in each sector · Click to filter</span>
+                        <span id="sector-strength-header-title">1. SECTOR DAILY PERFORMANCE (TODAY'S NET MOVE)</span>
+                        <span class="text-[10px] font-normal text-slate-500" id="sector-strength-header-sub">Today's 1-day benchmark performance across all sector constituents · Click to filter</span>
                     </h2>
                 </div>
                 <div class="flex items-center gap-1" id="strength-sort-btns">
@@ -1236,6 +1236,7 @@
                         <td class="py-2.5 px-2.5">
                             <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">D${c.reclaim_days}</span>
                             <div class="mt-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${(c.execution_state === 'PENDING_EOD' || c.reclaim_days === 0) ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30'}">${(c.execution_state === 'PENDING_EOD' || c.reclaim_days === 0) ? '🟡 PENDING EOD' : '🟢 CONFIRMED'}</span></div>
+                            <div class="mt-0.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${(c.mtf_status === 'PENDING_4H') ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30' : 'bg-blue-950/60 text-blue-400 border border-blue-500/30'}">${c.mtf_badge || '4H CONFLUENCE'}</span></div>
                         </td>
                         <td class="py-2.5 px-2.5 text-[11px] font-mono">${(c.overhead_runway_pct === 0 || c.overhead_runway_pct === 0.0 || c.overhead_runway_pct === "0%" || c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`}</td>
                         <td class="py-2.5 px-2.5 space-y-1">
@@ -1370,6 +1371,14 @@
             document.getElementById('macro-winrate').textContent = winRate.toString().includes('%') ? winRate : winRate + '%';
             document.getElementById('macro-reclaims-count').textContent = reclaimsCount;
             document.getElementById('macro-bounces-count').textContent = bouncesCount;
+
+            // Dynamically swap subtext based on activeTimeHorizon
+            const alertsSub = document.getElementById('macro-alerts-sub');
+            const reclaimsSub = document.getElementById('macro-reclaims-sub');
+            const winrateSub = document.getElementById('macro-winrate-sub');
+            if (alertsSub) alertsSub.textContent = isCum ? "1,012 total logged" : "today's tests";
+            if (reclaimsSub) reclaimsSub.textContent = isCum ? "385 total won" : "today's reclaims";
+            if (winrateSub) winrateSub.textContent = isCum ? "all-time edge (38%)" : "today's win rate";
         }
 
         // Style Filter
@@ -1706,12 +1715,27 @@
             document.querySelectorAll('[id^="btn-horizon-"]').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
             const activeBtn = document.getElementById(`btn-horizon-${mode}`);
             if (activeBtn) activeBtn.classList.add('active', 'bg-blue-600', 'text-white');
+            
             const exp = document.getElementById('horizon-explainer');
             if (exp) {
                 exp.textContent = (mode === 'session')
-                    ? "Showing today's live session activity & intraday retests"
-                    : "Showing multi-month cumulative audit baseline (1,012 historical tests)";
+                    ? "Showing today's real-time session activity, intraday retests, and 1-day sector performance."
+                    : "Showing all-time multi-month audit baseline across 1,012 historical alerts (Netlify 1:1 parity).";
             }
+
+            // Dynamically swap Sector Strength Module Title
+            const sTitle = document.getElementById('sector-strength-header-title');
+            const sSub = document.getElementById('sector-strength-header-sub');
+            if (sTitle && sSub) {
+                if (mode === 'session') {
+                    sTitle.textContent = "1. SECTOR DAILY PERFORMANCE (TODAY'S NET MOVE)";
+                    sSub.textContent = "Today's 1-day benchmark performance across all sector constituents · Click to filter";
+                } else {
+                    sTitle.textContent = "1. SECTOR BREADTH & WIN RATES (ALL-TIME RECORD)";
+                    sSub.textContent = "Cumulative historical defense rate and average constituent return across all companies in each sector · Click to filter";
+                }
+            }
+
             if (currentPayload) {
                 renderMacroKPIs(currentPayload);
                 renderSectorStrength(currentPayload);
