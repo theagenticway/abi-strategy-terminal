@@ -131,34 +131,34 @@
         <!-- Netlify KPI Cards (Screenshot 8: 6 Columns) -->
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">SECTORS</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">TRACKED SECTORS</div>
                 <div class="text-2xl font-black text-white mt-0.5"><span id="macro-sectors-count">20</span></div>
-                <div class="text-[11px] text-slate-500">tracked</div>
+                <div class="text-[11px] text-slate-500">market groups</div>
             </div>
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">HOT</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">LEADING SECTORS</div>
                 <div class="text-2xl font-black text-emerald-400 mt-0.5"><span id="macro-hot-count">8</span></div>
-                <div class="text-[11px] text-slate-500">rotating in</div>
+                <div class="text-[11px] text-slate-500">momentum inflow</div>
             </div>
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">ALERTS</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SUPPORT RETESTS</div>
                 <div class="text-2xl font-black text-white mt-0.5"><span id="macro-alerts-count">968</span></div>
-                <div class="text-[11px] text-slate-500">EMA50 log</div>
+                <div class="text-[11px] text-slate-500">historical tests</div>
             </div>
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">WIN RATE</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">DEFENSE RATE</div>
                 <div class="text-2xl font-black text-white mt-0.5"><span id="macro-winrate">31.7%</span></div>
-                <div class="text-[11px] text-slate-500">avg / sector</div>
+                <div class="text-[11px] text-slate-500">held support</div>
             </div>
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">RECLAIMS</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">TREND REVERSALS</div>
                 <div class="text-2xl font-black text-emerald-400 mt-0.5"><span id="macro-reclaims-count">47</span></div>
-                <div class="text-[11px] text-slate-500" id="macro-reclaims-sub">of 231 (filtered)</div>
+                <div class="text-[11px] text-slate-500" id="macro-reclaims-sub">crossed above EMA50</div>
             </div>
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">BOUNCES T-0</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">RAPID REBOUNDS</div>
                 <div class="text-2xl font-black text-sky-400 mt-0.5"><span id="macro-bounces-count">14</span></div>
-                <div class="text-[11px] text-slate-500" id="macro-bounces-sub">of 280 tracked</div>
+                <div class="text-[11px] text-slate-500" id="macro-bounces-sub">≤48h from support</div>
             </div>
         </div>
 
@@ -166,7 +166,7 @@
         <div class="terminal-panel p-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-800">
                 <div class="flex items-center gap-2">
-                    <span class="text-xs font-black text-white uppercase tracking-wider">MARKET REGIME</span>
+                    <span class="text-xs font-black text-white uppercase tracking-wider">MARKET CAPITAL STANCE</span>
                     <span id="market-regime-updated" class="text-[11px] text-slate-500 font-mono">updated 09/04/2026 19:44 ET</span>
                 </div>
                 <!-- Style Filter Buttons -->
@@ -212,7 +212,7 @@
                 <!-- Right: Breadth 25 ETFs vs EMA50 with 4-Color Segmented Bar (7 cols) -->
                 <div class="lg:col-span-7 flex flex-col justify-between space-y-3">
                     <div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">BREADTH — 25 ETFS VS THEIR EMA50</div>
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">BREADTH — 25 SECTOR ETFS VS 50-DAY BASELINE</div>
                         
                         <!-- 4-Color Segmented Bar (Screenshot 8 Exact) -->
                         <div class="w-full h-6 rounded flex overflow-hidden font-bold text-xs font-mono text-white mt-1.5 shadow-inner">
@@ -258,8 +258,8 @@
             <div class="flex justify-between items-center mb-2">
                 <div>
                     <h2 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
-                        <span>MOMENTUM QUADRANT</span>
-                        <span class="text-[10px] font-normal text-slate-500">5-day (short-term) vs 20-day (trend) — top-right is strongest, bottom-right is turning up</span>
+                        <span>SECTOR MOMENTUM MATRIX</span>
+                        <span class="text-[10px] font-normal text-slate-500">5-Day Price Change (Vertical) vs 20-Day Trend Velocity (Horizontal) · Top-Right = Accelerating Leaders · Bottom-Right = Early Reversal Zone</span>
                     </h2>
                 </div>
                 <div class="flex items-center gap-3 text-[11px]">
@@ -278,7 +278,7 @@
         <div class="terminal-panel p-4">
             <div class="flex items-center gap-2 mb-3">
                 <span class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                    <span class="text-sky-400">▲</span> REGIME CHANGE — JUST CROSSED
+                    <span class="text-sky-400">▲</span> REGIME CHANGE — RECENT 50-DAY CROSSOVERS
                 </span>
                 <span class="text-[10px] text-slate-500" id="regime-change-count-sub">2 ETFs flipped their side of the EMA50 in the last day</span>
             </div>
@@ -293,8 +293,8 @@
             <div class="flex justify-between items-center mb-2">
                 <div class="flex items-center gap-2">
                     <button onclick="toggleRegimeTable()" class="text-slate-400 hover:text-white font-mono text-xs">▼</button>
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">REGIME DETAIL</h2>
-                    <span class="text-[10px] text-slate-500">click a header to sort · click a row to isolate</span>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">SECTOR ETF DETAILED METRICS</h2>
+                    <span class="text-[10px] text-slate-500">Click headers to sort · Click any row to isolate that sector across all charts</span>
                 </div>
             </div>
 
@@ -326,8 +326,8 @@
             <div class="flex justify-between items-center mb-3">
                 <div>
                     <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                        <span>ETF LADDER — VS EMA50</span>
-                        <span class="text-[10px] font-normal text-slate-500">bar direction = above / below the 50-day EMA · color = style bucket</span>
+                        <span>SECTOR DISTANCE FROM 50-DAY BASELINE (ETF LADDER)</span>
+                        <span class="text-[10px] font-normal text-slate-500">Bar direction = distance above (right) or below (left) the 50-day EMA · Bar color = Style bucket (Blue: Growth, Orange: Cyclical, Green: Defensive)</span>
                     </h2>
                 </div>
             </div>
@@ -341,8 +341,8 @@
             <div class="flex justify-between items-center mb-3">
                 <div>
                     <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                        <span>SECTOR STRENGTH</span>
-                        <span class="text-[10px] font-normal text-slate-500">click a name to filter everything</span>
+                        <span>1. SECTOR BREADTH & WIN RATES (HISTORICAL HEALTH)</span>
+                        <span class="text-[10px] font-normal text-slate-500">Cumulative defense rate & constituent return across all companies in each sector · Click to filter</span>
                     </h2>
                 </div>
                 <div class="flex items-center gap-1" id="strength-sort-btns">
@@ -371,8 +371,8 @@
         <div class="terminal-panel p-4">
             <div class="mb-3">
                 <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                    <span class="text-emerald-400">★</span> ROTATING IN
-                    <span class="text-[10px] font-normal text-slate-500">sectors flagged HOT — click a card to filter</span>
+                    <span class="text-emerald-400">★</span> 2. ACTIVE SUPPORT INFLOWS (FRESH DIP-BUYING)
+                    <span class="text-[10px] font-normal text-slate-500">Detects sectors with concentrated buyer demand and positive rebound gains at key technical floors · Click a card to filter</span>
                 </h2>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="rotating-in-cards">
@@ -384,8 +384,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <div class="terminal-panel p-4 lg:col-span-7">
                 <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">TOP SUB-SECTORS</h2>
-                    <span class="text-[10px] text-slate-500">click a row to see its tickers</span>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">SUB-INDUSTRY PERFORMANCE MATRIX</h2>
+                    <span class="text-[10px] text-slate-500">Detailed drilldown across constituent sub-industries · Click a row to filter</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
@@ -393,9 +393,9 @@
                             <tr class="text-slate-500 border-b border-slate-800 text-[10px] uppercase">
                                 <th class="py-2 px-2">Sub-Sector</th>
                                 <th class="py-2 px-2">Sector</th>
-                                <th class="py-2 px-2">STR ▼</th>
-                                <th class="py-2 px-2">WIN</th>
-                                <th class="py-2 px-2">RET</th>
+                                <th class="py-2 px-2">Score ▼</th>
+                                <th class="py-2 px-2">Defense Rate</th>
+                                <th class="py-2 px-2">Avg Move</th>
                             </tr>
                         </thead>
                         <tbody id="top-subsectors-body" class="divide-y divide-slate-800/60">
@@ -407,7 +407,7 @@
 
             <div class="terminal-panel p-4 lg:col-span-5">
                 <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">RECLAIMS BY SECTOR</h2>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">TRENDLINE RECLAIMS BY SECTOR</h2>
                     <span id="reclaims-total-label" class="text-[10px] text-slate-500">231 reclaimed</span>
                 </div>
                 <div class="space-y-1 overflow-y-auto max-h-[380px]" id="reclaims-by-sector-container">
@@ -420,8 +420,8 @@
         <div class="terminal-panel p-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
                 <div>
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">RECLAIM DETAIL</h2>
-                    <p class="text-[10px] text-slate-400" id="reclaim-detail-subtitle">showing recent reclaims and prior day bounces</p>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">RECLAIM DETAIL TABLE</h2>
+                    <p class="text-[10px] text-slate-400" id="reclaim-detail-subtitle">Constituent stocks holding above their 50-day baseline, filterable by session recency and beta volatility</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs text-slate-400 font-mono" id="reclaim-detail-count">47 rows</span>
@@ -471,8 +471,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <div class="terminal-panel p-4 lg:col-span-5">
                 <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCES BY LEVEL</h2>
-                    <span class="text-[10px] text-slate-500">click to filter</span>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">SUPPORT RETESTS BY TECHNICAL LEVEL</h2>
+                    <span class="text-[10px] text-slate-500">Click to filter: EMA50, Double Bottom, Fibonacci OTE, 150-Day MA</span>
                 </div>
                 <div class="space-y-1.5" id="bounces-by-level-container">
                     <!-- Injected dynamically -->
@@ -481,8 +481,8 @@
 
             <div class="terminal-panel p-4 lg:col-span-7">
                 <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCES BY SECTOR</h2>
-                    <span class="text-[10px] text-slate-500">click to filter</span>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">SUPPORT RETESTS BY SECTOR</h2>
+                    <span class="text-[10px] text-slate-500">Click to isolate sector</span>
                 </div>
                 <div class="grid grid-cols-2 gap-x-4 gap-y-1" id="bounces-by-sector-container">
                     <!-- Injected dynamically -->
@@ -494,7 +494,7 @@
         <div class="terminal-panel p-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
                 <div>
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">BOUNCE ALERTS</h2>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">ACTIVE SUPPORT RETEST ALERTS</h2>
                     <p class="text-[10px] text-slate-400" id="bounce-alerts-count-label">280 of 280 shown</p>
                 </div>
                 <div class="flex items-center gap-2">
@@ -553,7 +553,7 @@
         <div class="terminal-panel p-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
                 <div>
-                    <h2 class="text-xs font-black text-white uppercase tracking-wider">FAST RECLAIMS</h2>
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider">RAPID REBOUNDS (HIGH-VELOCITY RECLAIMS)</h2>
                     <p class="text-[10px] text-slate-400" id="fast-reclaims-subtitle">16 reclaimed within 5 day(s) of the bounce · 121 reclaimed overall</p>
                 </div>
                 <div class="flex items-center gap-2">
@@ -601,8 +601,8 @@
             <div class="flex justify-between items-center mb-3">
                 <div>
                     <h2 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
-                        <span>DAILY ACTIVITY</span>
-                        <span class="text-[10px] font-normal text-slate-500">bar = bounces that day, split by level · respects the sector filter</span>
+                        <span>30-DAY SUPPORT RETEST ACTIVITY</span>
+                        <span class="text-[10px] font-normal text-slate-500">Daily volume of constituent floor retests, color-coded by technical support level: Blue = EMA50, Orange = Double Bottom (DB), Teal = Fibonacci OTE (0.618–0.786), Amber = 150-day MA</span>
                     </h2>
                 </div>
                 <div class="flex items-center gap-3">
@@ -1711,21 +1711,13 @@
                         <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">● ${card.strength}</span>
                     </div>
                     <div class="text-[11px] text-slate-400 space-y-0.5">
-                        <div class="flex justify-between"><span>Bounces:</span> <b class="text-white">${card.bounces}</b></div>
-                        <div class="flex justify-between"><span>Recent 3d:</span> <b class="text-white">${card.recent_3d}</b></div>
-                        <div class="flex justify-between"><span>Avg return:</span> <b class="text-emerald-400 font-mono">${card.avg_return}</b></div>
+                        <div class="flex justify-between"><span>Support Retests:</span> <b class="text-white">${card.bounces}</b></div>
+                        <div class="flex justify-between"><span>Fresh Hits (≤3d):</span> <b class="text-white">${card.recent_3d}</b></div>
+                        <div class="flex justify-between"><span>Rebound Gain:</span> <b class="text-emerald-400 font-mono">${card.avg_return}</b></div>
                     </div>
                 `;
                 container.appendChild(div);
             });
-            const subEl = document.getElementById("regime-change-count-sub");
-            if (subEl) {
-                if (cards.length === 0) {
-                    subEl.textContent = "No ETFs flipped their side of the EMA50 in the last session · Regime is stable";
-                } else {
-                    subEl.textContent = `${cards.length} ETF${cards.length === 1 ? '' : 's'} flipped their side of the EMA50 in the last day`;
-                }
-            }
         }
 
         // Sub-Sectors & Reclaims by Sector (Screenshot 3 Bottom)
@@ -1833,14 +1825,6 @@
                 `;
                 container.appendChild(div);
             });
-            const subEl = document.getElementById("regime-change-count-sub");
-            if (subEl) {
-                if (cards.length === 0) {
-                    subEl.textContent = "No ETFs flipped their side of the EMA50 in the last session · Regime is stable";
-                } else {
-                    subEl.textContent = `${cards.length} ETF${cards.length === 1 ? '' : 's'} flipped their side of the EMA50 in the last day`;
-                }
-            }
         }
 
         // Reclaim Detail (Screenshot 4)
