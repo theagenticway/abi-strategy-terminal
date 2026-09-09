@@ -363,7 +363,9 @@ def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_typ
         "theta_cliff": contract_info.get("theta_cliff_label", "21 DTE"),
         "max_hold": contract_info.get("max_hold_sessions", 8),
         "routing_guidance": contract_info.get("routing_guidance", f"LIMIT @ ${contract_info.get('est_debit', 5.0):.2f} Mid"),
-        "regime": regime
+        "regime": regime,
+        "execution_state": "PENDING_EOD" if reclaim_days == 0 else "CONFIRMED",
+        "execution_badge": "🟡 PENDING CLOSE (Wait EOD)" if reclaim_days == 0 else "🟢 CONFIRMED CLOSE"
     }
 
 

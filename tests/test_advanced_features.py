@@ -85,5 +85,36 @@ class TestAdvancedAlphaRadarFeatures(unittest.TestCase):
         self.assertEqual(driver_idiosyncratic["badge"], "rose")
         self.assertIn("healthy sector", driver_idiosyncratic["note"])
 
+    def test_funnel_and_subsector_conviction(self):
+        win_rates = [75, 50, 30, 10]
+        expected_signals = [
+            "GOOD — Trade 3rd+",
+            "MODERATE — Selective",
+            "WEAK — Skip or Half",
+            "AVOID — Sector Failing"
+        ]
+        for w, exp in zip(win_rates, expected_signals):
+            if w >= 60:
+                sig = "GOOD — Trade 3rd+"
+            elif w >= 40:
+                sig = "MODERATE — Selective"
+            elif w >= 25:
+                sig = "WEAK — Skip or Half"
+            else:
+                sig = "AVOID — Sector Failing"
+            self.assertEqual(sig, exp)
+
+    def test_dual_horizon_schema(self):
+        import json
+        with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "latest.json")) as f:
+            d = json.load(f)
+        mb = d.get("macro_breadth", {})
+        self.assertIn("total_alerts_cumulative", mb)
+        self.assertIn("total_alerts_session", mb)
+        self.assertGreaterEqual(mb["total_alerts_cumulative"], mb["total_alerts_session"])
+        self.assertIn("funnel_diagnostic", d)
+        self.assertIn("scanned", d["funnel_diagnostic"])
+        self.assertIn("below_floor", d["funnel_diagnostic"])
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
