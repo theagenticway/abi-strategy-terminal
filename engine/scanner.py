@@ -788,6 +788,10 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
     # 1. Audit Active Open Positions against current day's price action
     for t in trades:
         if t["status"] == "OPEN":
+            # CHRONOLOGICAL BACKFILL GUARD: A trade cannot be audited before its entry date!
+            if t.get("entry_date") and t["entry_date"] > today_str:
+                continue
+
             ticker = t["ticker"]
             ticker_df = extract_ticker_df(raw_data, ticker)
             if ticker_df is not None and len(ticker_df) > 0 and "Close" in ticker_df.columns:
