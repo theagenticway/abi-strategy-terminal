@@ -1,16 +1,16 @@
 [
   {
     "date": "2026-09-09",
-    "timestamp": "2026-09-09 17:11:43",
+    "timestamp": "2026-09-09 17:31:09",
     "total_alerts": 454,
     "reclaims": 153,
     "confirmed": 153,
     "below": 301,
     "dead": 0,
     "retrace_ote": 21,
-    "retrace_db": 107,
-    "retrace_ema50": 302,
-    "retrace_ma150": 24,
+    "retrace_db": 110,
+    "retrace_ema50": 297,
+    "retrace_ma150": 26,
     "beta_lt_1": 332,
     "beta_1_to_1_5": 45,
     "beta_gt_1_5": 77,
@@ -24,12 +24,12 @@
     "winrate_cumulative": "38.0%",
     "funnel_diagnostic": {
       "scanned": 472,
-      "below_floor": 264,
-      "stale_reclaim": 37,
-      "wrong_retrace": 2,
-      "low_runway": 7,
+      "below_floor": 262,
+      "stale_reclaim": 38,
+      "wrong_retrace": 3,
+      "low_runway": 8,
       "pending_eod": 0,
-      "qualified": 144
+      "qualified": 143
     },
     "offense_pct": 50,
     "regime": "MIXED",
