@@ -1,14 +1,14 @@
 [
   {
     "date": "2026-09-09",
-    "timestamp": "2026-09-09 23:11:00",
+    "timestamp": "2026-09-10 03:42:26",
     "total_alerts": 454,
     "reclaims": 151,
     "confirmed": 151,
     "below": 303,
     "dead": 0,
-    "retrace_ote": 20,
-    "retrace_db": 108,
+    "retrace_ote": 21,
+    "retrace_db": 107,
     "retrace_ema50": 298,
     "retrace_ma150": 28,
     "beta_lt_1": 331,
@@ -37,7 +37,7 @@
   },
   {
     "date": "2026-09-08",
-    "timestamp": "2026-09-09 05:38:38",
+    "timestamp": "2026-09-10 03:42:23",
     "total_alerts": 454,
     "reclaims": 159,
     "confirmed": 159,
@@ -113,7 +113,7 @@
   },
   {
     "date": "2026-09-04",
-    "timestamp": "2026-09-09 05:38:33",
+    "timestamp": "2026-09-10 03:42:21",
     "total_alerts": 454,
     "reclaims": 184,
     "confirmed": 184,
@@ -149,7 +149,7 @@
   },
   {
     "date": "2026-09-03",
-    "timestamp": "2026-09-09 05:38:28",
+    "timestamp": "2026-09-10 03:42:18",
     "total_alerts": 454,
     "reclaims": 197,
     "confirmed": 197,
@@ -185,7 +185,7 @@
   },
   {
     "date": "2026-09-02",
-    "timestamp": "2026-09-09 05:38:23",
+    "timestamp": "2026-09-10 03:42:16",
     "total_alerts": 454,
     "reclaims": 176,
     "confirmed": 176,
@@ -221,7 +221,7 @@
   },
   {
     "date": "2026-09-01",
-    "timestamp": "2026-09-09 05:38:18",
+    "timestamp": "2026-09-10 03:42:13",
     "total_alerts": 454,
     "reclaims": 167,
     "confirmed": 167,
@@ -257,7 +257,7 @@
   },
   {
     "date": "2026-08-31",
-    "timestamp": "2026-09-09 05:38:13",
+    "timestamp": "2026-09-10 03:42:11",
     "total_alerts": 454,
     "reclaims": 183,
     "confirmed": 183,
@@ -293,7 +293,7 @@
   },
   {
     "date": "2026-08-28",
-    "timestamp": "2026-09-09 05:38:08",
+    "timestamp": "2026-09-10 03:42:08",
     "total_alerts": 454,
     "reclaims": 197,
     "confirmed": 197,
@@ -329,7 +329,7 @@
   },
   {
     "date": "2026-08-27",
-    "timestamp": "2026-09-09 05:38:03",
+    "timestamp": "2026-09-10 03:42:06",
     "total_alerts": 454,
     "reclaims": 201,
     "confirmed": 201,
@@ -365,7 +365,7 @@
   },
   {
     "date": "2026-08-26",
-    "timestamp": "2026-09-09 05:37:58",
+    "timestamp": "2026-09-10 03:42:04",
     "total_alerts": 454,
     "reclaims": 200,
     "confirmed": 200,
@@ -401,7 +401,7 @@
   },
   {
     "date": "2026-08-25",
-    "timestamp": "2026-09-09 05:37:53",
+    "timestamp": "2026-09-10 03:42:01",
     "total_alerts": 454,
     "reclaims": 199,
     "confirmed": 199,
@@ -437,7 +437,7 @@
   },
   {
     "date": "2026-08-24",
-    "timestamp": "2026-09-09 05:37:47",
+    "timestamp": "2026-09-10 03:41:59",
     "total_alerts": 454,
     "reclaims": 213,
     "confirmed": 213,
@@ -473,7 +473,7 @@
   },
   {
     "date": "2026-08-21",
-    "timestamp": "2026-09-09 05:37:42",
+    "timestamp": "2026-09-10 03:41:56",
     "total_alerts": 454,
     "reclaims": 206,
     "confirmed": 206,
@@ -509,7 +509,7 @@
   },
   {
     "date": "2026-08-20",
-    "timestamp": "2026-09-09 05:37:37",
+    "timestamp": "2026-09-10 03:41:54",
     "total_alerts": 454,
     "reclaims": 203,
     "confirmed": 203,
@@ -545,7 +545,7 @@
   },
   {
     "date": "2026-08-19",
-    "timestamp": "2026-09-09 05:37:32",
+    "timestamp": "2026-09-10 03:41:51",
     "total_alerts": 454,
     "reclaims": 223,
     "confirmed": 223,
@@ -581,7 +581,7 @@
   },
   {
     "date": "2026-08-18",
-    "timestamp": "2026-09-09 05:37:27",
+    "timestamp": "2026-09-10 03:41:49",
     "total_alerts": 454,
     "reclaims": 203,
     "confirmed": 203,
@@ -617,7 +617,7 @@
   },
   {
     "date": "2026-08-17",
-    "timestamp": "2026-09-09 05:37:22",
+    "timestamp": "2026-09-10 03:41:47",
     "total_alerts": 454,
     "reclaims": 199,
     "confirmed": 199,
@@ -653,7 +653,7 @@
   },
   {
     "date": "2026-08-14",
-    "timestamp": "2026-09-09 05:37:16",
+    "timestamp": "2026-09-10 03:41:44",
     "total_alerts": 454,
     "reclaims": 224,
     "confirmed": 224,
@@ -689,7 +689,7 @@
   },
   {
     "date": "2026-08-13",
-    "timestamp": "2026-09-09 05:37:11",
+    "timestamp": "2026-09-10 03:41:42",
     "total_alerts": 454,
     "reclaims": 230,
     "confirmed": 230,
@@ -725,7 +725,7 @@
   },
   {
     "date": "2026-08-12",
-    "timestamp": "2026-09-09 05:37:06",
+    "timestamp": "2026-09-10 03:41:39",
     "total_alerts": 454,
     "reclaims": 190,
     "confirmed": 190,
@@ -761,7 +761,7 @@
   },
   {
     "date": "2026-08-11",
-    "timestamp": "2026-09-09 05:37:01",
+    "timestamp": "2026-09-10 03:41:37",
     "total_alerts": 454,
     "reclaims": 166,
     "confirmed": 166,
@@ -797,7 +797,7 @@
   },
   {
     "date": "2026-08-10",
-    "timestamp": "2026-09-09 05:36:56",
+    "timestamp": "2026-09-10 03:41:34",
     "total_alerts": 454,
     "reclaims": 165,
     "confirmed": 165,
@@ -833,7 +833,7 @@
   },
   {
     "date": "2026-08-07",
-    "timestamp": "2026-09-09 05:36:51",
+    "timestamp": "2026-09-10 03:41:32",
     "total_alerts": 454,
     "reclaims": 167,
     "confirmed": 167,
@@ -869,7 +869,7 @@
   },
   {
     "date": "2026-08-06",
-    "timestamp": "2026-09-09 05:36:47",
+    "timestamp": "2026-09-10 03:41:29",
     "total_alerts": 454,
     "reclaims": 152,
     "confirmed": 152,
@@ -905,7 +905,7 @@
   },
   {
     "date": "2026-08-05",
-    "timestamp": "2026-09-09 05:36:42",
+    "timestamp": "2026-09-10 03:41:27",
     "total_alerts": 454,
     "reclaims": 177,
     "confirmed": 177,
@@ -941,7 +941,7 @@
   },
   {
     "date": "2026-08-04",
-    "timestamp": "2026-09-09 05:36:36",
+    "timestamp": "2026-09-10 03:41:24",
     "total_alerts": 454,
     "reclaims": 215,
     "confirmed": 215,
@@ -964,10 +964,10 @@
     "winrate_cumulative": "38.0%",
     "funnel_diagnostic": {
       "scanned": 472,
-      "below_floor": 129,
+      "below_floor": 130,
       "stale_reclaim": 109,
       "wrong_retrace": 3,
-      "low_runway": 14,
+      "low_runway": 13,
       "pending_eod": 0,
       "qualified": 199
     },
@@ -977,7 +977,7 @@
   },
   {
     "date": "2026-08-03",
-    "timestamp": "2026-09-09 05:36:31",
+    "timestamp": "2026-09-10 03:41:21",
     "total_alerts": 454,
     "reclaims": 193,
     "confirmed": 193,
@@ -1013,7 +1013,7 @@
   },
   {
     "date": "2026-07-31",
-    "timestamp": "2026-09-09 05:36:26",
+    "timestamp": "2026-09-10 03:41:19",
     "total_alerts": 454,
     "reclaims": 174,
     "confirmed": 174,
@@ -1049,7 +1049,7 @@
   },
   {
     "date": "2026-07-30",
-    "timestamp": "2026-09-09 05:36:21",
+    "timestamp": "2026-09-10 03:41:16",
     "total_alerts": 454,
     "reclaims": 181,
     "confirmed": 181,
@@ -1085,7 +1085,7 @@
   },
   {
     "date": "2026-07-29",
-    "timestamp": "2026-09-09 05:36:16",
+    "timestamp": "2026-09-10 03:41:14",
     "total_alerts": 454,
     "reclaims": 170,
     "confirmed": 170,
@@ -1121,7 +1121,7 @@
   },
   {
     "date": "2026-07-28",
-    "timestamp": "2026-09-09 05:36:11",
+    "timestamp": "2026-09-10 03:41:12",
     "total_alerts": 454,
     "reclaims": 223,
     "confirmed": 223,
@@ -1157,7 +1157,7 @@
   },
   {
     "date": "2026-07-27",
-    "timestamp": "2026-09-09 05:36:05",
+    "timestamp": "2026-09-10 03:41:09",
     "total_alerts": 454,
     "reclaims": 234,
     "confirmed": 234,
@@ -1193,7 +1193,7 @@
   },
   {
     "date": "2026-07-24",
-    "timestamp": "2026-09-09 05:35:59",
+    "timestamp": "2026-09-10 03:41:07",
     "total_alerts": 454,
     "reclaims": 212,
     "confirmed": 212,
@@ -1229,7 +1229,7 @@
   },
   {
     "date": "2026-07-23",
-    "timestamp": "2026-09-09 05:35:54",
+    "timestamp": "2026-09-10 03:41:04",
     "total_alerts": 454,
     "reclaims": 199,
     "confirmed": 199,
@@ -1265,7 +1265,7 @@
   },
   {
     "date": "2026-07-22",
-    "timestamp": "2026-09-09 05:35:49",
+    "timestamp": "2026-09-10 03:41:02",
     "total_alerts": 454,
     "reclaims": 226,
     "confirmed": 226,
@@ -1301,7 +1301,7 @@
   },
   {
     "date": "2026-07-21",
-    "timestamp": "2026-09-09 05:35:44",
+    "timestamp": "2026-09-10 03:40:59",
     "total_alerts": 454,
     "reclaims": 210,
     "confirmed": 210,
@@ -1337,7 +1337,7 @@
   },
   {
     "date": "2026-07-20",
-    "timestamp": "2026-09-09 05:35:39",
+    "timestamp": "2026-09-10 03:40:57",
     "total_alerts": 454,
     "reclaims": 181,
     "confirmed": 181,
@@ -1373,7 +1373,7 @@
   },
   {
     "date": "2026-07-17",
-    "timestamp": "2026-09-09 05:35:34",
+    "timestamp": "2026-09-10 03:40:54",
     "total_alerts": 454,
     "reclaims": 199,
     "confirmed": 199,
@@ -1409,7 +1409,7 @@
   },
   {
     "date": "2026-07-16",
-    "timestamp": "2026-09-09 05:35:28",
+    "timestamp": "2026-09-10 03:40:52",
     "total_alerts": 454,
     "reclaims": 241,
     "confirmed": 241,
@@ -1445,7 +1445,7 @@
   },
   {
     "date": "2026-07-15",
-    "timestamp": "2026-09-09 05:35:23",
+    "timestamp": "2026-09-10 03:40:49",
     "total_alerts": 454,
     "reclaims": 196,
     "confirmed": 196,
@@ -1481,7 +1481,7 @@
   },
   {
     "date": "2026-07-14",
-    "timestamp": "2026-09-09 05:35:18",
+    "timestamp": "2026-09-10 03:40:47",
     "total_alerts": 454,
     "reclaims": 195,
     "confirmed": 195,
@@ -1517,7 +1517,7 @@
   },
   {
     "date": "2026-07-13",
-    "timestamp": "2026-09-09 05:35:13",
+    "timestamp": "2026-09-10 03:40:45",
     "total_alerts": 454,
     "reclaims": 193,
     "confirmed": 193,
@@ -1553,7 +1553,7 @@
   },
   {
     "date": "2026-07-10",
-    "timestamp": "2026-09-09 05:35:08",
+    "timestamp": "2026-09-10 03:40:42",
     "total_alerts": 454,
     "reclaims": 184,
     "confirmed": 184,
@@ -1589,7 +1589,7 @@
   },
   {
     "date": "2026-07-09",
-    "timestamp": "2026-09-09 05:35:04",
+    "timestamp": "2026-09-10 03:40:40",
     "total_alerts": 454,
     "reclaims": 170,
     "confirmed": 170,
@@ -1625,7 +1625,7 @@
   },
   {
     "date": "2026-07-08",
-    "timestamp": "2026-09-09 05:34:59",
+    "timestamp": "2026-09-10 03:40:37",
     "total_alerts": 454,
     "reclaims": 152,
     "confirmed": 152,
@@ -1661,7 +1661,7 @@
   },
   {
     "date": "2026-07-07",
-    "timestamp": "2026-09-09 05:34:54",
+    "timestamp": "2026-09-10 03:40:35",
     "total_alerts": 454,
     "reclaims": 173,
     "confirmed": 173,
@@ -1697,7 +1697,7 @@
   },
   {
     "date": "2026-07-06",
-    "timestamp": "2026-09-09 05:34:49",
+    "timestamp": "2026-09-10 03:40:32",
     "total_alerts": 454,
     "reclaims": 188,
     "confirmed": 188,
@@ -1733,7 +1733,7 @@
   },
   {
     "date": "2026-07-02",
-    "timestamp": "2026-09-09 05:34:44",
+    "timestamp": "2026-09-10 03:40:30",
     "total_alerts": 454,
     "reclaims": 206,
     "confirmed": 206,
@@ -1769,7 +1769,7 @@
   },
   {
     "date": "2026-07-01",
-    "timestamp": "2026-09-09 05:34:39",
+    "timestamp": "2026-09-10 03:40:27",
     "total_alerts": 454,
     "reclaims": 180,
     "confirmed": 180,
@@ -1805,7 +1805,7 @@
   },
   {
     "date": "2026-06-30",
-    "timestamp": "2026-09-09 05:34:35",
+    "timestamp": "2026-09-10 03:40:25",
     "total_alerts": 454,
     "reclaims": 150,
     "confirmed": 150,
@@ -1841,7 +1841,7 @@
   },
   {
     "date": "2026-06-29",
-    "timestamp": "2026-09-09 05:34:30",
+    "timestamp": "2026-09-10 03:40:22",
     "total_alerts": 454,
     "reclaims": 168,
     "confirmed": 168,
@@ -1877,7 +1877,7 @@
   },
   {
     "date": "2026-06-26",
-    "timestamp": "2026-09-09 05:34:25",
+    "timestamp": "2026-09-10 03:40:20",
     "total_alerts": 454,
     "reclaims": 164,
     "confirmed": 164,
@@ -1913,7 +1913,7 @@
   },
   {
     "date": "2026-06-25",
-    "timestamp": "2026-09-09 05:34:21",
+    "timestamp": "2026-09-10 03:40:17",
     "total_alerts": 454,
     "reclaims": 173,
     "confirmed": 173,
@@ -1939,9 +1939,9 @@
       "below_floor": 172,
       "stale_reclaim": 109,
       "wrong_retrace": 5,
-      "low_runway": 9,
+      "low_runway": 0,
       "pending_eod": 0,
-      "qualified": 159
+      "qualified": 168
     },
     "offense_pct": 70,
     "regime": "RISK-ON",
@@ -1949,7 +1949,7 @@
   },
   {
     "date": "2026-06-24",
-    "timestamp": "2026-09-09 05:34:16",
+    "timestamp": "2026-09-10 03:40:15",
     "total_alerts": 454,
     "reclaims": 183,
     "confirmed": 183,
@@ -1985,7 +1985,7 @@
   },
   {
     "date": "2026-06-23",
-    "timestamp": "2026-09-09 05:34:11",
+    "timestamp": "2026-09-10 03:40:12",
     "total_alerts": 454,
     "reclaims": 162,
     "confirmed": 162,
@@ -2021,7 +2021,7 @@
   },
   {
     "date": "2026-06-22",
-    "timestamp": "2026-09-09 05:34:06",
+    "timestamp": "2026-09-10 03:40:10",
     "total_alerts": 454,
     "reclaims": 150,
     "confirmed": 150,
@@ -2057,7 +2057,7 @@
   },
   {
     "date": "2026-06-18",
-    "timestamp": "2026-09-09 05:34:02",
+    "timestamp": "2026-09-10 03:40:07",
     "total_alerts": 454,
     "reclaims": 139,
     "confirmed": 139,
@@ -2093,7 +2093,7 @@
   },
   {
     "date": "2026-06-17",
-    "timestamp": "2026-09-09 05:33:58",
+    "timestamp": "2026-09-10 03:40:05",
     "total_alerts": 454,
     "reclaims": 120,
     "confirmed": 120,
@@ -2129,7 +2129,7 @@
   },
   {
     "date": "2026-06-16",
-    "timestamp": "2026-09-09 05:33:53",
+    "timestamp": "2026-09-10 03:40:02",
     "total_alerts": 454,
     "reclaims": 166,
     "confirmed": 166,
@@ -2165,7 +2165,7 @@
   },
   {
     "date": "2026-06-15",
-    "timestamp": "2026-09-09 05:33:48",
+    "timestamp": "2026-09-10 03:40:00",
     "total_alerts": 454,
     "reclaims": 172,
     "confirmed": 172,
@@ -2201,7 +2201,7 @@
   },
   {
     "date": "2026-06-12",
-    "timestamp": "2026-09-09 05:33:43",
+    "timestamp": "2026-09-10 03:39:57",
     "total_alerts": 454,
     "reclaims": 204,
     "confirmed": 204,
@@ -2237,7 +2237,7 @@
   },
   {
     "date": "2026-06-11",
-    "timestamp": "2026-09-09 05:33:38",
+    "timestamp": "2026-09-10 03:39:55",
     "total_alerts": 454,
     "reclaims": 181,
     "confirmed": 181,
@@ -2273,7 +2273,7 @@
   },
   {
     "date": "2026-06-10",
-    "timestamp": "2026-09-09 05:33:33",
+    "timestamp": "2026-09-10 03:39:52",
     "total_alerts": 454,
     "reclaims": 157,
     "confirmed": 157,
@@ -2309,7 +2309,7 @@
   },
   {
     "date": "2026-06-09",
-    "timestamp": "2026-09-09 05:33:28",
+    "timestamp": "2026-09-10 03:39:50",
     "total_alerts": 454,
     "reclaims": 180,
     "confirmed": 180,
@@ -2345,15 +2345,15 @@
   },
   {
     "date": "2026-06-08",
-    "timestamp": "2026-09-09 05:33:24",
+    "timestamp": "2026-09-10 03:39:47",
     "total_alerts": 454,
     "reclaims": 149,
     "confirmed": 149,
     "below": 305,
     "dead": 0,
     "retrace_ote": 39,
-    "retrace_db": 65,
-    "retrace_ema50": 338,
+    "retrace_db": 64,
+    "retrace_ema50": 339,
     "retrace_ma150": 12,
     "beta_lt_1": 308,
     "beta_1_to_1_5": 64,
@@ -2381,7 +2381,7 @@
   },
   {
     "date": "2026-06-05",
-    "timestamp": "2026-09-09 05:33:19",
+    "timestamp": "2026-09-10 03:39:45",
     "total_alerts": 454,
     "reclaims": 171,
     "confirmed": 171,
@@ -2417,7 +2417,7 @@
   },
   {
     "date": "2026-06-04",
-    "timestamp": "2026-09-09 05:33:14",
+    "timestamp": "2026-09-10 03:39:42",
     "total_alerts": 454,
     "reclaims": 165,
     "confirmed": 165,
@@ -2453,7 +2453,7 @@
   },
   {
     "date": "2026-06-03",
-    "timestamp": "2026-09-09 05:33:09",
+    "timestamp": "2026-09-10 03:39:40",
     "total_alerts": 454,
     "reclaims": 136,
     "confirmed": 136,
@@ -2489,7 +2489,7 @@
   },
   {
     "date": "2026-06-02",
-    "timestamp": "2026-09-09 05:33:05",
+    "timestamp": "2026-09-10 03:39:38",
     "total_alerts": 454,
     "reclaims": 142,
     "confirmed": 142,
@@ -2525,7 +2525,7 @@
   },
   {
     "date": "2026-06-01",
-    "timestamp": "2026-09-09 05:33:00",
+    "timestamp": "2026-09-10 03:39:35",
     "total_alerts": 454,
     "reclaims": 138,
     "confirmed": 138,
@@ -2561,7 +2561,7 @@
   },
   {
     "date": "2026-05-29",
-    "timestamp": "2026-09-09 05:32:56",
+    "timestamp": "2026-09-10 03:39:33",
     "total_alerts": 454,
     "reclaims": 148,
     "confirmed": 148,
@@ -2597,7 +2597,7 @@
   },
   {
     "date": "2026-05-28",
-    "timestamp": "2026-09-09 05:32:51",
+    "timestamp": "2026-09-10 03:39:30",
     "total_alerts": 454,
     "reclaims": 158,
     "confirmed": 158,
@@ -2633,7 +2633,7 @@
   },
   {
     "date": "2026-05-27",
-    "timestamp": "2026-09-09 05:32:47",
+    "timestamp": "2026-09-10 03:39:28",
     "total_alerts": 454,
     "reclaims": 147,
     "confirmed": 147,
@@ -2669,7 +2669,7 @@
   },
   {
     "date": "2026-05-26",
-    "timestamp": "2026-09-09 05:32:42",
+    "timestamp": "2026-09-10 03:39:25",
     "total_alerts": 454,
     "reclaims": 157,
     "confirmed": 157,
@@ -2705,7 +2705,7 @@
   },
   {
     "date": "2026-05-22",
-    "timestamp": "2026-09-09 05:32:33",
+    "timestamp": "2026-09-10 03:39:23",
     "total_alerts": 454,
     "reclaims": 169,
     "confirmed": 169,
@@ -2713,8 +2713,8 @@
     "dead": 0,
     "retrace_ote": 36,
     "retrace_db": 69,
-    "retrace_ema50": 332,
-    "retrace_ma150": 17,
+    "retrace_ema50": 331,
+    "retrace_ma150": 18,
     "beta_lt_1": 280,
     "beta_1_to_1_5": 83,
     "beta_gt_1_5": 91,
@@ -2730,10 +2730,10 @@
       "scanned": 472,
       "below_floor": 201,
       "stale_reclaim": 84,
-      "wrong_retrace": 7,
+      "wrong_retrace": 8,
       "low_runway": 0,
       "pending_eod": 0,
-      "qualified": 162
+      "qualified": 161
     },
     "offense_pct": 75,
     "regime": "RISK-ON",
@@ -2741,7 +2741,7 @@
   },
   {
     "date": "2026-05-21",
-    "timestamp": "2026-09-09 05:32:26",
+    "timestamp": "2026-09-10 03:39:20",
     "total_alerts": 454,
     "reclaims": 175,
     "confirmed": 175,
@@ -2777,7 +2777,7 @@
   },
   {
     "date": "2026-05-20",
-    "timestamp": "2026-09-09 05:32:16",
+    "timestamp": "2026-09-10 03:39:18",
     "total_alerts": 454,
     "reclaims": 164,
     "confirmed": 164,
@@ -2813,15 +2813,15 @@
   },
   {
     "date": "2026-05-19",
-    "timestamp": "2026-09-09 05:32:10",
+    "timestamp": "2026-09-10 03:39:15",
     "total_alerts": 454,
     "reclaims": 159,
     "confirmed": 159,
     "below": 295,
     "dead": 0,
     "retrace_ote": 22,
-    "retrace_db": 78,
-    "retrace_ema50": 333,
+    "retrace_db": 79,
+    "retrace_ema50": 332,
     "retrace_ma150": 21,
     "beta_lt_1": 296,
     "beta_1_to_1_5": 71,
@@ -2849,7 +2849,7 @@
   },
   {
     "date": "2026-05-18",
-    "timestamp": "2026-09-09 05:32:00",
+    "timestamp": "2026-09-10 03:39:13",
     "total_alerts": 454,
     "reclaims": 163,
     "confirmed": 163,
@@ -2885,7 +2885,7 @@
   },
   {
     "date": "2026-05-15",
-    "timestamp": "2026-09-09 05:31:54",
+    "timestamp": "2026-09-10 03:39:10",
     "total_alerts": 454,
     "reclaims": 141,
     "confirmed": 141,
@@ -2921,7 +2921,7 @@
   },
   {
     "date": "2026-05-14",
-    "timestamp": "2026-09-09 05:31:44",
+    "timestamp": "2026-09-10 03:39:08",
     "total_alerts": 454,
     "reclaims": 150,
     "confirmed": 150,
@@ -2957,7 +2957,7 @@
   },
   {
     "date": "2026-05-13",
-    "timestamp": "2026-09-09 05:31:38",
+    "timestamp": "2026-09-10 03:39:06",
     "total_alerts": 454,
     "reclaims": 142,
     "confirmed": 142,
@@ -2993,7 +2993,7 @@
   },
   {
     "date": "2026-05-12",
-    "timestamp": "2026-09-09 05:31:29",
+    "timestamp": "2026-09-10 03:39:03",
     "total_alerts": 454,
     "reclaims": 156,
     "confirmed": 156,
@@ -3029,7 +3029,7 @@
   },
   {
     "date": "2026-05-11",
-    "timestamp": "2026-09-09 05:31:22",
+    "timestamp": "2026-09-10 03:39:01",
     "total_alerts": 454,
     "reclaims": 153,
     "confirmed": 153,
@@ -3065,7 +3065,7 @@
   },
   {
     "date": "2026-05-08",
-    "timestamp": "2026-09-09 05:31:11",
+    "timestamp": "2026-09-10 03:38:58",
     "total_alerts": 454,
     "reclaims": 155,
     "confirmed": 155,
@@ -3101,7 +3101,7 @@
   },
   {
     "date": "2026-05-07",
-    "timestamp": "2026-09-09 05:30:59",
+    "timestamp": "2026-09-10 03:38:56",
     "total_alerts": 454,
     "reclaims": 181,
     "confirmed": 181,
@@ -3137,7 +3137,7 @@
   },
   {
     "date": "2026-05-06",
-    "timestamp": "2026-09-09 05:30:49",
+    "timestamp": "2026-09-10 03:38:53",
     "total_alerts": 454,
     "reclaims": 193,
     "confirmed": 193,
@@ -3173,7 +3173,7 @@
   },
   {
     "date": "2026-05-05",
-    "timestamp": "2026-09-09 05:30:42",
+    "timestamp": "2026-09-10 03:38:51",
     "total_alerts": 454,
     "reclaims": 162,
     "confirmed": 162,
@@ -3209,11 +3209,11 @@
   },
   {
     "date": "2026-05-04",
-    "timestamp": "2026-09-09 05:30:31",
+    "timestamp": "2026-09-10 03:38:48",
     "total_alerts": 454,
-    "reclaims": 152,
-    "confirmed": 152,
-    "below": 302,
+    "reclaims": 153,
+    "confirmed": 153,
+    "below": 301,
     "dead": 0,
     "retrace_ote": 33,
     "retrace_db": 64,
@@ -3223,12 +3223,12 @@
     "beta_1_to_1_5": 108,
     "beta_gt_1_5": 81,
     "top_sectors": "FINANCIALS(67), INDUSTRIALS(57), HEALTHCARE(57)",
-    "macro_ratio": 0.33,
+    "macro_ratio": 0.34,
     "total_alerts_session": 454,
     "total_alerts_cumulative": 454,
-    "reclaims_session": 152,
-    "reclaims_cumulative": 152,
-    "winrate_session": "33.5%",
+    "reclaims_session": 153,
+    "reclaims_cumulative": 153,
+    "winrate_session": "33.7%",
     "winrate_cumulative": "38.0%",
     "funnel_diagnostic": {
       "scanned": 472,
@@ -3245,7 +3245,7 @@
   },
   {
     "date": "2026-05-01",
-    "timestamp": "2026-09-09 05:30:19",
+    "timestamp": "2026-09-10 03:38:46",
     "total_alerts": 454,
     "reclaims": 181,
     "confirmed": 181,
@@ -6353,25 +6353,6 @@
     "beta_gt_1_5": 98,
     "top_sectors": "FINANCIALS(67), INDUSTRIALS(57), HEALTHCARE(57)",
     "macro_ratio": 0.51,
-    "regime": "RISK-ON"
-  },
-  {
-    "date": "2025-09-09",
-    "timestamp": "2026-09-06 20:07:15",
-    "total_alerts": 454,
-    "reclaims": 235,
-    "confirmed": 235,
-    "below": 219,
-    "dead": 0,
-    "retrace_ote": 15,
-    "retrace_db": 67,
-    "retrace_ema50": 360,
-    "retrace_ma150": 12,
-    "beta_lt_1": 227,
-    "beta_1_to_1_5": 125,
-    "beta_gt_1_5": 102,
-    "top_sectors": "FINANCIALS(67), INDUSTRIALS(57), HEALTHCARE(57)",
-    "macro_ratio": 0.52,
     "regime": "RISK-ON"
   }
 ]
