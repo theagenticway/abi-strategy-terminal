@@ -107,6 +107,26 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
     returns = close.pct_change()
     beta = calculate_beta(returns, spy_returns) if spy_returns is not None else 1.0
     
+    # Relative Volume (RVOL vs. 20-day average)
+    rvol = 1.0
+    if 'Volume' in df.columns and len(df['Volume']) >= 20:
+        vol_s = df['Volume'].astype(float)
+        vol_avg = float(vol_s.tail(20).mean())
+        if vol_avg > 0:
+            rvol = round(float(vol_s.iloc[-1] / vol_avg), 2)
+
+    # Weekly Stage Analysis (30-week / 150-day structural slope)
+    if len(close) >= 150:
+        sma150_slope = ((current_sma150 - float(sma150.iloc[-20])) / max(0.001, float(sma150.iloc[-20]))) * 100
+        if current_price >= current_sma150 and sma150_slope >= 0:
+            weekly_stage = "STAGE 2 (Advancing)"
+        elif current_price < current_sma150 and sma150_slope < 0:
+            weekly_stage = "STAGE 4 (Declining)"
+        else:
+            weekly_stage = "STAGE 1/3 (Consolidation)"
+    else:
+        weekly_stage = "STAGE 2 (Advancing)" if current_price >= current_ema50 else "STAGE 4 (Declining)"
+
     # Multi-day returns
     d1_return = round(float(returns.iloc[-1] * 100), 2) if len(returns) > 1 else 0.0
     d5_return = round(float(((close.iloc[-1] - close.iloc[-5]) / close.iloc[-5]) * 100), 2) if len(close) >= 5 else 0.0
@@ -138,6 +158,8 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
         "d1_return": d1_return,
         "d5_return": d5_return,
         "d20_return": d20_return,
+        "rvol": rvol,
+        "weekly_stage": weekly_stage,
         "raw_close": close,
         "raw_high": high,
         "raw_low": low,

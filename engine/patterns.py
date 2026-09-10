@@ -540,3 +540,89 @@ def screen_strategic_leaps_candidate(ticker: str, sector: str, snapshot: dict, t
         "valuation_status": valuation_status,
         "structure": "Strategic Call LEAPS (Jan 2028)"
     }
+
+
+def detect_resistance_rejection(high, low, close, open_p, ema21, ema50, sma200, rsi, macd_hist):
+    """
+    Detects if a stock is in a structural downtrend (Price < EMA50 < SMA200),
+    tested overhead resistance (falling EMA21 or EMA50 within 1.8%),
+    and printed a rejection candle (Close <= Open, RSI < 52, MACD turning down).
+    Returns (is_rejection, level_name, rejection_price).
+    """
+    if close is None or len(close) < 50:
+        return False, None, 0.0
+
+    curr_close = float(close.iloc[-1])
+    curr_open = float(open_p.iloc[-1]) if open_p is not None else curr_close
+    curr_high = float(high.iloc[-1]) if high is not None else curr_close
+    curr_ema21 = float(ema21.iloc[-1]) if ema21 is not None else curr_close
+    curr_ema50 = float(ema50.iloc[-1]) if ema50 is not None else curr_close
+    curr_sma200 = float(sma200.iloc[-1]) if sma200 is not None else curr_close
+    curr_rsi = float(rsi.iloc[-1]) if rsi is not None else 50.0
+    curr_macd_hist = float(macd_hist.iloc[-1]) if macd_hist is not None else 0.0
+
+    # 1. Structural downtrend check
+    is_downtrend = bool(curr_close < curr_ema50 and curr_ema50 < curr_sma200)
+    if not is_downtrend:
+        return False, None, 0.0
+
+    # 2. Bearish rejection candle check (closed below open, or upper wick rejection)
+    is_bear_candle = (curr_close <= curr_open) and (curr_rsi < 52.0) and (curr_macd_hist <= 0.05)
+    if not is_bear_candle:
+        return False, None, 0.0
+
+    # 3. Proximity to resistance level (tested within 1.8% of EMA50 or EMA21)
+    if abs(curr_high - curr_ema50) / curr_ema50 <= 0.018 or (curr_high >= curr_ema50 and curr_close < curr_ema50):
+        return True, "EMA50 Resistance", round(curr_ema50, 2)
+    elif abs(curr_high - curr_ema21) / curr_ema21 <= 0.018 or (curr_high >= curr_ema21 and curr_close < curr_ema21):
+        return True, "EMA21 Resistance", round(curr_ema21, 2)
+
+    return False, None, 0.0
+
+
+def model_bear_put_spread(ticker: str, price: float, stop: float, target_support: float, today=None):
+    """
+    Structures a 30-45 DTE Bear Put Spread for asymmetric downside exposure:
+    - Long Put: In-The-Money (~0.55-0.60 Delta, ~1-3% above price)
+    - Short Put: Out-of-The-Money (~0.30-0.35 Delta near target support floor)
+    """
+    step = calculate_strike_interval(price)
+    # Long put slightly ITM
+    raw_long = price * 1.02
+    long_strike = round(raw_long / step) * step
+    if long_strike <= price:
+        long_strike += step
+
+    # Short put near target support
+    raw_short = max(step, target_support)
+    short_strike = round(raw_short / step) * step
+    if short_strike >= long_strike:
+        short_strike = max(step, long_strike - (step * 2))
+
+    width = round(long_strike - short_strike, 2)
+    est_debit = round(width * 0.38, 2)
+    max_profit = round(width - est_debit, 2)
+    rr_ratio = f"1:{round(max_profit / max(0.01, est_debit), 1)}"
+
+    today_date = today or datetime.date.today()
+    exp_date, dte = get_target_expiration(today_date, min_dte=30, max_dte=50)
+    month_str = exp_date.strftime("%b %y")
+
+    contract_name = f"{month_str} ${long_strike:.0f}/${short_strike:.0f} Put Spread"
+    contract_details = f"Width: ${width:.2f} | Est. Debit: ${est_debit:.2f} | Max Gain: ${max_profit:.2f} ({rr_ratio}) | Breakeven: ${long_strike - est_debit:.2f}"
+    routing_guidance = f"LIMIT @ ${est_debit:.2f} Mid (Do not cross spread; Bear Put Spread 30-45 DTE)"
+
+    return {
+        "vehicle": "Bear Put Spread",
+        "contract": contract_name,
+        "contract_details": contract_details,
+        "long_strike": long_strike,
+        "short_strike": short_strike,
+        "width": width,
+        "est_debit": est_debit,
+        "max_profit": max_profit,
+        "rr_ratio": rr_ratio,
+        "dte": dte,
+        "expiry": exp_date.strftime("%Y-%m-%d"),
+        "routing_guidance": routing_guidance
+    }

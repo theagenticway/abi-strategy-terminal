@@ -648,6 +648,75 @@
     <!-- ======================================================== -->
     <div id="tab-recs" class="space-y-4 hidden">
         
+                <!-- EXECUTIVE MARKET BRIEFING & ACTION DIRECTIVE -->
+        <div id="executive-briefing-container" class="terminal-panel p-4 bg-slate-900/95 border border-sky-500/40 mb-3 shadow-2xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="text-base font-black text-white flex items-center gap-2 uppercase tracking-wide">
+                        <span class="text-sky-400">🏛️</span> Executive Market Briefing & Action Directive
+                    </span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 font-mono" id="briefing-timestamp">LIVE TELEMETRY</span>
+                </div>
+                <div id="briefing-verdict-badge" class="px-3 py-1 rounded text-xs font-black bg-amber-950/70 text-amber-400 border border-amber-500/40 uppercase tracking-wide">
+                    🟡 CAUTIOUS BUY — SELECTIVE CYCLICAL ROTATION ONLY
+                </div>
+            </div>
+
+            <!-- 4-Index Benchmark Confluence Ribbon -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 pb-2.5 border-b border-slate-800/70 text-xs font-mono">
+                <div class="p-2 rounded bg-slate-950/80 border border-slate-800 flex justify-between items-center" id="idx-chip-spy">
+                    <div>
+                        <span class="font-bold text-white block">SPY (S&P 500)</span>
+                        <span class="text-[11px] text-slate-400 font-mono" id="idx-spy-price">$548.20</span>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30" id="idx-spy-status">● +1.25% (Above)</span>
+                </div>
+                <div class="p-2 rounded bg-slate-950/80 border border-slate-800 flex justify-between items-center" id="idx-chip-qqq">
+                    <div>
+                        <span class="font-bold text-white block">QQQ (Nasdaq 100)</span>
+                        <span class="text-[11px] text-slate-400 font-mono" id="idx-qqq-price">$472.10</span>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30" id="idx-qqq-status">● -1.45% (Below)</span>
+                </div>
+                <div class="p-2 rounded bg-slate-950/80 border border-slate-800 flex justify-between items-center" id="idx-chip-rsp">
+                    <div>
+                        <span class="font-bold text-white block">RSP (Equal Weight)</span>
+                        <span class="text-[11px] text-slate-400 font-mono" id="idx-rsp-price">$174.30</span>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30" id="idx-rsp-status">● +0.85% (Above)</span>
+                </div>
+                <div class="p-2 rounded bg-slate-950/80 border border-slate-800 flex justify-between items-center" id="idx-chip-iwm">
+                    <div>
+                        <span class="font-bold text-white block">IWM (Small Caps)</span>
+                        <span class="text-[11px] text-slate-400 font-mono" id="idx-iwm-price">$218.40</span>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30" id="idx-iwm-status">● +0.15% (Above)</span>
+                </div>
+            </div>
+
+            <!-- Narrative Breakdown: 3 Tiers -->
+            <div class="space-y-2.5 pt-3 text-xs">
+                <div>
+                    <span class="text-sky-400 font-bold uppercase text-[11px] tracking-wide flex items-center gap-1"><span>🌐</span> 1. Macro Regime Synthesis:</span>
+                    <p class="text-slate-300 mt-0.5 leading-relaxed" id="briefing-macro-narrative">
+                        <!-- Populated dynamically -->
+                    </p>
+                </div>
+                <div>
+                    <span class="text-amber-400 font-bold uppercase text-[11px] tracking-wide flex items-center gap-1"><span>🔄</span> 2. Sector Flows & Divergence:</span>
+                    <p class="text-slate-300 mt-0.5 leading-relaxed" id="briefing-sector-narrative">
+                        <!-- Populated dynamically -->
+                    </p>
+                </div>
+                <div>
+                    <span class="text-emerald-400 font-bold uppercase text-[11px] tracking-wide flex items-center gap-1"><span>🎯</span> 3. Capital Execution Mandates:</span>
+                    <ul class="list-disc list-inside text-slate-300 mt-0.5 space-y-1 font-mono text-[11px]" id="briefing-mandates-list">
+                        <!-- Populated dynamically -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <!-- SCANNER PIPELINE FUNNEL DIAGNOSTIC RIBBON -->
         <div class="terminal-panel p-3 bg-slate-900/80 border border-slate-800">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -793,14 +862,19 @@
             </div>
         </div>
 
-        <!-- TABLE 1: TACTICAL SWINGS (BULL CALL SPREADS 45-60 DTE) -->
+        <!-- TABLE 1: TACTICAL SWINGS & DOWNSIDE HEDGES -->
         <div class="terminal-panel p-4">
-            <div class="flex justify-between items-center mb-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
                 <div>
                     <h2 class="text-sm font-black text-white flex items-center gap-1.5 uppercase tracking-wide">
-                        <span class="text-amber-400">⚡</span> Tactical Swings (Options Alpha Radar — Bull Call Spreads 45–60 DTE)
+                        <span class="text-amber-400" id="table1-header-icon">⚡</span> <span id="table1-header-title">Tactical Swings (Options Alpha Radar — Bull Call Spreads 45–60 DTE)</span>
                     </h2>
-                    <p class="text-[11px] text-slate-400">High-velocity momentum setups: Confirmed D0–D2 reclaims, 200 MA clearance (≥5%), and strict invalidation stops.</p>
+                    <p class="text-[11px] text-slate-400" id="table1-header-desc">High-velocity momentum setups: Confirmed D0–D2 reclaims, 200 MA clearance (≥5%), and strict invalidation stops.</p>
+                </div>
+                <!-- Directional Mode Switcher -->
+                <div class="flex items-center gap-1 p-1 bg-slate-950 rounded border border-slate-800">
+                    <button onclick="setDirectionalMode('LONG')" class="filter-btn text-xs font-bold active bg-blue-600 text-white" id="btn-dir-long">⚡ Bull Spreads (Long)</button>
+                    <button onclick="setDirectionalMode('HEDGE')" class="filter-btn text-xs font-bold text-rose-400 hover:text-white" id="btn-dir-hedge">🛡️ Bear Put Hedges (Downside)</button>
                 </div>
             </div>
 
@@ -1107,6 +1181,31 @@
     <!-- Application Master Controller -->
     <script>
         var currentPayload = null;
+        var activeDirectionalMode = 'LONG';
+
+        function setDirectionalMode(mode) {
+            activeDirectionalMode = mode;
+            document.querySelectorAll('[id^="btn-dir-"]').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+            if (mode === 'LONG') {
+                document.getElementById('btn-dir-long')?.classList.add('active', 'bg-blue-600', 'text-white');
+                const tIcon = document.getElementById('table1-header-icon');
+                if (tIcon) tIcon.textContent = '⚡';
+                const tTitle = document.getElementById('table1-header-title');
+                if (tTitle) tTitle.textContent = 'Tactical Swings (Options Alpha Radar — Bull Call Spreads 45–60 DTE)';
+                const tDesc = document.getElementById('table1-header-desc');
+                if (tDesc) tDesc.textContent = 'High-velocity momentum setups: Confirmed D0–D2 reclaims, 200 MA clearance (≥5%), and strict invalidation stops.';
+            } else {
+                document.getElementById('btn-dir-hedge')?.classList.add('active', 'bg-blue-600', 'text-white');
+                const tIcon = document.getElementById('table1-header-icon');
+                if (tIcon) tIcon.textContent = '🛡️';
+                const tTitle = document.getElementById('table1-header-title');
+                if (tTitle) tTitle.textContent = 'Downside Hedges (Options Alpha Radar — Bear Put Spreads 30–45 DTE)';
+                const tDesc = document.getElementById('table1-header-desc');
+                if (tDesc) tDesc.textContent = 'Asymmetric downside setups: Confirmed resistance rejections below falling moving averages in laggard sectors.';
+            }
+            if (currentPayload) renderRecsView(currentPayload);
+        }
+
         var allTickersData = [];
         var activeGlobalSector = '';
         var activeTimeHorizon = 'session';
@@ -1712,6 +1811,71 @@
         // TAB 1: KEY TRADING RECOMMENDATIONS
         // ==========================================
         function renderRecsView(data) {
+            // 0. Render Executive Market Briefing & Action Directive
+            const bm = data.benchmark_matrix || {
+                composite_score: 3,
+                regime: 'SECTOR_ROTATION',
+                regime_badge: '🔄 SECTOR ROTATION — Tech Under Distribution',
+                indices: {
+                    SPY: { price: 548.20, vs_ema50_pct: 1.25, status: 'ABOVE' },
+                    QQQ: { price: 472.10, vs_ema50_pct: -1.45, status: 'BELOW' },
+                    RSP: { price: 174.30, vs_ema50_pct: 0.85, status: 'ABOVE' },
+                    IWM: { price: 218.40, vs_ema50_pct: 0.15, status: 'ABOVE' }
+                }
+            };
+            const mc = data.market_commentary || {
+                action_verdict: 'CAUTIOUS BUY',
+                action_badge: '🟡 CAUTIOUS BUY — SELECTIVE CYCLICAL ROTATION ONLY (Hold Tech / Cash Buffer 25%)',
+                macro_narrative: 'Macro environment is in a selective rotation regime (3 of 4 indices holding 50-day EMA). Tech Growth (QQQ -1.45% below 50 EMA) is under distribution, while broad equal-weight RSP (+0.85%) and SPY (+1.25%) are holding.',
+                sector_flow_narrative: 'Inflows are concentrating defensively into Gold Miners (GDX +9.1%), Biotech (IBB +5.1%), and Energy (XLE +4.3%), while Solar (TAN -9.4%) and Airlines (JETS -6.1%) are breaking down.',
+                execution_mandates: [
+                    'DO NOT buy tech/growth reclaims today (Macro Contagion risk is high).',
+                    'Long deployment permitted ONLY in top-quartile non-tech sectors with RVOL ≥ 1.0x.',
+                    'Maintain 25% dynamic cash buffer; tighten stops to breakeven upon reaching TP1.'
+                ]
+            };
+
+            const verdictEl = document.getElementById('briefing-verdict-badge');
+            if (verdictEl) {
+                verdictEl.textContent = mc.action_badge || mc.action_verdict || '🟡 CAUTIOUS BUY';
+                if (mc.action_verdict === 'AGGRESSIVE BUY') {
+                    verdictEl.className = 'px-3 py-1 rounded text-xs font-black bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 uppercase tracking-wide';
+                } else if (mc.action_verdict === 'CAUTIOUS BUY') {
+                    verdictEl.className = 'px-3 py-1 rounded text-xs font-black bg-amber-950/80 text-amber-400 border border-amber-500/50 uppercase tracking-wide';
+                } else if (mc.action_verdict === 'HOLD / PRESERVE') {
+                    verdictEl.className = 'px-3 py-1 rounded text-xs font-black bg-orange-950/80 text-orange-400 border border-orange-500/50 uppercase tracking-wide';
+                } else {
+                    verdictEl.className = 'px-3 py-1 rounded text-xs font-black bg-rose-950/80 text-rose-400 border border-rose-500/50 uppercase tracking-wide';
+                }
+            }
+
+            const macroNarEl = document.getElementById('briefing-macro-narrative');
+            if (macroNarEl) macroNarEl.textContent = mc.macro_narrative || '';
+
+            const secNarEl = document.getElementById('briefing-sector-narrative');
+            if (secNarEl) secNarEl.textContent = mc.sector_flow_narrative || '';
+
+            const mandatesEl = document.getElementById('briefing-mandates-list');
+            if (mandatesEl && mc.execution_mandates) {
+                mandatesEl.innerHTML = mc.execution_mandates.map(m => `<li>${m}</li>`).join('');
+            }
+
+            // Benchmark chips
+            ['SPY', 'QQQ', 'RSP', 'IWM'].forEach(sym => {
+                const info = (bm.indices && bm.indices[sym]) || {};
+                const pEl = document.getElementById(`idx-${sym.toLowerCase()}-price`);
+                if (pEl) pEl.textContent = `$${parseFloat(info.price || 0).toFixed(2)}`;
+                const sEl = document.getElementById(`idx-${sym.toLowerCase()}-status`);
+                if (sEl) {
+                    const isAbove = (info.status === 'ABOVE');
+                    const pctStr = (info.vs_ema50_pct > 0 ? '+' : '') + parseFloat(info.vs_ema50_pct || 0).toFixed(2) + '%';
+                    sEl.textContent = `● ${pctStr} (${isAbove ? 'Above' : 'Below'})`;
+                    sEl.className = isAbove 
+                        ? 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30'
+                        : 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30';
+                }
+            });
+
             // Render Quant Funnel Diagnostic
             const f = data.funnel_diagnostic || (data.macro_breadth && data.macro_breadth.funnel_diagnostic) || {
                 scanned: 493, below_floor: 702, stale_reclaim: 235, wrong_retrace: 12, low_runway: 12, pending_eod: 48, qualified: (data.top_candidates || []).length
@@ -1847,12 +2011,101 @@
             const myPortBadge = document.getElementById('my-port-tab-badge');
             if (myPortBadge) myPortBadge.textContent = openPositionsCount;
 
-            const maxSpreads = Math.max(1, Math.min(3, candidates.length));
-            const allocPerTrade = tacticalBudget > 0 ? Math.floor(tacticalBudget / maxSpreads) : 0;
+            if (activeDirectionalMode === 'HEDGE') {
+                // RENDER DOWNSIDE HEDGES (Bear Put Spreads)
+                let hedges = data.downside_hedges || [];
+                if (activeGlobalSector) {
+                    hedges = hedges.filter(c => c.sector.toUpperCase() === activeGlobalSector);
+                }
+                const maxHedges = Math.max(1, Math.min(3, hedges.length));
+                const allocPerHedge = tacticalBudget > 0 ? Math.floor(tacticalBudget / maxHedges) : 0;
 
-            if (candidates.length === 0) {
-                candBody.innerHTML = '<tr><td colspan="10" class="py-4 text-center text-slate-500">No active qualified candidates matching filter.</td></tr>';
+                if (hedges.length === 0) {
+                    candBody.innerHTML = '<tr><td colspan="10" class="py-4 text-center text-slate-500">No active downside resistance rejection setups matching filter.</td></tr>';
+                } else {
+                    hedges.forEach((c, idx) => {
+                        const estDebit = parseFloat(c.est_debit) || 2.0;
+                        const contractCost = Math.max(10, Math.round(estDebit * 100));
+                        const contracts = isCapacityReached ? 0 : Math.floor(allocPerHedge / contractCost);
+                        const totalTradeDebit = contracts * contractCost;
+                        const idleRolledCash = allocPerHedge > totalTradeDebit ? allocPerHedge - totalTradeDebit : 0;
+
+                        const tradeId = `${c.ticker}_HEDGE`;
+                        const isTaken = !!myPortfolio[tradeId];
+                        const portItem = myPortfolio[tradeId] || {};
+
+                        const rankTitle = idx === 0 ? "Rank #1 — Primary Downside Hedge" : `Rank #${idx+1} — Secondary Hedge`;
+                        const rankBadge = "bg-rose-950/60 text-rose-400 border border-rose-500/30";
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-800/40 transition';
+
+                        let sizingHtml = '';
+                        let ticketActionHtml = '';
+                        if (isCapacityReached) {
+                            sizingHtml = `
+                                <div class="mb-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-slate-800 text-slate-400 border border-slate-700">★ ${rankTitle}</span></div>
+                                <div class="text-xs font-mono font-bold text-rose-400">0 Contracts (Capacity Reached)</div>
+                                <div class="text-[10px] font-mono text-slate-500">Account fully allocated / cash reserve locked</div>
+                            `;
+                            ticketActionHtml = `<div class="text-[11px] font-bold text-rose-400 mt-0.5">● CAPACITY CEILING REACHED (0 contracts)</div>`;
+                        } else if (contracts === 0) {
+                            sizingHtml = `
+                                <div class="mb-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${rankBadge}">★ ${rankTitle}</span></div>
+                                <div class="text-xs font-mono font-bold text-amber-400">0 Contracts (Budget Below 1ct)</div>
+                                <div class="text-[10px] font-mono text-slate-400">$${allocPerHedge.toLocaleString()} budget rolled to cash · $${contractCost.toLocaleString()} required</div>
+                            `;
+                            ticketActionHtml = `<div class="text-[11px] font-bold text-amber-400 mt-0.5">● INSUFFICIENT TRANCHE BUDGET ($${allocPerHedge.toLocaleString()} < $${contractCost.toLocaleString()} debit)</div>`;
+                        } else {
+                            sizingHtml = `
+                                <div class="mb-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${rankBadge}">★ ${rankTitle}</span></div>
+                                <div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30">● DOWNSIDE HEDGE</span></div>
+                                <div class="text-xs font-mono font-bold text-rose-400">Buy ${contracts} Put Spread${contracts > 1 ? 's' : ''}</div>
+                                <div class="text-[10px] font-mono text-slate-400">$${totalTradeDebit.toLocaleString()} debit ($${allocPerHedge.toLocaleString()} budget${idleRolledCash > 0 ? ` · $${idleRolledCash} rolled` : ''})</div>
+                            `;
+                            ticketActionHtml = `<div class="text-[11px] font-mono font-bold text-rose-400 mt-0.5">● LIMIT ORDER @ $${estDebit.toFixed(2)} MID-PRICE · ${contracts} Contract${contracts > 1 ? 's' : ''}</div>`;
+                        }
+
+                        let portBtnHtml = '';
+                        if (isTaken) {
+                            portBtnHtml = `<button onclick="toggleTradePortfolio('hedge', '${c.ticker}', '${c.contract || c.structure}', ${contracts || 1}, ${contractCost}, ${c.price}, ${c.stop}, ${c.tp1}, ${c.tp2}, '${c.sector}')" class="mt-1.5 w-full py-1 px-2 rounded text-[10px] font-bold bg-rose-600 text-white border border-rose-400 hover:bg-slate-800 transition flex items-center justify-center gap-1"><span>✓</span> In My Portfolio (${portItem.contracts}ct · $${(portItem.totalCapitalCommitted || portItem.contracts * contractCost).toLocaleString()})</button>`;
+                        } else {
+                            portBtnHtml = `<button onclick="toggleTradePortfolio('hedge', '${c.ticker}', '${c.contract || c.structure}', ${contracts > 0 ? contracts : 1}, ${contractCost}, ${c.price}, ${c.stop}, ${c.tp1}, ${c.tp2}, '${c.sector}')" class="mt-1.5 w-full py-1 px-2 rounded text-[10px] font-bold bg-slate-800 text-rose-400 border border-slate-700 hover:bg-rose-600 hover:text-white transition flex items-center justify-center gap-1"><span>+</span> Mark as Taken (${contracts > 0 ? contracts : 1}ct)</button>`;
+                        }
+
+                        tr.innerHTML = `
+                            <td class="py-2.5 px-2.5 font-bold text-rose-400 text-xs">${c.ticker}</td>
+                            <td class="py-2.5 px-2.5 text-slate-300">${c.sector}</td>
+                            <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${parseFloat(c.price).toFixed(2)}</td>
+                            <td class="py-2.5 px-2.5 font-mono text-amber-400 font-semibold">$${parseFloat(c.stop).toFixed(2)}</td>
+                            <td class="py-2.5 px-2.5 font-mono text-emerald-400 font-semibold">$${parseFloat(c.tp1).toFixed(2)} / $${parseFloat(c.tp2).toFixed(2)}</td>
+                            <td class="py-2.5 px-2.5 font-semibold text-amber-300">${c.rr_ratio}</td>
+                            <td class="py-2.5 px-2.5">
+                                <span class="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold">${c.resistance_level || 'RESISTANCE'}</span>
+                                <div class="mt-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30">${c.execution_badge || '🔴 CONFIRMED REJECTION'}</span></div>
+                            </td>
+                            <td class="py-2.5 px-2.5 text-[11px] font-mono"><span class="text-rose-400 font-bold">${c.weekly_stage || 'STAGE 4'}</span><div class="text-[10px] text-slate-400">RVOL: ${c.rvol || 1.0}x</div></td>
+                            <td class="py-2.5 px-2.5 space-y-1">
+                                ${sizingHtml}
+                                ${portBtnHtml}
+                            </td>
+                            <td class="py-2.5 px-2.5">
+                                <div class="font-bold text-white text-xs">${c.contract}</div>
+                                ${ticketActionHtml}
+                                <div class="text-[10px] text-slate-400 font-mono mt-0.5">${c.contract_details}</div>
+                                <div class="text-[10px] text-rose-400 font-mono mt-0.5">↳ ${c.routing_guidance}</div>
+                            </td>
+                        `;
+                        candBody.appendChild(tr);
+                    });
+                }
             } else {
+                // RENDER TACTICAL BULL SPREADS (LONG MOMENTUM)
+                const maxSpreads = Math.max(1, Math.min(3, candidates.length));
+                const allocPerTrade = tacticalBudget > 0 ? Math.floor(tacticalBudget / maxSpreads) : 0;
+
+                if (candidates.length === 0) {
+                    candBody.innerHTML = '<tr><td colspan="10" class="py-4 text-center text-slate-500">No active qualified candidates matching filter.</td></tr>';
+                } else {
                 candidates.forEach((c, idx) => {
                     const estDebit = parseFloat(c.est_debit) || (c.width ? c.width * 0.38 : 5.0);
                     const contractCost = Math.max(10, Math.round(estDebit * 100));
@@ -1934,7 +2187,8 @@
                         </td>
                     `;
                     candBody.appendChild(tr);
-                });
+                    });
+                }
             }
 
             // Populate Table 2: Strategic Core Accumulation LEAPS

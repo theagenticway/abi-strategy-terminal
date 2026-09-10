@@ -38,6 +38,10 @@ SECTOR_ETFS = {
 # Complete S&P 500 + Key NASDAQ-100 Constituent Taxonomy
 # Ticker: (Sector, Sub-Sector / Industry)
 TICKER_TAXONOMY = {
+    "SPY": ("INDEX", "S&P 500 Benchmark"),
+    "QQQ": ("INDEX", "Nasdaq 100 Growth"),
+    "RSP": ("INDEX", "S&P 500 Equal Weight"),
+    "IWM": ("INDEX", "Russell 2000 Small Cap"),
     "IFF": ("MATERIALS", "Specialty Chemicals & Ingredients"),
     "EMN": ("MATERIALS", "Diversified Chemicals"),
     "CE": ("MATERIALS", "Specialty Materials & Acetyl"),
@@ -605,11 +609,14 @@ def get_complete_taxonomy():
         merged.update(live)
     return merged
 
+BENCHMARK_INDICES = ["SPY", "QQQ", "RSP", "IWM"]
+
 def get_full_universe():
-    """Returns sorted unique tickers across full universe + ETFs."""
+    """Returns sorted unique tickers across full universe + ETFs + benchmark indices."""
     tax = get_complete_taxonomy()
     tickers = set(tax.keys()).union(set(SECTOR_ETFS.keys()))
-    tickers.add("SPY")
+    for idx_sym in BENCHMARK_INDICES:
+        tickers.add(idx_sym)
     return sorted(list(tickers))
 
 if __name__ == "__main__":

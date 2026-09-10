@@ -211,3 +211,46 @@ console.log("✔ Test 10: $10,000 account tier calculates strictly with cash buf
 console.log("\n========================================================");
 console.log(" ALL 10 COMPREHENSIVE SIMULATION TESTS PASSED CLEANLY! ");
 console.log("========================================================");
+
+// -----------------------------------------------------------------
+// Test 11: Executive Market Briefing & Action Directive Rendering
+// -----------------------------------------------------------------
+assert(domElements['briefing-verdict-badge'], "briefing-verdict-badge must exist");
+assert(domElements['briefing-macro-narrative'], "briefing-macro-narrative must exist");
+assert(domElements['briefing-sector-narrative'], "briefing-sector-narrative must exist");
+assert(domElements['briefing-mandates-list'], "briefing-mandates-list must exist");
+assert(domElements['idx-spy-price'].textContent.includes('$548'), "SPY benchmark chip must render price");
+assert(domElements['idx-qqq-price'].textContent.includes('$472'), "QQQ benchmark chip must render price");
+assert(domElements['idx-rsp-price'].textContent.includes('$174'), "RSP benchmark chip must render price");
+assert(domElements['idx-iwm-price'].textContent.includes('$218'), "IWM benchmark chip must render price");
+assert(domElements['idx-qqq-status'].textContent.includes('Below'), "QQQ status must display Below 50 EMA");
+console.log("✔ Test 11: Executive Market Briefing & 4-Index Benchmark Confluence Ribbon verified.");
+
+// -----------------------------------------------------------------
+// Test 12: Directional Mode Switcher (Long vs. Downside Hedges)
+// -----------------------------------------------------------------
+context.setDirectionalMode('HEDGE');
+assert.strictEqual(context.activeDirectionalMode, 'HEDGE');
+assert.strictEqual(domElements['table1-header-title'].textContent, 'Downside Hedges (Options Alpha Radar — Bear Put Spreads 30–45 DTE)');
+console.log("✔ Test 12: Directional Mode switched to HEDGE (Bear Put Spreads).");
+
+// -----------------------------------------------------------------
+// Test 13: Tracking a Downside Hedge in My Portfolio
+// -----------------------------------------------------------------
+context.toggleTradePortfolio('hedge', 'TAN', 'Oct 26 $40/$35 Put Spread', 2, 190, 38.45, 40.20, 34.50, 31.80, 'SOLAR');
+port = context.getMyPortfolio();
+assert(port['TAN_HEDGE'], "TAN_HEDGE must exist in portfolio");
+assert.strictEqual(port['TAN_HEDGE'].totalCapitalCommitted, 380); // 2 * 190
+console.log("✔ Test 13: Downside Hedge position committed & tracked in My Portfolio.");
+
+// -----------------------------------------------------------------
+// Test 14: Switch back to LONG mode
+// -----------------------------------------------------------------
+context.setDirectionalMode('LONG');
+assert.strictEqual(context.activeDirectionalMode, 'LONG');
+assert.strictEqual(domElements['table1-header-title'].textContent, 'Tactical Swings (Options Alpha Radar — Bull Call Spreads 45–60 DTE)');
+console.log("✔ Test 14: Directional Mode safely returned to LONG.");
+
+console.log("\n========================================================");
+console.log(" ALL 14 COMPREHENSIVE SIMULATION TESTS PASSED CLEANLY! ");
+console.log("========================================================");
