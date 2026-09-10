@@ -661,6 +661,30 @@
             </div>
         </div>
 
+        <!-- DEPLOY CAPITAL TODAY SIZING CONTROLLER -->
+        <div class="terminal-panel p-3 bg-slate-900/80 border border-emerald-500/30 mb-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <span>💰</span> Deploy Capital Today:
+                    </span>
+                    <div class="flex items-center gap-1">
+                        <button onclick="setDeployCapital(10000)" class="dep-cap-btn filter-btn text-xs" id="btn-dcap-10k">$10k</button>
+                        <button onclick="setDeployCapital(25000)" class="dep-cap-btn filter-btn active text-xs bg-blue-600 text-white" id="btn-dcap-25k">$25k</button>
+                        <button onclick="setDeployCapital(50000)" class="dep-cap-btn filter-btn text-xs" id="btn-dcap-50k">$50k</button>
+                        <button onclick="setDeployCapital(100000)" class="dep-cap-btn filter-btn text-xs" id="btn-dcap-100k">$100k</button>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="text-xs text-slate-500 font-mono">$</span>
+                        <input type="number" id="deploy-custom-capital" value="25000" step="5000" min="1000" max="1000000" class="bg-slate-950 border border-slate-700 text-xs text-white font-mono rounded px-2 py-1 w-24 focus:outline-none focus:border-emerald-500" onchange="setDeployCapital(parseFloat(this.value))">
+                    </div>
+                </div>
+                <div class="text-xs font-mono text-slate-300" id="deploy-allocation-summary">
+                    Deploying $25,000 across top qualified setups
+                </div>
+            </div>
+        </div>
+
         <!-- TABLE 1: TACTICAL SWINGS (BULL CALL SPREADS 45-60 DTE) -->
         <div class="terminal-panel p-4">
             <div class="flex justify-between items-center mb-3">
@@ -684,7 +708,7 @@
                             <th class="py-2 px-2.5">R:R</th>
                             <th class="py-2 px-2.5">Velocity</th>
                             <th class="py-2 px-2.5">200 MA Runway</th>
-                            <th class="py-2 px-2.5">Earnings Filter</th>
+                            <th class="py-2 px-2.5">Action Priority & Allocation</th>
                             <th class="py-2 px-2.5">Exact Option Contract Ticket</th>
                         </tr>
                     </thead>
@@ -952,6 +976,9 @@
                             <th class="py-2.5 px-2.5">Targets (TP1/TP2)</th>
                             <th class="py-2.5 px-2.5">Current / Exit</th>
                             <th class="py-2.5 px-2.5">P&L %</th>
+                            <th class="py-2.5 px-2.5">Sim. Size ($)</th>
+                            <th class="py-2.5 px-2.5">Sim. Gain ($)</th>
+                            <th class="py-2.5 px-2.5">Account Equity</th>
                             <th class="py-2.5 px-2.5">Active</th>
                             <th class="py-2.5 px-2.5">Status</th>
                             <th class="py-2.5 px-2.5">Loss Attribution / Driver</th>
@@ -973,6 +1000,20 @@
         let allTickersData = [];
         let activeGlobalSector = '';
         let activeTimeHorizon = 'session';
+        let deployCapital = 25000;
+
+        function setDeployCapital(amt) {
+            if (isNaN(amt) || amt <= 0) amt = 25000;
+            deployCapital = amt;
+            document.querySelectorAll('.dep-cap-btn').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+            if (amt === 10000) document.getElementById('btn-dcap-10k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 25000) document.getElementById('btn-dcap-25k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 50000) document.getElementById('btn-dcap-50k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 100000) document.getElementById('btn-dcap-100k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            const inp = document.getElementById('deploy-custom-capital');
+            if (inp) inp.value = amt;
+            if (currentPayload) renderRecsView(currentPayload);
+        }
         let activeStyleFilter = 'ALL';
         let activeStrengthSort = 'score';
         let activeReclaimSession = 'latest';
@@ -1152,12 +1193,15 @@
             if (cashLeftEl) cashLeftEl.textContent = fmtAbs(cashLeft);
             const countEl = document.getElementById('sim-stat-trade-count');
             if (countEl) countEl.textContent = `${trades.length} trades (${trades.filter(t => t.status === 'OPEN' || t.status === 'TP1_HIT').length} open)`;
+            
+            // Re-render ledger table to synchronize simulated dollar values with chosen date & capital
+            renderTradesLedgerTable();
         }
 
         function renderPerformanceView(data) {
+            allTradesLog = data.trades || [];
             runPortfolioSimulation();
             const sum = data.summary || {};
-            allTradesLog = data.trades || [];
 
             document.getElementById('perf-winrate').textContent = (sum.win_rate_pct !== undefined ? sum.win_rate_pct : 0.0) + '%';
             document.getElementById('perf-profitfactor').textContent = (sum.profit_factor !== undefined ? sum.profit_factor : 0.0) + 'x';
@@ -1175,13 +1219,41 @@
             const tbody = document.getElementById('perf-trades-body');
             tbody.innerHTML = '';
 
+            // 1. Calculate chronological compounding equity & position sizes for simulation
+            let runningEquity = simStartingCapital;
+            let simTradeMap = {};
+            let chronological = [...allTradesLog].filter(t => simStartDate === 'all' || t.entry_date >= simStartDate);
+            chronological.sort((a, b) => (a.entry_date > b.entry_date ? 1 : -1));
+
+            chronological.forEach(t => {
+                const pnlPct = (t.pnl_pct || 0) / 100;
+                let posSize = 1000;
+                if (simSizingMode === 'risk_2pct') {
+                    const maxRiskDollars = Math.max(200, runningEquity * 0.02);
+                    posSize = Math.min(maxRiskDollars / 0.08, runningEquity * 0.20);
+                } else if (simSizingMode === 'alloc_10pct') {
+                    posSize = Math.max(500, runningEquity * 0.10);
+                } else {
+                    posSize = 1000;
+                }
+                const dollarPnl = Math.round(posSize * pnlPct);
+                runningEquity += dollarPnl;
+                simTradeMap[t.id] = {
+                    posSize: Math.round(posSize),
+                    dollarPnl: dollarPnl,
+                    equityAfter: Math.round(runningEquity)
+                };
+            });
+
+            // 2. Filter rows by search, status, and simulation inception date
             let filtered = allTradesLog.filter(t => {
                 const matchesSearch = t.ticker.toLowerCase().includes(query) || t.sector.toLowerCase().includes(query);
+                const matchesDate = (simStartDate === 'all' || t.entry_date >= simStartDate);
                 let matchesStatus = true;
-                if (activePerfFilter === 'OPEN') matchesStatus = (t.status === 'OPEN');
-                else if (activePerfFilter === 'WON') matchesStatus = (t.status === 'TP1_HIT' || t.status === 'TP2_HIT');
-                else if (activePerfFilter === 'LOST') matchesStatus = (t.status === 'STOPPED_OUT');
-                return matchesSearch && matchesStatus;
+                if (activePerfFilter === 'OPEN') matchesStatus = (t.status === 'OPEN' || t.status === 'TP1_HIT');
+                else if (activePerfFilter === 'WON') matchesStatus = (t.status === 'TP1_EXPIRED_WIN' || t.status === 'TP2_HIT' || (t.pnl_pct && t.pnl_pct > 0));
+                else if (activePerfFilter === 'LOST') matchesStatus = (t.status === 'STOPPED_OUT' || (t.pnl_pct && t.pnl_pct < 0));
+                return matchesSearch && matchesDate && matchesStatus;
             });
 
             document.getElementById('perf-trades-count').textContent = `${filtered.length} trades shown`;
@@ -1192,6 +1264,7 @@
             }
 
             filtered.forEach(t => {
+                const simInfo = simTradeMap[t.id] || { posSize: 1000, dollarPnl: 0, equityAfter: simStartingCapital };
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-900/50 transition';
 
@@ -1240,6 +1313,9 @@
                     <td class="py-2.5 px-2.5 font-mono text-emerald-400 font-semibold">$${parseFloat(t.tp1).toFixed(2)} / $${parseFloat(t.tp2).toFixed(2)}</td>
                     <td class="py-2.5 px-2.5 font-mono text-slate-200 font-bold">$${parseFloat(t.current_price).toFixed(2)}</td>
                     <td class="py-2.5 px-2.5 font-mono font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${pnl.toFixed(2)}%</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-300 font-semibold">$${(simInfo.posSize || 1000).toLocaleString()}</td>
+                    <td class="py-2.5 px-2.5 font-mono font-bold ${(simInfo.dollarPnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(simInfo.dollarPnl || 0) >= 0 ? '+$' : '-$'}${Math.abs(simInfo.dollarPnl || 0).toLocaleString()}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${(simInfo.equityAfter || 50000).toLocaleString()}</td>
                     <td class="py-2.5 px-2.5 font-mono text-slate-400">${t.days_active}d</td>
                     <td class="py-2.5 px-2.5">${statusBadge}</td>
                     <td class="py-2.5 px-2.5">${driverBadge}</td>
@@ -1425,10 +1501,23 @@
                 candidates = candidates.filter(c => c.sector.toUpperCase() === activeGlobalSector);
             }
 
+            const maxPosToOpen = Math.max(1, Math.min(3, candidates.length));
+            const allocPerTrade = Math.floor(deployCapital / maxPosToOpen);
+            const depSumEl = document.getElementById('deploy-allocation-summary');
+            if (depSumEl) {
+                depSumEl.textContent = `Deploying $${deployCapital.toLocaleString()} across top ${maxPosToOpen} setups · ~$${allocPerTrade.toLocaleString()} per trade`;
+            }
+
             if (candidates.length === 0) {
-                candBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-slate-500">No active qualified candidates matching filter.</td></tr>';
+                candBody.innerHTML = '<tr><td colspan="10" class="py-4 text-center text-slate-500">No active qualified candidates matching filter.</td></tr>';
             } else {
-                candidates.forEach(c => {
+                candidates.forEach((c, idx) => {
+                    const estDebit = parseFloat(c.est_debit) || (c.width ? c.width * 0.38 : 5.0);
+                    const contractCost = Math.max(10, Math.round(estDebit * 100));
+                    const contracts = Math.max(1, Math.floor(allocPerTrade / contractCost));
+                    const totalTradeDebit = contracts * contractCost;
+                    const rankTitle = idx === 0 ? "Rank #1 — Primary Allocation" : (idx === 1 ? "Rank #2 — Secondary Allocation" : `Rank #${idx+1} — Diversifier`);
+                    const rankBadge = idx === 0 ? "bg-emerald-950/60 text-emerald-400 border border-emerald-500/30" : "bg-blue-950/60 text-blue-300 border border-blue-500/30";
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-slate-800/40 transition';
                     const contractTitle = c.contract || c.structure || 'Bull Call Spread (45-60 DTE)';
@@ -1453,8 +1542,10 @@
                         </td>
                         <td class="py-2.5 px-2.5 text-[11px] font-mono">${(c.overhead_runway_pct === 0 || c.overhead_runway_pct === 0.0 || c.overhead_runway_pct === "0%" || c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`}</td>
                         <td class="py-2.5 px-2.5 space-y-1">
+                            <div class="mb-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${rankBadge}">★ ${rankTitle}</span></div>
                             <div><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isSafeEarnings ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/60 text-amber-400 border border-amber-500/30'}">● ${earningsText}</span></div>
-                            <div class="text-[10px] font-mono ${isThrottled ? 'text-amber-400' : 'text-slate-400'}">${allocText}</div>
+                            <div class="text-xs font-mono font-bold text-emerald-400">Buy ${contracts} Contract${contracts > 1 ? 's' : ''}</div>
+                            <div class="text-[10px] font-mono text-slate-400">$${totalTradeDebit.toLocaleString()} debit ($${allocPerTrade.toLocaleString()} budget)</div>
                         </td>
                         <td class="py-2.5 px-2.5">
                             <div class="font-bold text-white text-xs">${contractTitle}</div>
