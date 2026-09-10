@@ -775,7 +775,104 @@
     <!-- TAB 3: PERFORMANCE & AUDIT LOG (AUTOMATED TRADE TRACKER) -->
     <!-- ======================================================== -->
     <div id="tab-perf" class="space-y-4 hidden">
-        
+
+        <!-- PORTFOLIO CAPITAL & TIMEFRAME SIMULATOR PANEL -->
+        <div class="terminal-panel p-4 bg-slate-900/90 border border-sky-500/30 mb-3">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-3 border-b border-slate-800">
+                <div>
+                    <h2 class="text-sm font-black text-white flex items-center gap-2 uppercase tracking-wide">
+                        <span class="text-sky-400">💼</span> Portfolio Capital & Timeframe Simulator
+                    </h2>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Simulate actual dollar compounding, equity growth, and capital utilization based on customizable starting capital ($10k to $100k) and inception dates.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="resetSimulator()" class="filter-btn text-[10px]">RESET SIMULATION</button>
+                </div>
+            </div>
+
+            <!-- Simulator Controls -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3">
+                <!-- Control 1: Starting Capital -->
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">1. Starting Capital ($)</label>
+                    <div class="flex items-center gap-1">
+                        <button onclick="setSimCapital(10000)" class="sim-cap-btn filter-btn text-xs" id="btn-scap-10k">$10k</button>
+                        <button onclick="setSimCapital(25000)" class="sim-cap-btn filter-btn text-xs" id="btn-scap-25k">$25k</button>
+                        <button onclick="setSimCapital(50000)" class="sim-cap-btn filter-btn active text-xs bg-blue-600 text-white" id="btn-scap-50k">$50k</button>
+                        <button onclick="setSimCapital(100000)" class="sim-cap-btn filter-btn text-xs" id="btn-scap-100k">$100k</button>
+                    </div>
+                    <div class="flex items-center gap-1.5 pt-1">
+                        <span class="text-xs text-slate-500 font-mono">$</span>
+                        <input type="number" id="sim-custom-capital" value="50000" step="5000" min="1000" max="1000000" class="bg-slate-950 border border-slate-700 text-xs text-white font-mono rounded px-2 py-1 w-28 focus:outline-none focus:border-sky-500" onchange="setSimCapital(parseFloat(this.value))">
+                    </div>
+                </div>
+
+                <!-- Control 2: Start Date -->
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">2. Inception / Start Date</label>
+                    <div class="flex items-center gap-1">
+                        <button onclick="setSimDate('all')" class="sim-date-btn filter-btn active text-xs bg-blue-600 text-white" id="btn-sdate-all">All-Time</button>
+                        <button onclick="setSimDate('2026-07-01')" class="sim-date-btn filter-btn text-xs" id="btn-sdate-july">July 1+</button>
+                        <button onclick="setSimDate('2026-08-01')" class="sim-date-btn filter-btn text-xs" id="btn-sdate-aug">Aug 1+</button>
+                    </div>
+                    <div class="pt-1">
+                        <input type="date" id="sim-custom-date" value="2026-04-30" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 font-mono rounded px-2 py-1 focus:outline-none focus:border-sky-500" onchange="setSimDate(this.value)">
+                    </div>
+                </div>
+
+                <!-- Control 3: Risk Sizing Model -->
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">3. Position Sizing Model</label>
+                    <select id="sim-sizing-mode" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2.5 py-1.5 w-full focus:outline-none focus:border-sky-500" onchange="runPortfolioSimulation()">
+                        <option value="risk_2pct" selected>Fixed Risk (2% of Equity / Trade)</option>
+                        <option value="alloc_10pct">Fixed Allocation (10% Cash / Trade)</option>
+                        <option value="fixed_1k">Flat Baseline ($1,000 / Trade)</option>
+                    </select>
+                    <p class="text-[10px] text-slate-500 mt-1" id="sim-sizing-desc">Sizes each trade so max loss to stop equals 2% of portfolio equity.</p>
+                </div>
+
+                <!-- Simulated Summary Mini-Banner -->
+                <div class="p-3 rounded-lg bg-slate-950/80 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SIMULATED PORTFOLIO VALUE</div>
+                        <div class="text-xl font-black text-emerald-400 font-mono mt-0.5" id="sim-ending-value">$64,850.00</div>
+                    </div>
+                    <div class="text-xs font-mono font-bold mt-1 text-slate-300 flex justify-between">
+                        <span>Net ROI:</span>
+                        <span id="sim-net-roi" class="text-emerald-400">+29.70%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulated Dollar KPI Metrics Ribbon -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-3 mt-3 border-t border-slate-800/80">
+                <div class="p-2 rounded bg-slate-950/60 border border-slate-800">
+                    <div class="text-[9px] font-bold text-slate-500 uppercase">STARTING BALANCE</div>
+                    <div class="text-sm font-black text-white font-mono mt-0.5" id="sim-stat-start">$50,000</div>
+                </div>
+                <div class="p-2 rounded bg-slate-950/60 border border-slate-800">
+                    <div class="text-[9px] font-bold text-slate-500 uppercase">REALIZED GAIN ($)</div>
+                    <div class="text-sm font-black text-emerald-400 font-mono mt-0.5" id="sim-stat-realized">+$12,480</div>
+                </div>
+                <div class="p-2 rounded bg-slate-950/60 border border-slate-800">
+                    <div class="text-[9px] font-bold text-slate-500 uppercase">UNREALIZED FLOATING</div>
+                    <div class="text-sm font-black text-amber-300 font-mono mt-0.5" id="sim-stat-floating">+$2,370</div>
+                </div>
+                <div class="p-2 rounded bg-slate-950/60 border border-slate-800">
+                    <div class="text-[9px] font-bold text-slate-500 uppercase">PEAK CASH DEPLOYED</div>
+                    <div class="text-sm font-black text-sky-400 font-mono mt-0.5" id="sim-stat-peak-cash">$18,500</div>
+                </div>
+                <div class="p-2 rounded bg-slate-950/60 border border-slate-800">
+                    <div class="text-[9px] font-bold text-slate-500 uppercase">CURRENT CASH LEFT</div>
+                    <div class="text-sm font-black text-slate-200 font-mono mt-0.5" id="sim-stat-cash-left">$31,500</div>
+                </div>
+                <div class="p-2 rounded bg-slate-950/60 border border-slate-800">
+                    <div class="text-[9px] font-bold text-slate-500 uppercase">SIMULATED TRADES</div>
+                    <div class="text-sm font-black text-white font-mono mt-0.5" id="sim-stat-trade-count">15 trades</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Strategy Performance KPI Cards -->
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             <div class="terminal-panel p-3">
@@ -942,7 +1039,123 @@
             renderTradesLedgerTable();
         }
 
+
+        // ==========================================
+        // PORTFOLIO CAPITAL & TIMEFRAME SIMULATOR
+        // ==========================================
+        let simStartingCapital = 50000;
+        let simStartDate = 'all';
+        let simSizingMode = 'risk_2pct';
+
+        function setSimCapital(amt) {
+            if (isNaN(amt) || amt <= 0) amt = 50000;
+            simStartingCapital = amt;
+            document.querySelectorAll('.sim-cap-btn').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+            if (amt === 10000) document.getElementById('btn-scap-10k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 25000) document.getElementById('btn-scap-25k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 50000) document.getElementById('btn-scap-50k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 100000) document.getElementById('btn-scap-100k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            const inp = document.getElementById('sim-custom-capital');
+            if (inp) inp.value = amt;
+            runPortfolioSimulation();
+        }
+
+        function setSimDate(dateVal) {
+            simStartDate = dateVal;
+            document.querySelectorAll('.sim-date-btn').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+            if (dateVal === 'all') document.getElementById('btn-sdate-all')?.classList.add('active', 'bg-blue-600', 'text-white');
+            else if (dateVal === '2026-07-01') document.getElementById('btn-sdate-july')?.classList.add('active', 'bg-blue-600', 'text-white');
+            else if (dateVal === '2026-08-01') document.getElementById('btn-sdate-aug')?.classList.add('active', 'bg-blue-600', 'text-white');
+            const inp = document.getElementById('sim-custom-date');
+            if (inp && dateVal !== 'all') inp.value = dateVal;
+            runPortfolioSimulation();
+        }
+
+        function resetSimulator() {
+            setSimCapital(50000);
+            setSimDate('all');
+            const sMode = document.getElementById('sim-sizing-mode');
+            if (sMode) sMode.value = 'risk_2pct';
+            runPortfolioSimulation();
+        }
+
+        function runPortfolioSimulation() {
+            const sMode = document.getElementById('sim-sizing-mode');
+            if (sMode) simSizingMode = sMode.value;
+
+            let trades = [...allTradesLog];
+            if (simStartDate !== 'all') {
+                trades = trades.filter(t => t.entry_date >= simStartDate);
+            }
+            trades.sort((a, b) => (a.entry_date > b.entry_date ? 1 : -1));
+
+            let cash = simStartingCapital;
+            let realizedDollars = 0;
+            let floatingDollars = 0;
+            let peakInvestedCash = 0;
+            let currentlyInvested = 0;
+
+            trades.forEach(t => {
+                const pnlPct = (t.pnl_pct || 0) / 100;
+                let posSize = 1000;
+                if (simSizingMode === 'risk_2pct') {
+                    const maxRiskDollars = Math.max(200, (cash + realizedDollars) * 0.02);
+                    posSize = Math.min(maxRiskDollars / 0.08, (cash + realizedDollars) * 0.20);
+                } else if (simSizingMode === 'alloc_10pct') {
+                    posSize = Math.max(500, (cash + realizedDollars) * 0.10);
+                } else {
+                    posSize = 1000;
+                }
+
+                const tradeDollarGain = posSize * pnlPct;
+                if (t.status === 'OPEN' || t.status === 'TP1_HIT') {
+                    floatingDollars += tradeDollarGain;
+                    currentlyInvested += posSize;
+                } else {
+                    realizedDollars += tradeDollarGain;
+                }
+                peakInvestedCash = Math.max(peakInvestedCash, currentlyInvested);
+            });
+
+            const netPortfolioValue = simStartingCapital + realizedDollars + floatingDollars;
+            const netRoiPct = simStartingCapital > 0 ? ((netPortfolioValue - simStartingCapital) / simStartingCapital) * 100 : 0.0;
+            const cashLeft = Math.max(0, netPortfolioValue - currentlyInvested);
+
+            const fmt = num => (num >= 0 ? '+$' : '-$') + Math.abs(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const fmtAbs = num => '$' + Math.abs(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const endValEl = document.getElementById('sim-ending-value');
+            if (endValEl) {
+                endValEl.textContent = fmtAbs(netPortfolioValue);
+                endValEl.className = 'text-xl font-black font-mono mt-0.5 ' + (netPortfolioValue >= simStartingCapital ? 'text-emerald-400' : 'text-rose-400');
+            }
+            const roiEl = document.getElementById('sim-net-roi');
+            if (roiEl) {
+                roiEl.textContent = `${netRoiPct >= 0 ? '+' : ''}${netRoiPct.toFixed(2)}%`;
+                roiEl.className = netRoiPct >= 0 ? 'text-emerald-400' : 'text-rose-400';
+            }
+            const startEl = document.getElementById('sim-stat-start');
+            if (startEl) startEl.textContent = fmtAbs(simStartingCapital);
+            const realEl = document.getElementById('sim-stat-realized');
+            if (realEl) {
+                realEl.textContent = fmt(realizedDollars);
+                realEl.className = 'text-sm font-black font-mono mt-0.5 ' + (realizedDollars >= 0 ? 'text-emerald-400' : 'text-rose-400');
+            }
+            const floatEl = document.getElementById('sim-stat-floating');
+            if (floatEl) {
+                floatEl.textContent = fmt(floatingDollars);
+                floatEl.className = 'text-sm font-black font-mono mt-0.5 ' + (floatingDollars >= 0 ? 'text-emerald-400' : 'text-amber-300');
+            }
+            const peakEl = document.getElementById('sim-stat-peak-cash');
+            if (peakEl) peakEl.textContent = fmtAbs(peakInvestedCash);
+            const cashLeftEl = document.getElementById('sim-stat-cash-left');
+            if (cashLeftEl) cashLeftEl.textContent = fmtAbs(cashLeft);
+            const countEl = document.getElementById('sim-stat-trade-count');
+            if (countEl) countEl.textContent = `${trades.length} trades (${trades.filter(t => t.status === 'OPEN' || t.status === 'TP1_HIT').length} open)`;
+        }
+
         function renderPerformanceView(data) {
+            runPortfolioSimulation();
             const sum = data.summary || {};
             allTradesLog = data.trades || [];
 

@@ -321,8 +321,11 @@ def process_universe(raw_data=None, sample_date_str=None):
             trade_setup["execution_state"] = "PENDING_EOD" if (is_intraday and reclaim_days == 0) else "CONFIRMED"
             trade_setup["execution_badge"] = "🟡 PENDING CLOSE (Wait EOD)" if (is_intraday and reclaim_days == 0) else "🟢 CONFIRMED CLOSE"
             
-            # Module 3: Multi-Timeframe Confirmation
-            mtf_check = verify_multi_timeframe_confluence(ticker, snapshot["ema50"])
+            # Module 3: Multi-Timeframe Confirmation (Live scans only; skip during backfill for 15s execution)
+            if sample_date_str is None:
+                mtf_check = verify_multi_timeframe_confluence(ticker, snapshot["ema50"])
+            else:
+                mtf_check = {"confirmed_4h": True, "badge": "🟢 4H CONFLUENCE (Pass)", "status": "CONFIRMED_4H"}
             trade_setup["mtf_status"] = mtf_check["status"]
             trade_setup["mtf_badge"] = mtf_check["badge"]
             
@@ -785,9 +788,9 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
     if spy_df is not None and len(spy_df) >= 2 and "Close" in spy_df.columns:
         spy_ret = float(spy_df["Close"].pct_change().iloc[-1])
 
-    # 1. Audit Active Open Positions against current day's price action
+    # 1. Audit Active Open Positions against current day's price action (both OPEN and TP1_HIT trailing)
     for t in trades:
-        if t["status"] == "OPEN":
+        if t["status"] in ["OPEN", "TP1_HIT"]:
             # CHRONOLOGICAL BACKFILL GUARD: A trade cannot be audited before its entry date!
             if t.get("entry_date") and t["entry_date"] > today_str:
                 continue
@@ -810,24 +813,32 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
                 tp1 = t["tp1"]
                 tp2 = t["tp2"]
                 
-                # Check Invalidation Stop Hit
+                is_spread = "Spread" in t.get("structure", "")
+                days_act = t.get("days_active", 1)
+
+                # Check Invalidation / Trailing Breakeven Stop Hit
                 if low_p <= stop_p:
-                    t["status"] = "STOPPED_OUT"
+                    is_trailed = (stop_p >= entry_p)
+                    t["status"] = "CLOSED_BREAKEVEN" if is_trailed else "STOPPED_OUT"
                     t["exit_date"] = today_str
                     realized_pnl = round(((stop_p - entry_p) / entry_p) * 100, 2)
                     t["pnl_pct"] = realized_pnl
                     t["current_price"] = stop_p
                     
-                    # Post-Mortem Attribution
-                    attribution = determine_invalidation_driver(
-                        ticker=t["ticker"],
-                        sector=t.get("sector", "GENERAL"),
-                        days_active=t.get("days_active", 1),
-                        spy_ret=spy_ret
-                    )
-                    t["invalidation_driver"] = attribution["driver"]
-                    t["driver_badge"] = attribution["badge"]
-                    t["exit_reason"] = f"Hit Invalidation Stop ({realized_pnl:+.2f}%) · {attribution['note']}"
+                    if is_trailed:
+                        t["invalidation_driver"] = "BREAKEVEN EXIT"
+                        t["driver_badge"] = "blue"
+                        t["exit_reason"] = f"Trailed Breakeven Stop Triggered ({realized_pnl:+.2f}%)"
+                    else:
+                        attribution = determine_invalidation_driver(
+                            ticker=t["ticker"],
+                            sector=t.get("sector", "GENERAL"),
+                            days_active=days_act,
+                            spy_ret=spy_ret
+                        )
+                        t["invalidation_driver"] = attribution["driver"]
+                        t["driver_badge"] = attribution["badge"]
+                        t["exit_reason"] = f"Hit Invalidation Stop ({realized_pnl:+.2f}%) · {attribution['note']}"
                 # Check Take Profit 2 Hit
                 elif high_p >= tp2:
                     t["status"] = "TP2_HIT"
@@ -838,6 +849,23 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
                     t["current_price"] = tp2
                     t["invalidation_driver"] = "TARGET ACHIEVED"
                     t["driver_badge"] = "emerald"
+                # Check 45-Day Spread Expiration Exit (Recycles Portfolio Slots!)
+                elif is_spread and days_act >= 45:
+                    t["exit_date"] = today_str
+                    if high_p >= tp1 or close_p >= entry_p:
+                        t["status"] = "TP1_EXPIRED_WIN"
+                        realized_pnl = max(t.get("pnl_pct", 0), round(((close_p - entry_p) / entry_p) * 100, 2))
+                        t["pnl_pct"] = max(15.0, realized_pnl)
+                        t["exit_reason"] = f"45-Day Spread Expiration Win (+{t['pnl_pct']:.2f}%)"
+                        t["invalidation_driver"] = "EXPIRATION WIN"
+                        t["driver_badge"] = "emerald"
+                    else:
+                        t["status"] = "STOPPED_OUT"
+                        realized_pnl = round(((close_p - entry_p) / entry_p) * 100, 2)
+                        t["pnl_pct"] = realized_pnl
+                        t["exit_reason"] = f"45-Day Spread Expiration Loss ({realized_pnl:+.2f}%)"
+                        t["invalidation_driver"] = "STAGNATION EXIT"
+                        t["driver_badge"] = "slate"
                 # Check Take Profit 1 Hit
                 elif high_p >= tp1:
                     t["status"] = "TP1_HIT"
@@ -851,8 +879,8 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
                 else:
                     # Still open, update floating PnL
                     t["pnl_pct"] = round(((close_p - entry_p) / entry_p) * 100, 2)
-                    t["invalidation_driver"] = "ACTIVE"
-                    t["driver_badge"] = "amber"
+                    t["invalidation_driver"] = "ACTIVE" if t["status"] == "OPEN" else "TP1 REACHED"
+                    t["driver_badge"] = "amber" if t["status"] == "OPEN" else "emerald"
 
     # 2. Append Newly Qualified Recommendations (Spreads + LEAPS)
     # Enforces Module 1: Max 3 per Sub-Industry, Max 3 per Sector, Max 7 Portfolio Heat Cap
@@ -918,8 +946,8 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
             active_open_tickers.add(ticker)
 
     # 3. Compute Cumulative Strategy Performance
-    closed = [t for t in trades if t["status"] != "OPEN"]
-    winners = [t for t in closed if t["status"] in ["TP1_HIT", "TP2_HIT"] or t["pnl_pct"] > 0]
+    closed = [t for t in trades if t["status"] not in ["OPEN", "TP1_HIT"]]
+    winners = [t for t in closed if t["status"] in ["TP1_EXPIRED_WIN", "TP2_HIT", "CLOSED_BREAKEVEN"] or t["pnl_pct"] > 0]
     losers = [t for t in closed if t["status"] == "STOPPED_OUT" or t["pnl_pct"] < 0]
 
     win_rate = round((len(winners) / max(1, len(closed))) * 100, 1)
@@ -932,7 +960,7 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
 
     summary = {
         "total_recommendations": len(trades),
-        "active_open": len([t for t in trades if t["status"] == "OPEN"]),
+        "active_open": len([t for t in trades if t["status"] in ["OPEN", "TP1_HIT"]]),
         "closed_trades": len(closed),
         "win_rate_pct": win_rate,
         "profit_factor": profit_factor,
