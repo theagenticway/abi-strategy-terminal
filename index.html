@@ -924,7 +924,7 @@
             <div class="flex justify-between items-center mb-3">
                 <div>
                     <h2 class="text-sm font-black text-white flex items-center gap-1.5 uppercase tracking-wide">
-                        <span class="text-emerald-400">🏛️</span> Strategic Core Accumulation (Deep-ITM Call LEAPS — Jan 2028 Expiry)
+                        <span class="text-emerald-400">🏛️</span> <span id="table2-header-title">Strategic Core Accumulation (Deep-ITM Call LEAPS — Jan 2028 Expiry)</span>
                     </h2>
                     <p class="text-[11px] text-slate-400">Multi-quarter secular compounders: Structural trend stack (Price > EMA50 > SMA200), rising 200 MA, and institutional cash-flow quality.</p>
                 </div>
@@ -1850,11 +1850,21 @@
         async function loadData(url, isBackground = false) {
             try {
                 const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
-                if (!res.ok) throw new Error('Failed to load JSON');
-                currentPayload = await res.json();
+                if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load ${url}`);
+                const textData = await res.text();
+                if (!textData || textData.trim() === '' || textData.trim() === '{}') {
+                    throw new Error(`Empty JSON payload received from ${url}`);
+                }
+                currentPayload = JSON.parse(textData);
                 renderUI(currentPayload);
             } catch (e) {
-                if (!isBackground) console.error(e);
+                if (!isBackground) {
+                    console.error('loadData error:', e);
+                    const tsEl = document.getElementById('header-timestamp');
+                    if (tsEl) {
+                        tsEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-rose-950/80 text-rose-400 border border-rose-500/40 text-xs">⚠️ Data Unavailable (${e.message}) — Run standard scan or check Actions</span>`;
+                    }
+                }
             }
         }
 
@@ -1867,12 +1877,17 @@
         }
 
         function renderUI(data) {
+            if (!data) {
+                console.warn('renderUI called with empty data payload.');
+                return;
+            }
             const m = data.macro_breadth || {};
-            document.getElementById('header-timestamp').textContent = `• data ${m.timestamp || m.date || '9/4/2026'}`;
+            const tsEl = document.getElementById('header-timestamp');
+            if (tsEl) tsEl.textContent = `• data ${m.timestamp || m.date || '9/4/2026'}`;
 
-            renderSectorNavPills();
-            renderRecsView(data);
-            renderMacroBoard(data);
+            try { renderSectorNavPills(); } catch(e) { console.error('Error in renderSectorNavPills:', e); }
+            try { renderRecsView(data); } catch(e) { console.error('Error in renderRecsView:', e); }
+            try { renderMacroBoard(data); } catch(e) { console.error('Error in renderMacroBoard:', e); }
         }
 
         function renderSectorNavPills() {
@@ -1988,15 +2003,15 @@
             const candBody = document.getElementById('candidates-body');
             candBody.innerHTML = '';
 
-            const t1Title = document.getElementById('table1-title');
-            const t2Title = document.getElementById('table2-title');
+            const t1Title = document.getElementById('table1-header-title');
+            const t2Title = document.getElementById('table2-header-title');
 
             if (activeAssetClass === 'STOCKS') {
-                if (t1Title) t1Title.innerHTML = '<span class="text-sky-400">⚡</span> Table 1: Tactical Equity Swings (50 EMA Reclaims — 1:2.5+ R:R)';
-                if (t2Title) t2Title.innerHTML = '<span class="text-emerald-400">🏛️</span> Table 2: Strategic Core Growth Accumulation (Common Shares)';
+                if (t1Title) t1Title.textContent = 'Tactical Equity Swings (50 EMA Reclaims — 1:2.5+ R:R)';
+                if (t2Title) t2Title.textContent = 'Strategic Core Growth Accumulation (Common Shares)';
             } else {
-                if (t1Title) t1Title.innerHTML = '<span class="text-sky-400">⚡</span> Table 1: Tactical Swings (Bull Call Spreads — 45-60 DTE)';
-                if (t2Title) t2Title.innerHTML = '<span class="text-emerald-400">🏛️</span> Table 2: Strategic Core Accumulation (Deep-ITM Call LEAPS — Jan 2028 Expiry)';
+                if (t1Title) t1Title.textContent = (activeDirectionalMode === 'HEDGE') ? 'Downside Hedges (Options Alpha Radar — Bear Put Spreads 30–45 DTE)' : 'Tactical Swings (Options Alpha Radar — Bull Call Spreads 45–60 DTE)';
+                if (t2Title) t2Title.textContent = 'Strategic Core Accumulation (Deep-ITM Call LEAPS — Jan 2028 Expiry)';
             }
 
             let candidates = (activeAssetClass === 'STOCKS') ? (data.stock_recommendations || []) : (data.top_candidates || []);

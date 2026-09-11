@@ -1374,6 +1374,29 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
     print(f"[+] Updated {trades_log_path} ({len(trades)} total trades, {win_rate}% win rate, {profit_factor}x profit factor)")
     return trades_payload
 
+def ensure_ledgers_exist():
+    """Guarantees that both trades_log.json and stock_trades_log.json exist on disk."""
+    for fname in ["trades_log.json", "stock_trades_log.json"]:
+        fpath = os.path.join(DATA_DIR, fname)
+        if not os.path.exists(fpath):
+            os.makedirs(DATA_DIR, exist_ok=True)
+            with open(fpath, "w") as f:
+                json.dump({
+                    "summary": {
+                        "total_recommendations": 0,
+                        "active_open": 0,
+                        "closed_trades": 0,
+                        "win_rate_pct": 0.0,
+                        "profit_factor": 0.0,
+                        "gross_realized_gain": 0.0,
+                        "avg_winner_pct": 0.0,
+                        "avg_loser_pct": 0.0,
+                        "avg_holding_days": 0.0
+                    },
+                    "trades": []
+                }, f, indent=2)
+            print(f"[+] Auto-initialized missing ledger file: {fpath}")
+
 def save_payloads(payload: dict, raw_data=None):
     """Writes latest.json, updates summary.json, and prunes old files."""
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -1389,12 +1412,34 @@ def save_payloads(payload: dict, raw_data=None):
 
     date_str = payload["macro_breadth"]["date"]
     
-    # Audit and update paper trades log (Spreads + LEAPS)
+    # Ensure both options and stock ledger files exist on disk
+    ensure_ledgers_exist()
+
+    # Audit and update options paper trades log (Spreads + LEAPS)
     try:
         combined_recs = payload.get("top_candidates", []) + payload.get("strategic_leaps", [])
         audit_and_update_trades(raw_data, combined_recs, date_str)
     except Exception as audit_err:
         print(f"[!] Warning updating trades log: {audit_err}")
+
+    # Audit and update dedicated stock trades log (Equities)
+    try:
+        current_bars = {}
+        for t_rec in payload.get("tickers", []):
+            current_bars[t_rec["ticker"]] = {
+                "High": t_rec["price"] * 1.01,
+                "Low": t_rec["price"] * 0.99,
+                "Open": t_rec["price"],
+                "Close": t_rec["price"],
+                "EMA50": t_rec["ema50"]
+            }
+        spy_df = extract_ticker_df(raw_data, "SPY")
+        spy_ret = float(spy_df["Close"].pct_change().iloc[-1]) if (spy_df is not None and len(spy_df) >= 2) else 0.0
+        stock_recs = payload.get("stock_recommendations", [])
+        stocks.update_stock_trades_log(stock_recs, current_bars, date_str, spy_ret)
+        print(f"[+] Updated stock_trades_log.json ({len(stock_recs)} stock recommendations evaluated)")
+    except Exception as s_log_err:
+        print(f"[!] Warning updating stock trades log: {s_log_err}")
     
     with open(latest_path, "w") as f:
         json.dump(payload, f, indent=2)
@@ -1428,6 +1473,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("[*] Running ABI Strategy Scanner Engine...")
+    ensure_ledgers_exist()
     universe = get_full_universe()
     
     if args.backfill > 0:

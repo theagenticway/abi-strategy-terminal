@@ -261,8 +261,8 @@ console.log("✔ Test 14: Directional Mode safely returned to LONG.");
 domElements['btn-asset-options'] = createMockElement('btn-asset-options');
 domElements['btn-asset-stocks'] = createMockElement('btn-asset-stocks');
 domElements['asset-class-explainer'] = createMockElement('asset-class-explainer');
-domElements['table1-title'] = createMockElement('table1-title');
-domElements['table2-title'] = createMockElement('table2-title');
+domElements['table1-header-title'] = createMockElement('table1-header-title');
+domElements['table2-header-title'] = createMockElement('table2-header-title');
 
 context.switchAssetClass('STOCKS');
 assert.strictEqual(context.activeAssetClass, 'STOCKS');
@@ -272,8 +272,8 @@ console.log("✔ Test 15: Strategy Asset Class switched to STOCKS (Equity Radar)
 // Test 16: Table 1 & Table 2 dynamic title updates for Stocks
 // -----------------------------------------------------------------
 context.renderRecsView(latestData);
-assert(domElements['table1-title'].innerHTML.includes('Tactical Equity Swings'), "Table 1 title must reflect Equity Swings");
-assert(domElements['table2-title'].innerHTML.includes('Strategic Core Growth Accumulation'), "Table 2 title must reflect Growth Accumulation");
+assert((domElements['table1-header-title'].textContent + domElements['table1-header-title'].innerHTML).includes('Tactical Equity Swings'), "Table 1 title must reflect Equity Swings");
+assert((domElements['table2-header-title'].textContent + domElements['table2-header-title'].innerHTML).includes('Strategic Core Growth Accumulation'), "Table 2 title must reflect Growth Accumulation");
 console.log("✔ Test 16: Table 1 & Table 2 dynamic titles for Stocks verified.");
 
 // -----------------------------------------------------------------
