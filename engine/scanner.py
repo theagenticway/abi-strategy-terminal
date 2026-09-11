@@ -224,6 +224,11 @@ HISTORY_DIR = os.path.join(DATA_DIR, "history")
 
 RETENTION_DAYS = 365  # 1-Year historical retention prune
 
+def compute_alpha_composite_score(*args, **kwargs):
+    """Re-export Alpha Composite Scorer from engine/stocks.py."""
+    return stocks.compute_alpha_composite_score(*args, **kwargs)
+
+
 # Comprehensive mapping of 25 Sector/Industry ETFs to constituent sectors & keywords
 ETF_SECTOR_MAP = {
     "GDX": {"sectors": ["MATERIALS"], "keywords": ["gold", "mining", "metal"]},
@@ -558,13 +563,16 @@ def process_universe(raw_data=None, sample_date_str=None):
             
             qualified_candidates.append(trade_setup)
             try:
+                # Broad index exclusion: SPY, QQQ, IWM, RSP are reserved for Core Accumulation & Benchmark Ribbon
+                is_broad_index = (ticker.upper() in ("SPY", "QQQ", "IWM", "RSP") or (sector and sector.upper() == "INDEX"))
                 stock_setup = stocks.structure_stock_trade(ticker, sector, snapshot, retrace_type, reclaim_days, spy_regime_for_sizing, subsector=subsector)
                 if stock_setup is not None:
                     stock_setup["overhead_runway_pct"] = runway_val
                     stock_setup["overhead_clearance_ok"] = overhead_ok
                     stock_setup["execution_state"] = trade_setup["execution_state"]
                     stock_setup["execution_badge"] = trade_setup["execution_badge"]
-                    qualified_stock_candidates.append(stock_setup)
+                    if not is_broad_index:
+                        qualified_stock_candidates.append(stock_setup)
             except Exception as s_err:
                 print(f"[!] Warning structuring stock trade for {ticker}: {s_err}")
 
@@ -1118,6 +1126,56 @@ def process_universe(raw_data=None, sample_date_str=None):
         if len(verified_leaps) >= 5:
             break
 
+    # =========================================================================
+    # DYNAMIC ALPHA COMPOSITE SCORING & SECTOR DIVERSIFICATION (RELEASE V13)
+    # =========================================================================
+    top_quartile_sectors = set()
+    num_tq_etfs = max(1, len(all_25_etfs) // 4 + 1)
+    for e in all_25_etfs[:num_tq_etfs]:
+        if e.get("sector"):
+            top_quartile_sectors.add(e["sector"].upper())
+        if e.get("etf"):
+            top_quartile_sectors.add(e["etf"].upper())
+    for s in sector_strength[:max(1, len(sector_strength) // 4 + 1)]:
+        if s.get("sector"):
+            top_quartile_sectors.add(s["sector"].upper())
+
+    for s_cand in qualified_stock_candidates:
+        s_score, s_breakdown = stocks.compute_alpha_composite_score(
+            reclaim_days=s_cand.get("reclaim_days", 0),
+            rvol=s_cand.get("rvol", 1.0),
+            price=s_cand.get("price", 100.0),
+            ema50=s_cand.get("ema50", s_cand.get("price", 100.0)),
+            sector=s_cand.get("sector"),
+            rr_ratio=s_cand.get("rr_ratio", 2.5),
+            top_quartile_sectors=top_quartile_sectors,
+            return_breakdown=True
+        )
+        s_cand["alpha_score"] = s_score
+        s_cand["alpha_score_breakdown"] = s_breakdown
+
+    # Dynamic sort: descending by multi-factor Alpha Composite Score
+    qualified_stock_candidates.sort(key=lambda x: x.get("alpha_score", 0), reverse=True)
+
+    # Enforce Sector Concentration Guardrail: maximum 2 tickers per sector
+    selected_stock_recommendations = []
+    sector_counts = {}
+    for s_cand in qualified_stock_candidates:
+        sec = (s_cand.get("sector") or "OTHER").upper()
+        if sector_counts.get(sec, 0) < 2:
+            selected_stock_recommendations.append(s_cand)
+            sector_counts[sec] = sector_counts.get(sec, 0) + 1
+        if len(selected_stock_recommendations) >= 5:
+            break
+
+    # Fallback if fewer than 5 met strict cap
+    if len(selected_stock_recommendations) < 5:
+        for s_cand in qualified_stock_candidates:
+            if s_cand not in selected_stock_recommendations:
+                selected_stock_recommendations.append(s_cand)
+                if len(selected_stock_recommendations) >= 5:
+                    break
+
     return {
         "macro_breadth": macro_breadth,
         "benchmark_matrix": benchmark_matrix,
@@ -1137,7 +1195,8 @@ def process_universe(raw_data=None, sample_date_str=None):
         "daily_activity": daily_activity,
         "regime_change_etfs": regime_change_etfs,
         "top_candidates": verified_top_candidates[:5],
-        "stock_recommendations": qualified_stock_candidates[:5],
+        "stock_recommendations": selected_stock_recommendations[:5],
+        "all_qualified_stocks": qualified_stock_candidates,
         "core_stocks": core_stock_candidates[:5],
         "all_qualified": qualified_candidates,
         "strategic_leaps": verified_leaps,

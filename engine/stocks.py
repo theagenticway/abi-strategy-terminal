@@ -44,6 +44,169 @@ def calculate_stock_position_size(entry_price: float, stop_price: float, portfol
     }
 
 
+
+def compute_alpha_composite_score(
+    reclaim_days=0,
+    rvol=1.0,
+    price=100.0,
+    ema50=100.0,
+    sector=None,
+    rr_ratio=2.5,
+    top_quartile_sectors=None,
+    return_breakdown=False,
+    **kwargs
+):
+    """
+    Computes dynamic Alpha Composite Score (0 - 100 points):
+    Alpha Composite Score = Freshness (30%) + RVOL (25%) + EMA50 Proximity (20%) + Sector RS (15%) + R:R (10%)
+
+    1. Freshness of Reclaim (30 pts max):
+       - Day 0 (reclaimed today): 30 pts — immediate breakout velocity
+       - Day 1 (reclaimed yesterday): 25 pts — strong confirmation follow-through
+       - Day 2: 15 pts
+       - Day 3: 5 pts
+       - Day > 3: 0 pts
+
+    2. Relative Volume Surge (RVOL) (25 pts max):
+       - RVOL >= 2.0x: 25 pts (strong institutional footprint)
+       - RVOL >= 1.5x: 20 pts
+       - RVOL >= 1.2x: 15 pts
+       - RVOL >= 1.0x: 10 pts
+       - RVOL < 1.0x: 5 pts
+
+    3. Proximity to 50 EMA (20 pts max):
+       - Distance <= 1.5%: 20 pts (tight support retest, minimal stop distance)
+       - Distance <= 3.0%: 15 pts
+       - Distance <= 5.0%: 10 pts
+       - Distance > 5.0%: 5 pts
+
+    4. Sector Momentum & Relative Strength (15 pts max):
+       - Tickers belonging to top-quartile ETF sectors receive 15 pts
+       - Otherwise: 5 pts
+
+    5. Reward-to-Risk Ratio (10 pts max):
+       - R:R >= 3.0: 10 pts
+       - R:R >= 2.5: 8 pts
+       - R:R < 2.5: 5 pts
+    """
+    if isinstance(reclaim_days, dict):
+        d = reclaim_days
+        rec_days = d.get("reclaim_days", 0)
+        rvol_val = d.get("rvol", rvol)
+        price_val = d.get("price", price)
+        ema50_val = d.get("ema50", ema50)
+        sec_val = d.get("sector", sector)
+        if "rr_ratio" in d:
+            rr_val = d.get("rr_ratio")
+        elif "risk_per_share" in d and "tp1" in d and "price" in d:
+            rr_val = (float(d["tp1"]) - float(d["price"])) / max(0.01, float(d["risk_per_share"]))
+        else:
+            rr_val = rr_ratio
+    else:
+        rec_days = reclaim_days
+        rvol_val = rvol
+        price_val = price
+        ema50_val = ema50
+        sec_val = sector
+        rr_val = rr_ratio
+
+    # 1. Freshness of Reclaim (30 pts max)
+    try:
+        rec_days_int = int(rec_days) if rec_days is not None else 0
+    except (ValueError, TypeError):
+        rec_days_int = 0
+
+    if rec_days_int == 0:
+        freshness_pts = 30.0
+    elif rec_days_int == 1:
+        freshness_pts = 25.0
+    elif rec_days_int == 2:
+        freshness_pts = 15.0
+    elif rec_days_int == 3:
+        freshness_pts = 5.0
+    else:
+        freshness_pts = 0.0
+
+    # 2. Relative Volume Surge (RVOL) (25 pts max)
+    try:
+        rvol_num = float(rvol_val) if rvol_val is not None else 1.0
+    except (ValueError, TypeError):
+        rvol_num = 1.0
+
+    if rvol_num >= 2.0:
+        rvol_pts = 25.0
+    elif rvol_num >= 1.5:
+        rvol_pts = 20.0
+    elif rvol_num >= 1.2:
+        rvol_pts = 15.0
+    elif rvol_num >= 1.0:
+        rvol_pts = 10.0
+    else:
+        rvol_pts = 5.0
+
+    # 3. Proximity to 50 EMA (20 pts max)
+    try:
+        p_num = float(price_val) if price_val is not None else 100.0
+        e_num = float(ema50_val) if ema50_val is not None else 100.0
+        dist_pct = (abs(p_num - e_num) / max(0.01, e_num)) * 100.0
+    except (ValueError, TypeError):
+        dist_pct = 2.0
+
+    if dist_pct <= 1.5:
+        prox_pts = 20.0
+    elif dist_pct <= 3.0:
+        prox_pts = 15.0
+    elif dist_pct <= 5.0:
+        prox_pts = 10.0
+    else:
+        prox_pts = 5.0
+
+    # 4. Sector Relative Strength (15 pts max)
+    sector_pts = 5.0
+    if sec_val and top_quartile_sectors:
+        sec_upper = str(sec_val).strip().upper()
+        for tq in top_quartile_sectors:
+            tq_upper = str(tq).strip().upper()
+            if tq_upper == sec_upper or tq_upper in sec_upper or sec_upper in tq_upper:
+                sector_pts = 15.0
+                break
+
+    # 5. Reward-to-Risk (10 pts max)
+    if isinstance(rr_val, str):
+        try:
+            if ":" in rr_val:
+                rr_num = float(rr_val.split(":")[-1])
+            else:
+                rr_num = float(rr_val)
+        except (ValueError, IndexError):
+            rr_num = 2.5
+    else:
+        try:
+            rr_num = float(rr_val) if rr_val is not None else 2.5
+        except (ValueError, TypeError):
+            rr_num = 2.5
+
+    if rr_num >= 3.0:
+        rr_pts = 10.0
+    elif rr_num >= 2.5:
+        rr_pts = 8.0
+    else:
+        rr_pts = 5.0
+
+    total = round(freshness_pts + rvol_pts + prox_pts + sector_pts + rr_pts, 1)
+    breakdown = {
+        "freshness": freshness_pts,
+        "rvol": rvol_pts,
+        "proximity": prox_pts,
+        "sector_rs": sector_pts,
+        "rr": rr_pts,
+        "total": total
+    }
+    if return_breakdown:
+        return total, breakdown
+    return total
+
+
 def structure_stock_trade(ticker: str, sector: str, snapshot: dict, retrace_type: str, reclaim_days: int, regime: str = "MIXED", subsector: str = None, portfolio_capital: float = 50000.0) -> dict:
     """
     Structures a tactical equity swing trade setup (Common Shares):
@@ -73,6 +236,16 @@ def structure_stock_trade(ticker: str, sector: str, snapshot: dict, retrace_type
     order_ticket = f"BUY {shares} SHARES @ ${price:.2f} LIMIT · STOP @ ${stop_price:.2f} · TP1: ${tp1:.2f} / TP2: ${tp2:.2f}"
     execution_guidance = "Scale 50% at TP1 (+2.5 R:R) · Move Stop to Breakeven · Trail Remainder on 50 EMA"
 
+    alpha_score, alpha_breakdown = compute_alpha_composite_score(
+        reclaim_days=reclaim_days,
+        rvol=snapshot.get("rvol", 1.0),
+        price=price,
+        ema50=ema50,
+        sector=sector,
+        rr_ratio=round((tp1 - price) / max(0.01, risk_per_share), 2),
+        return_breakdown=True
+    )
+
     return {
         "action": "BUY",
         "asset_class": "EQUITY",
@@ -96,7 +269,9 @@ def structure_stock_trade(ticker: str, sector: str, snapshot: dict, retrace_type
         "execution_guidance": execution_guidance,
         "rvol": snapshot.get("rvol", 1.0),
         "weekly_stage": snapshot.get("weekly_stage", "STAGE 2 (Advancing)"),
-        "structure": "Tactical Stock Swing (Common Shares)"
+        "structure": "Tactical Stock Swing (Common Shares)",
+        "alpha_score": alpha_score,
+        "alpha_score_breakdown": alpha_breakdown
     }
 
 

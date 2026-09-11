@@ -105,3 +105,37 @@ class TestFunctionalPipeline(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+    def test_unfinalized_bar_resilience_and_broader_ingestion(self):
+        # Append a trailing unfinalized row with NaNs in Close and Volume=0
+        today_date = pd.date_range("2026-09-05", periods=1, freq="D")
+        tuples = self.raw_data.columns
+        unfin_matrix = np.zeros((1, len(tuples)))
+        idx = 0
+        for t in tuples.levels[0]:
+            unfin_matrix[0, idx] = np.nan
+            unfin_matrix[0, idx+1] = np.nan
+            unfin_matrix[0, idx+2] = np.nan
+            unfin_matrix[0, idx+3] = np.nan
+            unfin_matrix[0, idx+4] = 0
+            idx += 5
+        unfin_df = pd.DataFrame(unfin_matrix, index=today_date, columns=tuples)
+        corrupted_raw = pd.concat([self.raw_data, unfin_df], axis=0)
+
+        payload = scanner.process_universe(corrupted_raw, sample_date_str="2026-09-04")
+        self.assertIsNotNone(payload)
+        self.assertGreater(len(payload["tickers"]), 0)
+        
+        # Ensure zero NaNs in any evaluated equity price
+        for t in payload["tickers"]:
+            self.assertFalse(np.isnan(t["price"]), f"Price must not be NaN for {t['ticker']}")
+            self.assertFalse(np.isnan(t["return_pct"]), f"return_pct must not be NaN for {t['ticker']}")
+
+        # Broader data persistence: Macro, Sectors, and Stock Recommendations remain fully powered
+        self.assertGreater(payload["macro_breadth"]["total_alerts"], 0)
+        self.assertGreater(len(payload["sector_strength"]), 0)
+        self.assertGreater(len(payload["all_subsectors"]), 0)
+        self.assertIn("stock_recommendations", payload)
+        self.assertIn("core_stocks", payload)
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

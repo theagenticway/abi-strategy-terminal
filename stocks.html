@@ -21,6 +21,9 @@
                 }
             }
         }
+
+
+
     </script>
     <style>
         body { background-color: #080c14; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; }
@@ -231,6 +234,8 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button onclick="openEquityExportModal()" id="btn-export-equity-json" class="filter-btn text-[10px] text-emerald-400 hover:bg-emerald-950/50 hover:border-emerald-500/50 flex items-center gap-1"><span>📥</span> EXPORT PORTFOLIO (JSON)</button>
+                    <button onclick="openEquityImportModal()" id="btn-import-equity-json" class="filter-btn text-[10px] text-cyan-400 hover:bg-cyan-950/50 hover:border-cyan-500/50 flex items-center gap-1"><span>📤</span> IMPORT PORTFOLIO</button>
                     <button onclick="clearEquityPortfolioConfirm()" class="filter-btn text-[10px] text-rose-400 hover:bg-rose-950/50 hover:border-rose-500/50">CLEAR PORTFOLIO</button>
                     <button onclick="resetEquityAllocator()" class="filter-btn text-[10px]">RESET ALLOCATOR</button>
                 </div>
@@ -969,6 +974,7 @@
                     </td>
                     <td class="py-2.5 px-2.5 space-y-1">
                         <div><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${rankBadge}">★ ${rankTitle}</span></div>
+                        ${item.alpha_score !== undefined ? `<div class="mt-0.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-950/60 text-purple-300 border border-purple-500/30">ALPHA: ${item.alpha_score}/100</span></div>` : ''}
                         <div class="text-xs font-mono font-bold text-white">Buy ${dynamicShares} Shares</div>
                         <div class="text-[10px] font-mono text-slate-400">$${capitalDeployed.toLocaleString()} deployed · ${riskPct}% risk ($${actualRiskDollars})</div>
                         ${portBtnHtml}
@@ -1309,6 +1315,188 @@
             loadLatestData();
             loadStockPerformanceData();
         });
+    
+        // ==========================================
+        // CROSS-DEVICE PORTFOLIO PORTABILITY (JSON)
+        // ==========================================
+        function openEquityExportModal() {
+            const port = getMyEquityPortfolio();
+            const jsonStr = JSON.stringify(port, null, 2);
+            const textarea = document.getElementById('equity-export-json-textarea');
+            if (textarea) textarea.value = jsonStr;
+            const modal = document.getElementById('equity-export-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                if (modal.style) modal.style.display = 'flex';
+            }
+        }
+
+        function closeEquityExportModal() {
+            const modal = document.getElementById('equity-export-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                if (modal.style) modal.style.display = 'none';
+            }
+        }
+
+        function copyEquityExportJSON() {
+            const textarea = document.getElementById('equity-export-json-textarea');
+            if (!textarea) return;
+            const textToCopy = textarea.value;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const btn = document.getElementById('btn-equity-copy-json');
+                    if (btn) {
+                        const orig = btn.innerHTML;
+                        btn.innerHTML = '✓ Copied!';
+                        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+                    }
+                }).catch(() => {
+                    alert('Portfolio JSON copied to clipboard!');
+                });
+            } else {
+                textarea.select();
+                document.execCommand('copy');
+                alert('Portfolio JSON copied to clipboard!');
+            }
+        }
+
+        function downloadEquityExportJSON() {
+            const textarea = document.getElementById('equity-export-json-textarea');
+            if (!textarea) return;
+            const blob = new Blob([textarea.value], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `my_equity_portfolio_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function openEquityImportModal() {
+            const textarea = document.getElementById('equity-import-json-textarea');
+            if (textarea) textarea.value = '';
+            const status = document.getElementById('equity-import-status');
+            if (status) { status.className = 'text-xs hidden'; status.textContent = ''; }
+            const modal = document.getElementById('equity-import-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                if (modal.style) modal.style.display = 'flex';
+            }
+        }
+
+        function closeEquityImportModal() {
+            const modal = document.getElementById('equity-import-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                if (modal.style) modal.style.display = 'none';
+            }
+        }
+
+        function handleEquityFileSelect(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const textarea = document.getElementById('equity-import-json-textarea');
+                if (textarea) textarea.value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+
+        function importEquityPortfolioJSON(replaceMode = false) {
+            const textarea = document.getElementById('equity-import-json-textarea');
+            const status = document.getElementById('equity-import-status');
+            if (!textarea) return;
+            const raw = textarea.value.trim();
+            if (!raw) {
+                if (status) {
+                    status.className = 'text-xs text-rose-400 block';
+                    status.textContent = 'Please paste valid JSON or choose a file first.';
+                }
+                return;
+            }
+            try {
+                let parsed = JSON.parse(raw);
+                if (parsed && parsed.portfolio && typeof parsed.portfolio === 'object') {
+                    parsed = parsed.portfolio;
+                }
+                if (typeof parsed !== 'object' || Array.isArray(parsed) || parsed === null) {
+                    throw new Error('Portfolio JSON must be an object of trades.');
+                }
+                let current = replaceMode ? {} : getMyEquityPortfolio();
+                let count = 0;
+                for (const [k, v] of Object.entries(parsed)) {
+                    if (v && typeof v === 'object') {
+                        current[k] = v;
+                        count++;
+                    }
+                }
+                saveMyEquityPortfolio(current);
+                if (status) {
+                    status.className = 'text-xs text-emerald-400 block';
+                    status.textContent = `Successfully ${replaceMode ? 'restored' : 'merged'} ${count} position(s)!`;
+                }
+                setTimeout(() => {
+                    closeEquityImportModal();
+                }, 1000);
+            } catch (e) {
+                if (status) {
+                    status.className = 'text-xs text-rose-400 block';
+                    status.textContent = 'Invalid JSON: ' + e.message;
+                }
+            }
+        }
     </script>
+
+    <!-- Equity Portfolio Export Modal -->
+    <div id="equity-export-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="terminal-panel max-w-lg w-full p-5 bg-slate-900 border border-emerald-500/50 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                    <span>📥</span> Export Equity Portfolio (JSON)
+                </h3>
+                <button onclick="closeEquityExportModal()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+            </div>
+            <p class="text-xs text-slate-400">
+                Copy this JSON or download the backup file to transfer your tracked stock positions to mobile or another device.
+            </p>
+            <textarea id="equity-export-json-textarea" readonly class="w-full h-44 bg-slate-950 text-emerald-300 border border-slate-800 rounded p-2.5 text-[11px] font-mono focus:outline-none select-all"></textarea>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="copyEquityExportJSON()" id="btn-equity-copy-json" class="filter-btn text-xs font-bold text-emerald-400 border border-emerald-500/40 hover:bg-emerald-950/50">📋 Copy to Clipboard</button>
+                <button onclick="downloadEquityExportJSON()" class="filter-btn text-xs font-bold text-sky-400 border border-sky-500/40 hover:bg-sky-950/50">💾 Download JSON File</button>
+                <button onclick="closeEquityExportModal()" class="filter-btn text-xs text-slate-400">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equity Portfolio Import Modal -->
+    <div id="equity-import-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="terminal-panel max-w-lg w-full p-5 bg-slate-900 border border-cyan-500/50 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                <h3 class="text-sm font-bold text-cyan-400 flex items-center gap-2">
+                    <span>📤</span> Import Equity Portfolio (JSON)
+                </h3>
+                <button onclick="closeEquityImportModal()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+            </div>
+            <p class="text-xs text-slate-400">
+                Paste your exported JSON below or upload a JSON backup file to restore your tracked equity positions on this device.
+            </p>
+            <div class="flex items-center gap-2 text-xs text-slate-400">
+                <span>Upload File:</span>
+                <input type="file" id="equity-import-file-input" accept=".json,application/json" onchange="handleEquityFileSelect(event)" class="text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-slate-800 file:text-cyan-300 hover:file:bg-slate-700 cursor-pointer" />
+            </div>
+            <textarea id="equity-import-json-textarea" placeholder='{"STOCK_PLTR_SWING": {...}}' class="w-full h-40 bg-slate-950 text-slate-200 border border-slate-800 rounded p-2.5 text-[11px] font-mono focus:outline-none focus:border-cyan-500"></textarea>
+            <div id="equity-import-status" class="text-xs hidden"></div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="importEquityPortfolioJSON(false)" class="filter-btn text-xs font-bold text-cyan-400 border border-cyan-500/40 hover:bg-cyan-950/50">Merge with Existing</button>
+                <button onclick="importEquityPortfolioJSON(true)" class="filter-btn text-xs font-bold text-amber-400 border border-amber-500/40 hover:bg-amber-950/50">Replace Portfolio</button>
+                <button onclick="closeEquityImportModal()" class="filter-btn text-xs text-slate-400">Cancel</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

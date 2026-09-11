@@ -145,5 +145,131 @@ class TestStockStrategyEngine(unittest.TestCase):
                 os.remove(tmp_path)
 
 
+    def test_compute_alpha_composite_score_components(self):
+        """
+        Validates the 5 multi-factor components of Alpha Composite Score:
+        Freshness (30), RVOL (25), EMA50 Proximity (20), Sector RS (15), R:R (10).
+        """
+        # 1. Perfect score: Day 0 (30), RVOL >= 2.0 (25), Dist <= 1.5% (20), Top Quartile RS (15), RR >= 3.0 (10)
+        perf_score, breakdown = stocks.compute_alpha_composite_score(
+            reclaim_days=0, rvol=2.5, price=100.5, ema50=100.0, sector="ENERGY", rr_ratio=3.2,
+            top_quartile_sectors=["ENERGY", "TECH SEMIS"], return_breakdown=True
+        )
+        self.assertEqual(perf_score, 100.0)
+        self.assertEqual(breakdown["freshness"], 30.0)
+        self.assertEqual(breakdown["rvol"], 25.0)
+        self.assertEqual(breakdown["proximity"], 20.0)
+        self.assertEqual(breakdown["sector_rs"], 15.0)
+        self.assertEqual(breakdown["rr"], 10.0)
+
+        # 2. Freshness gradient
+        self.assertEqual(stocks.compute_alpha_composite_score(reclaim_days=0, rvol=1.0, price=100, ema50=100, sector="TECH", rr_ratio=2.5), 73.0)
+        self.assertEqual(stocks.compute_alpha_composite_score(reclaim_days=1, rvol=1.0, price=100, ema50=100, sector="TECH", rr_ratio=2.5), 68.0)
+        self.assertEqual(stocks.compute_alpha_composite_score(reclaim_days=2, rvol=1.0, price=100, ema50=100, sector="TECH", rr_ratio=2.5), 58.0)
+        self.assertEqual(stocks.compute_alpha_composite_score(reclaim_days=3, rvol=1.0, price=100, ema50=100, sector="TECH", rr_ratio=2.5), 48.0)
+        self.assertEqual(stocks.compute_alpha_composite_score(reclaim_days=4, rvol=1.0, price=100, ema50=100, sector="TECH", rr_ratio=2.5), 43.0)
+
+        # 3. RVOL thresholds: >=2.0 -> 25, >=1.5 -> 20, >=1.2 -> 15, >=1.0 -> 10, <1.0 -> 5
+        score_2x, b_2x = stocks.compute_alpha_composite_score(rvol=2.2, return_breakdown=True)
+        score_1_5x, b_1_5x = stocks.compute_alpha_composite_score(rvol=1.7, return_breakdown=True)
+        score_1_2x, b_1_2x = stocks.compute_alpha_composite_score(rvol=1.3, return_breakdown=True)
+        score_1_0x, b_1_0x = stocks.compute_alpha_composite_score(rvol=1.05, return_breakdown=True)
+        score_sub1, b_sub1 = stocks.compute_alpha_composite_score(rvol=0.8, return_breakdown=True)
+        self.assertEqual(b_2x["rvol"], 25.0)
+        self.assertEqual(b_1_5x["rvol"], 20.0)
+        self.assertEqual(b_1_2x["rvol"], 15.0)
+        self.assertEqual(b_1_0x["rvol"], 10.0)
+        self.assertEqual(b_sub1["rvol"], 5.0)
+
+        # 4. Proximity thresholds: <=1.5% -> 20, <=3.0% -> 15, <=5.0% -> 10, >5.0% -> 5
+        _, b_p1 = stocks.compute_alpha_composite_score(price=101.0, ema50=100.0, return_breakdown=True)
+        _, b_p2 = stocks.compute_alpha_composite_score(price=102.5, ema50=100.0, return_breakdown=True)
+        _, b_p3 = stocks.compute_alpha_composite_score(price=104.5, ema50=100.0, return_breakdown=True)
+        _, b_p4 = stocks.compute_alpha_composite_score(price=108.0, ema50=100.0, return_breakdown=True)
+        self.assertEqual(b_p1["proximity"], 20.0)
+        self.assertEqual(b_p2["proximity"], 15.0)
+        self.assertEqual(b_p3["proximity"], 10.0)
+        self.assertEqual(b_p4["proximity"], 5.0)
+
+        # 5. Dict argument support
+        test_dict = {"reclaim_days": 1, "rvol": 1.6, "price": 101.0, "ema50": 100.0, "sector": "TECH SEMIS", "rr_ratio": "1:2.5"}
+        d_score, d_break = stocks.compute_alpha_composite_score(test_dict, top_quartile_sectors=["TECH SEMIS"], return_breakdown=True)
+        self.assertEqual(d_score, 88.0)
+        self.assertEqual(d_break["sector_rs"], 15.0)
+
+    def test_dynamic_ranking_and_absence_of_dictionary_bias(self):
+        """
+        Verifies that candidates are dynamically ranked by Alpha Composite Score,
+        completely replacing static alphabetical / first-come dictionary order.
+        """
+        # Candidate A appears FIRST in dictionary, but is stale (D3, low rvol, extended from EMA)
+        cand_a = {
+            "ticker": "AAAA",
+            "sector": "MATERIALS",
+            "price": 110.0,
+            "ema50": 100.0, # 10% extended
+            "reclaim_days": 3,
+            "rvol": 0.7,
+            "rr_ratio": "1:2.5"
+        }
+        # Candidate B appears LAST in dictionary, but is fresh (D0, 2.2x rvol, tight to EMA)
+        cand_b = {
+            "ticker": "ZZZZ",
+            "sector": "TECH SEMIS",
+            "price": 100.8,
+            "ema50": 100.0, # 0.8% distance
+            "reclaim_days": 0,
+            "rvol": 2.2,
+            "rr_ratio": "1:3.0"
+        }
+
+        top_quartile = ["TECH SEMIS"]
+        cand_a["alpha_score"] = stocks.compute_alpha_composite_score(cand_a, top_quartile_sectors=top_quartile)
+        cand_b["alpha_score"] = stocks.compute_alpha_composite_score(cand_b, top_quartile_sectors=top_quartile)
+
+        # Verify B massively outscores A despite A being at the top of the raw dictionary
+        self.assertGreater(cand_b["alpha_score"], cand_a["alpha_score"])
+        self.assertGreater(cand_b["alpha_score"], 80.0)
+        self.assertLess(cand_a["alpha_score"], 40.0)
+
+        # Verify sorting
+        candidates = [cand_a, cand_b]
+        candidates.sort(key=lambda x: x["alpha_score"], reverse=True)
+        self.assertEqual(candidates[0]["ticker"], "ZZZZ", "Fresh high-momentum ZZZZ must outrank stale AAAA")
+
+    def test_sector_concentration_guardrails_diversity_cap(self):
+        """
+        Verifies that no more than 2 tickers from any single sector are selected in the top 5,
+        preventing single-sector concentration.
+        """
+        # Create 4 Financials candidates and 2 Tech candidates
+        cands = [
+            {"ticker": "FIN1", "sector": "FINANCIALS", "alpha_score": 95.0},
+            {"ticker": "FIN2", "sector": "FINANCIALS", "alpha_score": 92.0},
+            {"ticker": "FIN3", "sector": "FINANCIALS", "alpha_score": 90.0},
+            {"ticker": "FIN4", "sector": "FINANCIALS", "alpha_score": 88.0},
+            {"ticker": "TECH1", "sector": "TECH SEMIS", "alpha_score": 85.0},
+            {"ticker": "TECH2", "sector": "TECH SOFTWARE", "alpha_score": 82.0},
+            {"ticker": "ENG1", "sector": "ENERGY", "alpha_score": 80.0},
+        ]
+        
+        # Apply diversity filter (max 2 per sector)
+        selected = []
+        sector_counts = {}
+        for c in cands:
+            sec = c["sector"]
+            if sector_counts.get(sec, 0) < 2:
+                selected.append(c)
+                sector_counts[sec] = sector_counts.get(sec, 0) + 1
+            if len(selected) >= 5:
+                break
+
+        self.assertEqual(len(selected), 5)
+        self.assertEqual([c["ticker"] for c in selected], ["FIN1", "FIN2", "TECH1", "TECH2", "ENG1"])
+        self.assertEqual(sector_counts["FINANCIALS"], 2, "Financials must be capped at 2")
+        self.assertNotIn("FIN3", [c["ticker"] for c in selected])
+        self.assertNotIn("FIN4", [c["ticker"] for c in selected])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

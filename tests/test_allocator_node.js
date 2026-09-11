@@ -27,6 +27,7 @@ function createMockElement(id) {
         innerHTML: '',
         className: '',
         children: [],
+        style: {},
         classList: {
             _classes: new Set(),
             add: function(...c) { c.forEach(x => this._classes.add(x)); },
@@ -256,43 +257,94 @@ assert.strictEqual(domElements['table1-header-title'].textContent, 'Tactical Swi
 console.log("✔ Test 14: Directional Mode safely returned to LONG.");
 
 // -----------------------------------------------------------------
-// Test 15: Strategy Asset Class Switcher (Options -> Stocks)
+// Test 15: Clean Options-only rendering in Table 1 & Table 2
 // -----------------------------------------------------------------
-domElements['btn-asset-options'] = createMockElement('btn-asset-options');
-domElements['btn-asset-stocks'] = createMockElement('btn-asset-stocks');
-domElements['asset-class-explainer'] = createMockElement('asset-class-explainer');
 domElements['table1-header-title'] = createMockElement('table1-header-title');
 domElements['table2-header-title'] = createMockElement('table2-header-title');
 
-context.switchAssetClass('STOCKS');
-assert.strictEqual(context.activeAssetClass, 'STOCKS');
-console.log("✔ Test 15: Strategy Asset Class switched to STOCKS (Equity Radar).");
-
-// -----------------------------------------------------------------
-// Test 16: Table 1 & Table 2 dynamic title updates for Stocks
-// -----------------------------------------------------------------
 context.renderRecsView(latestData);
-assert((domElements['table1-header-title'].textContent + domElements['table1-header-title'].innerHTML).includes('Tactical Equity Swings'), "Table 1 title must reflect Equity Swings");
-assert((domElements['table2-header-title'].textContent + domElements['table2-header-title'].innerHTML).includes('Strategic Core Growth Accumulation'), "Table 2 title must reflect Growth Accumulation");
-console.log("✔ Test 16: Table 1 & Table 2 dynamic titles for Stocks verified.");
+assert(domElements['table1-header-title'].textContent.includes('Options Alpha Radar'), "Table 1 must be dedicated to Options Alpha Radar");
+assert(domElements['table2-header-title'].textContent.includes('Deep-ITM Call LEAPS'), "Table 2 must be dedicated to Deep-ITM Call LEAPS");
+console.log("✔ Test 15: Table 1 & Table 2 strictly dedicated to Bull Call Spreads and Deep-ITM Call LEAPS.");
 
 // -----------------------------------------------------------------
-// Test 17: Tab 3 Ledger Book Switcher (Options -> Stocks)
+// Test 16: Top navigation bar link to dedicated Equity & Stock Terminal
 // -----------------------------------------------------------------
-domElements['btn-lbook-options'] = createMockElement('btn-lbook-options');
-domElements['btn-lbook-stocks'] = createMockElement('btn-lbook-stocks');
+assert(html.includes('href="stocks.html"'), "Must link cleanly to stocks.html in top navigation");
+console.log("✔ Test 16: Clean top navigation link to dedicated stocks.html verified.");
 
-context.switchLedgerBook('STOCKS');
-assert.strictEqual(context.activeLedgerBook, 'STOCKS');
-console.log("✔ Test 17: Tab 3 Ledger Book switched to STOCKS (stock_trades_log.json).");
+// -----------------------------------------------------------------
+// Test 17: Strict absence of leftover equity switchers in index.html
+// -----------------------------------------------------------------
+assert(!html.includes('btn-asset-stocks'), "index.html must NOT contain leftover btn-asset-stocks");
+assert(!html.includes('STRATEGY ASSET CLASS:'), "index.html must NOT contain leftover asset class switcher banner");
+console.log("✔ Test 17: Strict absence of leftover equity/stock switcher widgets verified.");
 
-context.switchAssetClass('OPTIONS');
-context.switchLedgerBook('OPTIONS');
+// -----------------------------------------------------------------
+// Test 18: Performance ledger dedicated to Options
+// -----------------------------------------------------------------
 assert.strictEqual(context.activeAssetClass, 'OPTIONS');
-assert.strictEqual(context.activeLedgerBook, 'OPTIONS');
-console.log("✔ Test 18: Reset back to default OPTIONS radar book verified.");
+console.log("✔ Test 18: Options performance ledger verified.");
+
+
+// -----------------------------------------------------------------
+
+domElements["options-export-modal"] = createMockElement("options-export-modal");
+domElements["options-import-modal"] = createMockElement("options-import-modal");
+domElements["options-export-json-textarea"] = createMockElement("options-export-json-textarea");
+domElements["options-import-json-textarea"] = createMockElement("options-import-json-textarea");
+domElements["options-import-status"] = createMockElement("options-import-status");
+domElements["btn-options-copy-json"] = createMockElement("btn-options-copy-json");
+
+// Test 19: Cross-Device Options Portfolio Export Modal
+// -----------------------------------------------------------------
+assert(html.includes('id="options-export-modal"'), "Must have options export modal in DOM");
+assert(html.includes('id="options-import-modal"'), "Must have options import modal in DOM");
+
+context.toggleTradePortfolio('SPREAD', 'SPY', 'SPY 590/600 C', 2, 450, 580, 565, 595, 605, 'INDEX');
+let optPort = context.getMyPortfolio();
+assert(optPort['SPY_SPREAD'], "Must have SPY_SPREAD in options portfolio");
+
+context.openOptionsExportModal();
+const optExportVal = domElements['options-export-json-textarea'].value;
+assert(optExportVal.includes('SPY_SPREAD'), "Exported JSON must contain SPY_SPREAD trade");
+const parsedOptExport = JSON.parse(optExportVal);
+assert.strictEqual(parsedOptExport['SPY_SPREAD'].ticker, 'SPY');
+context.closeOptionsExportModal();
+console.log("✔ Test 19: Options Portfolio JSON Export modal verified.");
+
+// -----------------------------------------------------------------
+// Test 20: Cross-Device Options Portfolio Import Modal
+// -----------------------------------------------------------------
+const testOptImportJSON = JSON.stringify({
+    'NVDA_LEAPS': {
+        id: 'NVDA_LEAPS',
+        ticker: 'NVDA',
+        contract: 'NVDA 120 C Jan2027',
+        contracts: 1,
+        costPerContract: 1800,
+        totalCost: 1800,
+        type: 'LEAPS',
+        sector: 'TECH SEMIS'
+    }
+});
+
+domElements['options-import-json-textarea'].value = testOptImportJSON;
+context.importOptionsPortfolioJSON(false); // Merge mode
+optPort = context.getMyPortfolio();
+assert(optPort['SPY_SPREAD'], "SPY_SPREAD should still exist after merge");
+assert(optPort['NVDA_LEAPS'], "NVDA_LEAPS should be merged into portfolio");
+
+// Replace mode
+domElements['options-import-json-textarea'].value = testOptImportJSON;
+context.importOptionsPortfolioJSON(true); // Replace mode
+optPort = context.getMyPortfolio();
+assert(!optPort['SPY_SPREAD'], "SPY_SPREAD should be removed in replace mode");
+assert(optPort['NVDA_LEAPS'], "NVDA_LEAPS should be sole remaining position in replace mode");
+console.log("✔ Test 20: Options Portfolio JSON Import modal verified for merge and replace modes.");
 
 console.log("\n========================================================");
-console.log(" ALL 18 COMPREHENSIVE SIMULATION TESTS PASSED CLEANLY! ");
+console.log(" ALL 20 COMPREHENSIVE SIMULATION TESTS PASSED CLEANLY! ");
 console.log("========================================================");
+
 
