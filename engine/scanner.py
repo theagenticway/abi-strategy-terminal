@@ -360,6 +360,8 @@ def process_universe(raw_data=None, sample_date_str=None):
     ticker_records = []
     qualified_candidates = []
     strategic_leaps_candidates = []
+    qualified_stock_candidates = []
+    core_stock_candidates = []
     alert_count = 0
     reclaim_count = 0
     confirmed_count = 0
@@ -516,6 +518,15 @@ def process_universe(raw_data=None, sample_date_str=None):
             trade_setup["weekly_stage"] = snapshot.get("weekly_stage", "STAGE 2 (Advancing)")
             
             qualified_candidates.append(trade_setup)
+            try:
+                stock_setup = stocks.structure_stock_trade(ticker, sector, snapshot, retrace_type, reclaim_days, spy_regime_for_sizing, subsector=subsector)
+                stock_setup["overhead_runway_pct"] = runway_val
+                stock_setup["overhead_clearance_ok"] = overhead_ok
+                stock_setup["execution_state"] = trade_setup["execution_state"]
+                stock_setup["execution_badge"] = trade_setup["execution_badge"]
+                qualified_stock_candidates.append(stock_setup)
+            except Exception as s_err:
+                pass
 
         # Screen for multi-quarter Strategic LEAPS accumulation (Approach 2)
         leaps_setup = screen_strategic_leaps_candidate(ticker, sector, snapshot)
@@ -525,6 +536,11 @@ def process_universe(raw_data=None, sample_date_str=None):
             leaps_setup["iv_status"] = snapshot.get("iv_status", "LOW (Cheap Vol · Debit Favorable)")
             leaps_setup["weekly_stage"] = snapshot.get("weekly_stage", "STAGE 2 (Advancing)")
             strategic_leaps_candidates.append(leaps_setup)
+            try:
+                core_stock = stocks.structure_core_stock_accumulation(ticker, sector, snapshot, subsector=subsector)
+                core_stock_candidates.append(core_stock)
+            except Exception:
+                pass
 
     # 3. Process All 25 Sector ETFs
     sector_results = []
@@ -1061,6 +1077,8 @@ def process_universe(raw_data=None, sample_date_str=None):
         "daily_activity": daily_activity,
         "regime_change_etfs": regime_change_etfs,
         "top_candidates": verified_top_candidates[:5],
+        "stock_recommendations": qualified_stock_candidates[:5],
+        "core_stocks": core_stock_candidates[:5],
         "all_qualified": qualified_candidates,
         "strategic_leaps": verified_leaps,
         "sector_momentum": sector_results,

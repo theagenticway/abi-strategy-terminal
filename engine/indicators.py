@@ -44,6 +44,26 @@ def calculate_adr_pct(high: pd.Series, low: pd.Series, close: pd.Series, window:
     daily_range_pct = ((high - low) / close) * 100
     return float(daily_range_pct.tail(window).mean())
 
+def calculate_iv_rank(close: pd.Series, window: int = 252) -> float:
+    """
+    Computes 1-year (252-day) Implied/Historical Volatility Rank (0 to 100).
+    Uses rolling 20-day annualized volatility ranked against its 52-week min/max.
+    """
+    if len(close) < 40:
+        return 30.0
+    returns = close.pct_change().dropna()
+    rolling_vol = returns.rolling(window=20).std() * np.sqrt(252) * 100
+    valid_vol = rolling_vol.dropna().tail(window)
+    if len(valid_vol) < 20:
+        return 30.0
+    current_vol = float(valid_vol.iloc[-1])
+    min_vol = float(valid_vol.min())
+    max_vol = float(valid_vol.max())
+    if max_vol == min_vol:
+        return 30.0
+    iv_rank = ((current_vol - min_vol) / (max_vol - min_vol)) * 100
+    return round(float(np.clip(iv_rank, 0.0, 100.0)), 1)
+
 def calculate_beta(ticker_returns: pd.Series, spy_returns: pd.Series, window: int = 60) -> float:
     """Calculates Beta against SPY over specified window."""
     combined = pd.concat([ticker_returns, spy_returns], axis=1).dropna().tail(window)
@@ -107,6 +127,18 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
     returns = close.pct_change()
     beta = calculate_beta(returns, spy_returns) if spy_returns is not None else 1.0
     
+    # IV Rank (Volatility Rank 0-100)
+    iv_rank = calculate_iv_rank(close)
+    if iv_rank < 35:
+        iv_status = "LOW (Cheap Vol · Debit Favorable)"
+        iv_badge = "emerald"
+    elif iv_rank > 65:
+        iv_status = "HIGH (Elevated Vol · Credit Favorable)"
+        iv_badge = "amber"
+    else:
+        iv_status = "MODERATE"
+        iv_badge = "slate"
+
     # Relative Volume (RVOL vs. 20-day average)
     rvol = 1.0
     if 'Volume' in df.columns and len(df['Volume']) >= 20:
@@ -160,6 +192,9 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
         "d20_return": d20_return,
         "rvol": rvol,
         "weekly_stage": weekly_stage,
+        "iv_rank": iv_rank,
+        "iv_status": iv_status,
+        "iv_badge": iv_badge,
         "raw_close": close,
         "raw_high": high,
         "raw_low": low,

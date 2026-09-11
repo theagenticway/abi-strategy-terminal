@@ -59,6 +59,10 @@ global.confirm = () => true;
 global.alert = () => {};
 global.tailwind = {};
 global.setInterval = () => {};
+global.fetch = async (url) => ({
+    ok: true,
+    json: async () => tradesLogData
+});
 
 // 3. Load latest.json and evaluate script
 const latestData = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/latest.json'), 'utf-8'));
@@ -251,6 +255,44 @@ assert.strictEqual(context.activeDirectionalMode, 'LONG');
 assert.strictEqual(domElements['table1-header-title'].textContent, 'Tactical Swings (Options Alpha Radar — Bull Call Spreads 45–60 DTE)');
 console.log("✔ Test 14: Directional Mode safely returned to LONG.");
 
+// -----------------------------------------------------------------
+// Test 15: Strategy Asset Class Switcher (Options -> Stocks)
+// -----------------------------------------------------------------
+domElements['btn-asset-options'] = createMockElement('btn-asset-options');
+domElements['btn-asset-stocks'] = createMockElement('btn-asset-stocks');
+domElements['asset-class-explainer'] = createMockElement('asset-class-explainer');
+domElements['table1-title'] = createMockElement('table1-title');
+domElements['table2-title'] = createMockElement('table2-title');
+
+context.switchAssetClass('STOCKS');
+assert.strictEqual(context.activeAssetClass, 'STOCKS');
+console.log("✔ Test 15: Strategy Asset Class switched to STOCKS (Equity Radar).");
+
+// -----------------------------------------------------------------
+// Test 16: Table 1 & Table 2 dynamic title updates for Stocks
+// -----------------------------------------------------------------
+context.renderRecsView(latestData);
+assert(domElements['table1-title'].innerHTML.includes('Tactical Equity Swings'), "Table 1 title must reflect Equity Swings");
+assert(domElements['table2-title'].innerHTML.includes('Strategic Core Growth Accumulation'), "Table 2 title must reflect Growth Accumulation");
+console.log("✔ Test 16: Table 1 & Table 2 dynamic titles for Stocks verified.");
+
+// -----------------------------------------------------------------
+// Test 17: Tab 3 Ledger Book Switcher (Options -> Stocks)
+// -----------------------------------------------------------------
+domElements['btn-lbook-options'] = createMockElement('btn-lbook-options');
+domElements['btn-lbook-stocks'] = createMockElement('btn-lbook-stocks');
+
+context.switchLedgerBook('STOCKS');
+assert.strictEqual(context.activeLedgerBook, 'STOCKS');
+console.log("✔ Test 17: Tab 3 Ledger Book switched to STOCKS (stock_trades_log.json).");
+
+context.switchAssetClass('OPTIONS');
+context.switchLedgerBook('OPTIONS');
+assert.strictEqual(context.activeAssetClass, 'OPTIONS');
+assert.strictEqual(context.activeLedgerBook, 'OPTIONS');
+console.log("✔ Test 18: Reset back to default OPTIONS radar book verified.");
+
 console.log("\n========================================================");
-console.log(" ALL 14 COMPREHENSIVE SIMULATION TESTS PASSED CLEANLY! ");
+console.log(" ALL 18 COMPREHENSIVE SIMULATION TESTS PASSED CLEANLY! ");
 console.log("========================================================");
+
