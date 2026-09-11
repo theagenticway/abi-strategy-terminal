@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equity & Stock Terminal | EMA50 Swing Radar & Performance Ledger</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#080c14',
+                        panel: '#0d1322',
+                        border: '#1e293b',
+                        growth: '#3b82f6',
+                        cyclical: '#ea580c',
+                        defensive: '#10b981'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #080c14; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; }
+        .terminal-panel { background: #0d1322; border: 1px solid #1e293b; border-radius: 8px; }
+        .tab-btn.active { background: #1e293b; color: #38bdf8; border-bottom: 2px solid #38bdf8; font-weight: 600; }
+        .tag-pill { background: #101726; border: 1px solid #1e293b; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; transition: all 0.15s; }
+        .tag-pill:hover, .tag-pill.active { border-color: #38bdf8; color: #38bdf8; background: rgba(56,189,248,0.1); }
+        .filter-btn { background: #131d31; border: 1px solid #1e293b; padding: 3px 10px; font-size: 11px; border-radius: 4px; color: #94a3b8; transition: all 0.15s; }
+        .filter-btn:hover { color: #fff; border-color: #334155; }
+        .filter-btn.active { background: #2563eb; color: #fff; border-color: #3b82f6; font-weight: 600; }
+        .subview-btn.active { background: #0284c7; color: #ffffff; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body class="min-h-screen p-3 md:p-6 space-y-3">
+
+    <!-- Top Terminal Master Header -->
+    <header class="terminal-panel p-3.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+                <span class="font-black tracking-wider text-base md:text-lg text-white">EMA50 SCANNER</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                    EQUITY TERMINAL
+                </span>
+                <span class="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> LIVE
+                </span>
+            </div>
+            <span id="header-clock" class="text-xs text-slate-400 font-mono hidden sm:inline">--:--:--</span>
+            <span id="header-timestamp" class="text-xs text-slate-500 hidden sm:inline">• loading...</span>
+        </div>
+
+        <!-- Controls: Cross-Page Navigation Tabs, Auto-Refresh, Refresh, Date Selector -->
+        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+            <!-- Navigation Switcher (Connected to Main Options Site) -->
+            <div class="flex rounded-lg bg-slate-900 p-1 border border-slate-800">
+                <a href="index.html?tab=macro" id="tab-macro-link" class="tab-btn px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <span>🌐</span> Macroeconomic Board
+                </a>
+                <a href="index.html?tab=recs" id="tab-recs-link" class="tab-btn px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <span>🎯</span> Options Alpha Radar
+                </a>
+                <a href="index.html?tab=perf" id="tab-perf-link" class="tab-btn px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <span>📊</span> Options Audit Log
+                </a>
+                <button id="tab-stocks-btn" class="tab-btn active px-3 py-1.5 rounded text-xs font-bold transition flex items-center gap-1.5 bg-blue-600 text-white shadow">
+                    <span>📈</span> Equity / Stock Radar
+                </button>
+            </div>
+
+            <!-- Auto-Refresh & Action buttons -->
+            <div class="flex items-center gap-1.5">
+                <select id="auto-refresh" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded px-2.5 py-1.5 focus:outline-none">
+                    <option value="60">Auto: 1m</option>
+                    <option value="300" selected>Auto: 5m</option>
+                    <option value="900">Auto: 15m</option>
+                </select>
+                <button onclick="refreshData()" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 transition">
+                    <span>↻</span> REFRESH
+                </button>
+                <select id="date-select" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded px-2.5 py-1.5 focus:outline-none" onchange="changeDate(this.value)">
+                    <option value="latest">Latest Live</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <!-- Subview Selector: Recommendations vs Performance Ledger -->
+    <div class="terminal-panel p-2.5 bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 shadow-lg">
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">STOCK TERMINAL VIEW:</span>
+            <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                <button id="btn-view-recs" onclick="switchStockView('recs')" class="subview-btn active px-3.5 py-1 rounded text-xs font-bold transition bg-blue-600 text-white shadow flex items-center gap-1.5">
+                    <span>🎯</span> Stock Recommendations (Swings & Core)
+                </button>
+                <button id="btn-view-perf" onclick="switchStockView('perf')" class="subview-btn px-3.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <span>📊</span> Stock Performance & Audit Ledger
+                </button>
+            </div>
+        </div>
+        <div class="text-[11px] font-mono text-slate-400" id="stock-view-explainer">
+            Active Mode: Cash Equities, Fixed Dollar-at-Risk Sizing (1.5%) & 50 EMA Trailing Stops.
+        </div>
+    </div>
+
+    <!-- Sector Navigation Ribbon with Search Input & CLEAR -->
+    <div class="terminal-panel p-3 space-y-2">
+        <div class="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider">SECTOR FILTER</div>
+        <div class="flex flex-wrap gap-1.5 text-[11px] font-bold tracking-wider" id="sector-nav-pills">
+            <!-- Populated dynamically -->
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+            <input type="text" id="global-search-input" placeholder="Search ticker / sector / sub-sector..." class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded px-3 py-1.5 w-full sm:w-80 focus:outline-none focus:ring-1 focus:ring-sky-500" onkeyup="handleGlobalSearch(this.value)">
+            <button onclick="clearFilter()" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-bold transition">
+                CLEAR
+            </button>
+        </div>
+    </div>
+
+    <!-- Active Filter Notice Banner -->
+    <div id="active-filter-banner" class="hidden p-2 px-3.5 rounded bg-sky-950/40 border border-sky-500/40 flex justify-between items-center text-xs">
+        <div class="flex items-center gap-2">
+            <span class="text-sky-400 font-bold uppercase">Active Filter:</span>
+            <span id="active-filter-label" class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-200 font-mono font-bold"></span>
+            <span class="text-slate-400 text-[11px]">(Recommendations and audit tables are filtered)</span>
+        </div>
+        <button onclick="clearFilter()" class="text-xs text-sky-400 hover:underline">Reset</button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: STOCK RECOMMENDATIONS (TACTICAL SWINGS & STRATEGIC CORE EQUITIES) -->
+    <!-- ========================================================================= -->
+    <main id="stock-view-recs-container" class="space-y-3">
+
+        <!-- Executive Market Briefing & Action Directive for Equities -->
+        <div class="terminal-panel p-4 bg-slate-900/90 border border-slate-800 shadow-xl" id="briefing-panel">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-sm font-black text-white flex items-center gap-2 uppercase tracking-wide">
+                        <span>📋</span> Executive Market Briefing & Action Directive (Equities)
+                    </h2>
+                    <span id="briefing-regime-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">REGIME</span>
+                </div>
+                <div id="briefing-verdict-badge" class="px-3 py-1 rounded text-xs font-black bg-amber-950/80 text-amber-400 border border-amber-500/50 uppercase tracking-wide">
+                    🟡 CAUTIOUS BUY
+                </div>
+            </div>
+
+            <!-- 4-Index Benchmark Confluence Ribbon -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 pb-3 border-b border-slate-800/80">
+                <div class="p-2 rounded bg-slate-950/60 border border-slate-800/80 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-extrabold text-slate-400 block">SPY (S&P 500)</span>
+                        <span class="text-xs font-mono font-bold text-white" id="idx-spy-price">$--</span>
+                    </div>
+                    <span id="idx-spy-status" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400">● --</span>
+                </div>
+                <div class="p-2 rounded bg-slate-950/60 border border-slate-800/80 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-extrabold text-slate-400 block">QQQ (Nasdaq 100)</span>
+                        <span class="text-xs font-mono font-bold text-white" id="idx-qqq-price">$--</span>
+                    </div>
+                    <span id="idx-qqq-status" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400">● --</span>
+                </div>
+                <div class="p-2 rounded bg-slate-950/60 border border-slate-800/80 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-extrabold text-slate-400 block">RSP (Equal Weight)</span>
+                        <span class="text-xs font-mono font-bold text-white" id="idx-rsp-price">$--</span>
+                    </div>
+                    <span id="idx-rsp-status" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400">● --</span>
+                </div>
+                <div class="p-2 rounded bg-slate-950/60 border border-slate-800/80 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-extrabold text-slate-400 block">IWM (Small Caps)</span>
+                        <span class="text-xs font-mono font-bold text-white" id="idx-iwm-price">$--</span>
+                    </div>
+                    <span id="idx-iwm-status" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400">● --</span>
+                </div>
+            </div>
+
+            <!-- Macro & Sector Flow Narratives -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 text-xs">
+                <div class="space-y-1.5">
+                    <div class="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                        <span>1. MACRO REGIME STATE & BENCHMARKS:</span>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-[11px]" id="briefing-macro-narrative">Loading narrative...</p>
+                </div>
+                <div class="space-y-1.5">
+                    <div class="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                        <span>2. SECTOR FLOWS & INSTITUTIONAL FOOTPRINT:</span>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-[11px]" id="briefing-sector-narrative">Loading narrative...</p>
+                </div>
+            </div>
+
+            <!-- Execution Mandates -->
+            <div class="mt-3 pt-2.5 border-t border-slate-800/80">
+                <div class="text-[10px] uppercase font-bold text-emerald-400 mb-1 flex items-center gap-1">
+                    <span>⚡ EQUITY EXECUTION MANDATES:</span>
+                </div>
+                <ul class="list-disc list-inside text-[11px] text-slate-300 space-y-0.5" id="briefing-mandates-list">
+                    <li>Loading mandates...</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Event Selection Funnel -->
+        <div class="terminal-panel p-2.5 bg-slate-900/80 border border-slate-800">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>⚡</span> QUANT EVENT SELECTION FUNNEL:
+                </span>
+                <div class="flex flex-wrap items-center gap-1.5 text-[10px] font-mono" id="scanner-funnel-container">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Macro-Adaptive Equity Capital Allocator & Position Sizing -->
+        <div class="terminal-panel p-4 bg-slate-900/90 border border-blue-500/40 shadow-xl">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 pb-3 border-b border-slate-800">
+                <div>
+                    <h2 class="text-sm font-black text-white flex items-center gap-2 uppercase tracking-wide">
+                        <span class="text-blue-400">💰</span> Equity Portfolio Capital Allocator & Fixed-Fractional Sizing
+                    </h2>
+                    <p class="text-[11px] text-slate-400 mt-0.5">
+                        Cash equity position sizing: 1.5% fixed-fractional risk of account equity per trade, 20% max single-stock capital cap, and dynamic cash buffer.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearEquityPortfolioConfirm()" class="filter-btn text-[10px] text-rose-400 hover:bg-rose-950/50 hover:border-rose-500/50">CLEAR PORTFOLIO</button>
+                    <button onclick="resetEquityAllocator()" class="filter-btn text-[10px]">RESET ALLOCATOR</button>
+                </div>
+            </div>
+
+            <!-- Controls Grid: 4 Pillars -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3">
+                <!-- Pillar 1: Total Portfolio Capital -->
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">1. Total Account Capital</label>
+                    <div class="flex items-center gap-1">
+                        <button onclick="setEquityCapital(10000)" class="eq-cap-btn filter-btn text-xs" id="btn-eqcap-10k">$10k</button>
+                        <button onclick="setEquityCapital(25000)" class="eq-cap-btn filter-btn text-xs" id="btn-eqcap-25k">$25k</button>
+                        <button onclick="setEquityCapital(50000)" class="eq-cap-btn filter-btn active text-xs bg-blue-600 text-white" id="btn-eqcap-50k">$50k</button>
+                        <button onclick="setEquityCapital(100000)" class="eq-cap-btn filter-btn text-xs" id="btn-eqcap-100k">$100k</button>
+                    </div>
+                    <div class="flex items-center gap-1.5 pt-1">
+                        <span class="text-xs text-slate-500 font-mono">$</span>
+                        <input type="number" id="equity-custom-capital" value="50000" step="5000" min="1000" max="1000000" class="bg-slate-950 border border-slate-700 text-xs text-white font-mono rounded px-2 py-1 w-28 focus:outline-none focus:border-blue-500" onchange="setEquityCapital(parseFloat(this.value))">
+                    </div>
+                    <div class="text-[10px] text-slate-500 italic">Total cash equity allocated to strategy</div>
+                </div>
+
+                <!-- Pillar 2: Allocation Architecture -->
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">2. Allocation Architecture</label>
+                    <select id="eq-alloc-architecture" class="bg-slate-950 border border-slate-700 text-xs text-slate-200 rounded px-2.5 py-1.5 w-full focus:outline-none focus:border-blue-500" onchange="updateEquityAllocationPlan()">
+                        <option value="balanced" selected>Balanced Core/Swings (60% Core / 40% Swings)</option>
+                        <option value="tactical">Tactical Velocity (80% Swings / 20% Core)</option>
+                        <option value="secular">Secular Compounding (80% Core / 20% Swings)</option>
+                    </select>
+                    <div class="text-[10px] text-slate-500 italic">Balances long-term compounders with 50 EMA swing trades</div>
+                </div>
+
+                <!-- Pillar 3: Dynamic Cash Buffer -->
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">3. Dynamic Cash Reserve</label>
+                    <select id="eq-dry-powder-mode" class="bg-slate-950 border border-slate-700 text-xs text-slate-200 rounded px-2.5 py-1.5 w-full focus:outline-none focus:border-blue-500" onchange="updateEquityAllocationPlan()">
+                        <option value="regime_adaptive" selected>Regime-Adaptive (15% to 35% Cash Buffer)</option>
+                        <option value="locked_15">Aggressive Expansion (15% Cash Buffer)</option>
+                        <option value="locked_25">Balanced Defense (25% Cash Buffer)</option>
+                        <option value="locked_35">Maximum Preservation (35% Cash Buffer)</option>
+                    </select>
+                    <div class="text-[10px] text-slate-500 italic">Protects downside liquidity during distribution regimes</div>
+                </div>
+
+                <!-- Pillar 4: Risk per Trade -->
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">4. Risk Model (Fractional)</label>
+                    <div class="p-2 rounded bg-slate-950 border border-slate-800 text-xs text-slate-300">
+                        <div class="font-bold text-blue-400">Fixed 1.5% Risk of Equity / Trade</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">Risk per trade = $750 · 20% max capital cap ($10,000)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Allocation Metrics Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-4 mt-3 border-t border-slate-800/80">
+                <div class="p-2.5 rounded bg-slate-950/70 border border-slate-800">
+                    <span class="text-[10px] font-extrabold text-slate-400 block uppercase">Total Account</span>
+                    <span class="text-sm font-mono font-bold text-white" id="eq-disp-total-cap">$50,000</span>
+                </div>
+                <div class="p-2.5 rounded bg-slate-950/70 border border-slate-800">
+                    <span class="text-[10px] font-extrabold text-slate-400 block uppercase">In My Portfolio</span>
+                    <span class="text-sm font-mono font-bold text-blue-400" id="eq-disp-committed-cap">$0 (0 pos)</span>
+                </div>
+                <div class="p-2.5 rounded bg-slate-950/70 border border-slate-800">
+                    <span class="text-[10px] font-extrabold text-slate-400 block uppercase">Free Cash Buffer</span>
+                    <span class="text-sm font-mono font-bold text-emerald-400" id="eq-disp-free-cash">$12,500 (25%)</span>
+                </div>
+                <div class="p-2.5 rounded bg-slate-950/70 border border-slate-800">
+                    <span class="text-[10px] font-extrabold text-slate-400 block uppercase">Core Budget</span>
+                    <span class="text-sm font-mono font-bold text-sky-300" id="eq-disp-core-budget">$22,500</span>
+                </div>
+                <div class="p-2.5 rounded bg-slate-950/70 border border-slate-800">
+                    <span class="text-[10px] font-extrabold text-slate-400 block uppercase">Tactical Swing Budget</span>
+                    <span class="text-sm font-mono font-bold text-amber-300" id="eq-disp-tactical-budget">$15,000</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLE 1: TACTICAL EQUITY SWINGS (50 EMA RECLAIMS) -->
+        <div class="terminal-panel p-4 shadow-xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 mb-3 border-b border-slate-800">
+                <div>
+                    <h2 class="text-sm font-black text-white flex items-center gap-2 uppercase tracking-wide">
+                        <span class="text-emerald-400">⚡</span> Tactical Equity Swings (50 EMA Reclaims — 1:2.5+ R/R)
+                    </h2>
+                    <p class="text-[11px] text-slate-400 mt-0.5">
+                        High-velocity common stock setups: Confirmed D0–D2 reclaims, 200 SMA clearance, strict 50 EMA invalidation stops, and two-tranche scale & trail exits.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                    <span class="px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 font-bold" id="eq-swings-count">5 Swings Qualified</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-950/95 text-slate-500 border-b border-slate-800 uppercase text-[10px]">
+                        <tr>
+                            <th class="py-2.5 px-2.5">Ticker</th>
+                            <th class="py-2.5 px-2.5">Sector</th>
+                            <th class="py-2.5 px-2.5">Price</th>
+                            <th class="py-2.5 px-2.5">Stop (50 EMA)</th>
+                            <th class="py-2.5 px-2.5">Targets (TP1/TP2)</th>
+                            <th class="py-2.5 px-2.5">R:R</th>
+                            <th class="py-2.5 px-2.5">Reclaim & RVOL</th>
+                            <th class="py-2.5 px-2.5">200 SMA Runway</th>
+                            <th class="py-2.5 px-2.5">Share Sizing & Allocation</th>
+                            <th class="py-2.5 px-2.5">Exact Stock Order Ticket & Guidance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock-swings-body" class="divide-y divide-slate-800/60">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TABLE 2: STRATEGIC CORE GROWTH ACCUMULATION (COMMON SHARES) -->
+        <div class="terminal-panel p-4 shadow-xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 mb-3 border-b border-slate-800">
+                <div>
+                    <h2 class="text-sm font-black text-white flex items-center gap-2 uppercase tracking-wide">
+                        <span class="text-sky-400">🏛️</span> Strategic Core Growth Accumulation (Common Shares)
+                    </h2>
+                    <p class="text-[11px] text-slate-400 mt-0.5">
+                        Multi-quarter secular compounders: Structural trend stack (Price &gt;= 50 EMA &gt;= 200 SMA), rising 200 SMA, institutional cash-flow quality, and quarterly rebalancing.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                    <span class="px-2 py-0.5 rounded bg-sky-950/60 text-sky-400 border border-sky-500/30 font-bold" id="eq-core-count">5 Core Compounders</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-950/95 text-slate-500 border-b border-slate-800 uppercase text-[10px]">
+                        <tr>
+                            <th class="py-2.5 px-2.5">Ticker</th>
+                            <th class="py-2.5 px-2.5">Sector</th>
+                            <th class="py-2.5 px-2.5">Share Price</th>
+                            <th class="py-2.5 px-2.5">Macro Stop (200 SMA)</th>
+                            <th class="py-2.5 px-2.5">Targets (TP1/TP2)</th>
+                            <th class="py-2.5 px-2.5">R:R</th>
+                            <th class="py-2.5 px-2.5">Trend Stack</th>
+                            <th class="py-2.5 px-2.5">Core Allocation & Shares</th>
+                            <th class="py-2.5 px-2.5">Exact Share Accumulation Ticket</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock-core-body" class="divide-y divide-slate-800/60">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: DEDICATED STOCK PERFORMANCE AUDIT LOG & OUTCOME LEDGER            -->
+    <!-- ========================================================================= -->
+    <main id="stock-view-perf-container" class="space-y-3 hidden">
+
+        <!-- Stock Performance KPI Ribbon -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+            <div class="terminal-panel p-3 text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Total Tracked</div>
+                <div class="text-lg font-black text-white font-mono mt-0.5" id="eq-perf-total">5</div>
+                <div class="text-[9px] text-slate-500">All Equity Alerts</div>
+            </div>
+            <div class="terminal-panel p-3 text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Active Open</div>
+                <div class="text-lg font-black text-sky-400 font-mono mt-0.5" id="eq-perf-open">5</div>
+                <div class="text-[9px] text-slate-500">Holding Floor</div>
+            </div>
+            <div class="terminal-panel p-3 text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Closed Trades</div>
+                <div class="text-lg font-black text-slate-300 font-mono mt-0.5" id="eq-perf-closed">0</div>
+                <div class="text-[9px] text-slate-500">Realized Exits</div>
+            </div>
+            <div class="terminal-panel p-3 text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Win Rate</div>
+                <div class="text-lg font-black text-emerald-400 font-mono mt-0.5" id="eq-perf-winrate">--%</div>
+                <div class="text-[9px] text-slate-500">TP1 / TP2 Hits</div>
+            </div>
+            <div class="terminal-panel p-3 text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Profit Factor</div>
+                <div class="text-lg font-black text-blue-400 font-mono mt-0.5" id="eq-perf-pf">--</div>
+                <div class="text-[9px] text-slate-500">Gross Win / Loss</div>
+            </div>
+            <div class="terminal-panel p-3 text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Realized P&L</div>
+                <div class="text-lg font-black text-emerald-400 font-mono mt-0.5" id="eq-perf-realized">$0.00</div>
+                <div class="text-[9px] text-slate-500">Closed Equity</div>
+            </div>
+            <div class="terminal-panel p-3 text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Floating P&L</div>
+                <div class="text-lg font-black font-mono mt-0.5" id="eq-perf-floating">-$63.20</div>
+                <div class="text-[9px] text-slate-500">Unrealized Open</div>
+            </div>
+            <div class="terminal-panel p-3 text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Avg Hold Time</div>
+                <div class="text-lg font-black text-slate-300 font-mono mt-0.5" id="eq-perf-hold">5.0d</div>
+                <div class="text-[9px] text-slate-500">Trading Days</div>
+            </div>
+        </div>
+
+        <!-- Interactive Filterable Stock Audit Ledger Table -->
+        <div class="terminal-panel p-4 shadow-xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <div>
+                    <h2 class="text-sm font-black text-white flex items-center gap-1.5 uppercase tracking-wide">
+                        <span class="text-blue-400">📈</span> Automated Stock Recommendation Audit & Outcome Ledger
+                    </h2>
+                    <p class="text-[11px] text-slate-400">
+                        Historical record of all equity swing setups from <code class="text-sky-300">data/stock_trades_log.json</code>. Tracking execution from alert price to TP1/TP2 targets or invalidation stops.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-mono" id="stock-ledger-count">5 trades shown</span>
+                    <button onclick="loadStockPerformanceData()" class="filter-btn text-[10px]">↻ REFRESH LEDGER</button>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="flex flex-wrap items-center justify-between gap-3 p-2.5 bg-slate-900/60 rounded border border-slate-800 mb-3 text-xs">
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold mr-1">STATUS:</span>
+                    <button onclick="setStockPerfFilter('ALL')" class="filter-btn active" id="btn-spfilt-all">All Trades</button>
+                    <button onclick="setStockPerfFilter('OPEN')" class="filter-btn" id="btn-spfilt-open">Active Open</button>
+                    <button onclick="setStockPerfFilter('WON')" class="filter-btn" id="btn-spfilt-won">Target Hit (TP1/TP2)</button>
+                    <button onclick="setStockPerfFilter('LOST')" class="filter-btn" id="btn-spfilt-lost">Stopped Out</button>
+                    <button onclick="setStockPerfFilter('MY_PORTFOLIO')" class="filter-btn text-blue-400 border border-blue-500/30 font-bold" id="btn-spfilt-my-port">★ My Portfolio (<span id="eq-my-port-badge">0</span>)</button>
+                </div>
+                <div class="w-full sm:w-64">
+                    <input type="text" id="stock-perf-search" placeholder="Search ticker / sector..." class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded px-3 py-1 w-full focus:outline-none focus:ring-1 focus:ring-sky-500" onkeyup="renderStockLedgerTable()">
+                </div>
+            </div>
+
+            <!-- Ledger Table -->
+            <div class="overflow-x-auto max-h-[550px]">
+                <table class="w-full text-left text-xs">
+                    <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 uppercase text-[10px]">
+                        <tr>
+                            <th class="py-2.5 px-2.5">Entry Date</th>
+                            <th class="py-2.5 px-2.5">Ticker</th>
+                            <th class="py-2.5 px-2.5">Sector</th>
+                            <th class="py-2.5 px-2.5">Shares</th>
+                            <th class="py-2.5 px-2.5">Entry</th>
+                            <th class="py-2.5 px-2.5">Stop (50 EMA)</th>
+                            <th class="py-2.5 px-2.5">Targets (TP1/TP2)</th>
+                            <th class="py-2.5 px-2.5">Current / Exit</th>
+                            <th class="py-2.5 px-2.5">P&L %</th>
+                            <th class="py-2.5 px-2.5">Capital Deployed</th>
+                            <th class="py-2.5 px-2.5">Max Risk ($)</th>
+                            <th class="py-2.5 px-2.5">Days</th>
+                            <th class="py-2.5 px-2.5">Status</th>
+                            <th class="py-2.5 px-2.5">Execution & Loss Attribution Note</th>
+                            <th class="py-2.5 px-2.5">Exact Order Ticket</th>
+                            <th class="py-2.5 px-2.5 text-center">My Portfolio</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock-ledger-body" class="divide-y divide-slate-800/40">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Equity Portfolio Capital Simulator -->
+        <div class="terminal-panel p-4 bg-slate-900/90 border border-slate-800 shadow-xl">
+            <div class="flex justify-between items-center pb-2 mb-3 border-b border-slate-800">
+                <div>
+                    <h2 class="text-sm font-black text-white uppercase tracking-wide flex items-center gap-1.5">
+                        <span>💵</span> Equity Portfolio Growth & Compounding Simulator
+                    </h2>
+                    <p class="text-[11px] text-slate-400">Simulate actual dollar equity compounding based on fixed 1.5% risk per trade across the historical stock recommendations.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs mb-3">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Starting Equity</label>
+                    <div class="flex items-center gap-1">
+                        <button onclick="setEqSimCap(10000)" class="filter-btn" id="btn-eqsim-10k">$10k</button>
+                        <button onclick="setEqSimCap(25000)" class="filter-btn" id="btn-eqsim-25k">$25k</button>
+                        <button onclick="setEqSimCap(50000)" class="filter-btn active" id="btn-eqsim-50k">$50k</button>
+                        <button onclick="setEqSimCap(100000)" class="filter-btn" id="btn-eqsim-100k">$100k</button>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Risk Model</label>
+                    <div class="text-xs font-mono font-bold text-blue-400 pt-1">Fixed Fractional (1.5% Risk / Trade · 20% Cap)</div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Simulated Equity Value</label>
+                    <div class="text-base font-mono font-bold text-white pt-0.5" id="eq-sim-equity-val">$49,936.80</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Universe Telemetry & Constituent Search Modal/Table -->
+    <div class="terminal-panel p-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+            <div>
+                <h2 class="text-sm font-black text-white uppercase tracking-wide">Stock Universe Telemetry & Active Reclaims</h2>
+                <p class="text-[11px] text-slate-400">Complete stock constituent list across S&P 500 and NASDAQ monitored equities.</p>
+            </div>
+            <div class="flex gap-2 w-full sm:w-auto">
+                <input type="text" id="eq-ticker-search" placeholder="Search ticker / company / sector..." class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded px-3 py-1.5 w-full sm:w-64 focus:outline-none focus:ring-1 focus:ring-sky-500" onkeyup="renderUniverseTable()">
+                <select id="eq-filter-qualified" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded px-2.5 py-1.5 focus:outline-none" onchange="renderUniverseTable()">
+                    <option value="ALL">All Stocks</option>
+                    <option value="YES">Qualified Only</option>
+                    <option value="NO">Unconfirmed</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto max-h-[400px]">
+            <table class="w-full text-left text-xs">
+                <thead class="sticky top-0 bg-slate-950/95 text-slate-500 border-b border-slate-800 uppercase text-[10px]">
+                    <tr>
+                        <th class="py-2 px-2.5">Ticker</th>
+                        <th class="py-2 px-2.5">Sector</th>
+                        <th class="py-2 px-2.5">Price</th>
+                        <th class="py-2 px-2.5">EMA 50</th>
+                        <th class="py-2 px-2.5">vs 50 %</th>
+                        <th class="py-2 px-2.5">RSI</th>
+                        <th class="py-2 px-2.5">ADR</th>
+                        <th class="py-2 px-2.5">Ret %</th>
+                        <th class="py-2 px-2.5">State</th>
+                        <th class="py-2 px-2.5">Qualified</th>
+                    </tr>
+                </thead>
+                <tbody id="eq-universe-body" class="divide-y divide-slate-800/40">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // State variables
+        var currentPayload = null;
+        var stockTradesData = { summary: {}, trades: [] };
+        var activeStockView = 'recs'; // 'recs' or 'perf'
+        var activeGlobalSector = '';
+        var activeStockPerfFilter = 'ALL';
+        var equityDeployCapital = 50000;
+        var eqSimCapital = 50000;
+
+        // Portfolio LocalStorage
+        function getMyEquityPortfolio() {
+            try {
+                return JSON.parse(localStorage.getItem('myEquityPortfolio') || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveMyEquityPortfolio(port) {
+            localStorage.setItem('myEquityPortfolio', JSON.stringify(port));
+            updateEquityAllocationPlan();
+            renderStockSwings();
+            renderStockCore();
+            renderStockLedgerTable();
+        }
+
+        function toggleEquityTrade(tradeId, ticker, shares, price, stop, tp1, tp2, sector) {
+            const port = getMyEquityPortfolio();
+            if (port[tradeId]) {
+                delete port[tradeId];
+            } else {
+                port[tradeId] = {
+                    tradeId,
+                    ticker,
+                    shares,
+                    price,
+                    stop,
+                    tp1,
+                    tp2,
+                    sector,
+                    capitalDeployed: Math.round(shares * price),
+                    dateAdded: new Date().toISOString().split('T')[0]
+                };
+            }
+            saveMyEquityPortfolio(port);
+        }
+
+        function clearEquityPortfolioConfirm() {
+            if (confirm('Clear all trades from My Stock Portfolio?')) {
+                saveMyEquityPortfolio({});
+            }
+        }
+
+        function resetEquityAllocator() {
+            setEquityCapital(50000);
+            document.getElementById('eq-alloc-architecture').value = 'balanced';
+            document.getElementById('eq-dry-powder-mode').value = 'regime_adaptive';
+            updateEquityAllocationPlan();
+        }
+
+        function switchStockView(view) {
+            activeStockView = view;
+            const recsEl = document.getElementById('stock-view-recs-container');
+            const perfEl = document.getElementById('stock-view-perf-container');
+            const btnRecs = document.getElementById('btn-view-recs');
+            const btnPerf = document.getElementById('btn-view-perf');
+            const expl = document.getElementById('stock-view-explainer');
+
+            if (view === 'recs') {
+                recsEl.classList.remove('hidden');
+                perfEl.classList.add('hidden');
+                btnRecs.className = 'subview-btn active px-3.5 py-1 rounded text-xs font-bold transition bg-blue-600 text-white shadow flex items-center gap-1.5';
+                btnPerf.className = 'subview-btn px-3.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5';
+                if (expl) expl.textContent = 'Active Mode: Cash Equities, Fixed Dollar-at-Risk Sizing (1.5%) & 50 EMA Trailing Stops.';
+            } else {
+                recsEl.classList.add('hidden');
+                perfEl.classList.remove('hidden');
+                btnRecs.className = 'subview-btn px-3.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5';
+                btnPerf.className = 'subview-btn active px-3.5 py-1 rounded text-xs font-bold transition bg-blue-600 text-white shadow flex items-center gap-1.5';
+                if (expl) expl.textContent = 'Audit Ledger: Tracking Execution & Performance from data/stock_trades_log.json';
+                loadStockPerformanceData();
+            }
+        }
+
+        function setEquityCapital(amt) {
+            if (isNaN(amt) || amt <= 0) amt = 50000;
+            equityDeployCapital = amt;
+            document.querySelectorAll('.eq-cap-btn').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+            if (amt === 10000) document.getElementById('btn-eqcap-10k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 25000) document.getElementById('btn-eqcap-25k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 50000) document.getElementById('btn-eqcap-50k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 100000) document.getElementById('btn-eqcap-100k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            const inp = document.getElementById('equity-custom-capital');
+            if (inp) inp.value = amt;
+            updateEquityAllocationPlan();
+        }
+
+        function updateEquityAllocationPlan() {
+            const port = getMyEquityPortfolio();
+            let committedCapital = 0;
+            let openPosCount = 0;
+            Object.values(port).forEach(item => {
+                committedCapital += (item.capitalDeployed || (item.shares * item.price) || 0);
+                openPosCount++;
+            });
+
+            // Dynamic Dry Powder
+            const dpMode = document.getElementById('eq-dry-powder-mode')?.value || 'regime_adaptive';
+            let cashBufferPct = 0.25;
+            if (dpMode === 'locked_15') cashBufferPct = 0.15;
+            else if (dpMode === 'locked_25') cashBufferPct = 0.25;
+            else if (dpMode === 'locked_35') cashBufferPct = 0.35;
+            else {
+                // Adaptive: check market commentary
+                const verd = currentPayload?.market_commentary?.action_verdict || 'CAUTIOUS BUY';
+                if (verd.includes('HOLD') || verd.includes('PRESERVE')) cashBufferPct = 0.35;
+                else if (verd.includes('AGGRESSIVE')) cashBufferPct = 0.15;
+                else cashBufferPct = 0.25;
+            }
+
+            const freeCashTarget = Math.round(equityDeployCapital * cashBufferPct);
+            const deployableCapital = Math.max(0, equityDeployCapital - freeCashTarget);
+
+            // Architecture
+            const arch = document.getElementById('eq-alloc-architecture')?.value || 'balanced';
+            let coreRatio = 0.60;
+            let swingRatio = 0.40;
+            if (arch === 'tactical') { coreRatio = 0.20; swingRatio = 0.80; }
+            if (arch === 'secular') { coreRatio = 0.80; swingRatio = 0.20; }
+
+            const coreBudget = Math.round(deployableCapital * coreRatio);
+            const swingBudget = Math.round(deployableCapital * swingRatio);
+
+            // Update DOM metrics cards
+            const elTot = document.getElementById('eq-disp-total-cap');
+            if (elTot) elTot.textContent = `$${equityDeployCapital.toLocaleString()}`;
+
+            const elCom = document.getElementById('eq-disp-committed-cap');
+            if (elCom) elCom.textContent = `$${committedCapital.toLocaleString()} (${openPosCount} pos)`;
+
+            const elFree = document.getElementById('eq-disp-free-cash');
+            if (elFree) elFree.textContent = `$${freeCashTarget.toLocaleString()} (${Math.round(cashBufferPct * 100)}%)`;
+
+            const elCore = document.getElementById('eq-disp-core-budget');
+            if (elCore) elCore.textContent = `$${coreBudget.toLocaleString()}`;
+
+            const elSwing = document.getElementById('eq-disp-tactical-budget');
+            if (elSwing) elSwing.textContent = `$${swingBudget.toLocaleString()}`;
+
+            const elBadge = document.getElementById('eq-my-port-badge');
+            if (elBadge) elBadge.textContent = openPosCount;
+
+            renderStockSwings();
+            renderStockCore();
+        }
+
+        // Data Loader
+        async function loadLatestData(dateKey = 'latest') {
+            try {
+                const url = (dateKey === 'latest') ? './data/latest.json?t=' + Date.now() : `./data/history/${dateKey}.json`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Network error loading latest.json');
+                currentPayload = await res.json();
+                renderAll(currentPayload);
+            } catch (err) {
+                console.error('Failed to load latest.json:', err);
+            }
+        }
+
+        async function loadStockPerformanceData() {
+            try {
+                const res = await fetch('./data/stock_trades_log.json?t=' + Date.now());
+                if (!res.ok) throw new Error('Could not load stock_trades_log.json');
+                stockTradesData = await res.json();
+                renderStockPerformanceView(stockTradesData);
+            } catch (e) {
+                console.warn('Could not load stock trades log:', e);
+            }
+        }
+
+        function renderAll(data) {
+            if (!data) return;
+
+            // Timestamp and clock
+            const ts = data.macro_breadth?.timestamp || data.macro_breadth?.date || 'Live';
+            const tsEl = document.getElementById('header-timestamp');
+            if (tsEl) tsEl.textContent = `• data ${ts}`;
+
+            renderExecutiveBriefing(data);
+            renderSectorPills(data);
+            renderFunnel(data);
+            updateEquityAllocationPlan();
+            renderUniverseTable();
+        }
+
+        function renderExecutiveBriefing(data) {
+            const mc = data.market_commentary || {};
+            const bm = data.benchmark_matrix || {};
+
+            // Verdict
+            const vEl = document.getElementById('briefing-verdict-badge');
+            if (vEl) {
+                vEl.textContent = mc.action_badge || mc.action_verdict || '🟡 CAUTIOUS BUY';
+                if ((mc.action_verdict || '').includes('HOLD') || (mc.action_verdict || '').includes('PRESERVE')) {
+                    vEl.className = 'px-3 py-1 rounded text-xs font-black bg-orange-950/80 text-orange-400 border border-orange-500/50 uppercase tracking-wide';
+                } else if ((mc.action_verdict || '').includes('AGGRESSIVE')) {
+                    vEl.className = 'px-3 py-1 rounded text-xs font-black bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 uppercase tracking-wide';
+                } else {
+                    vEl.className = 'px-3 py-1 rounded text-xs font-black bg-amber-950/80 text-amber-400 border border-amber-500/50 uppercase tracking-wide';
+                }
+            }
+
+            const regEl = document.getElementById('briefing-regime-badge');
+            if (regEl) regEl.textContent = bm.regime || 'MIXED ROTATION';
+
+            // Indices
+            const idxs = bm.indices || {};
+            ['SPY', 'QQQ', 'RSP', 'IWM'].forEach(sym => {
+                const info = idxs[sym] || {};
+                const pEl = document.getElementById(`idx-${sym.toLowerCase()}-price`);
+                if (pEl) pEl.textContent = `$${parseFloat(info.price || 0).toFixed(2)}`;
+                const sEl = document.getElementById(`idx-${sym.toLowerCase()}-status`);
+                if (sEl) {
+                    const isAbove = (info.status === 'ABOVE');
+                    const pctStr = (info.vs_ema50_pct > 0 ? '+' : '') + parseFloat(info.vs_ema50_pct || 0).toFixed(2) + '%';
+                    sEl.textContent = `● ${pctStr} (${isAbove ? 'Above' : 'Below'})`;
+                    sEl.className = isAbove 
+                        ? 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30'
+                        : 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30';
+                }
+            });
+
+            // Narratives
+            const mEl = document.getElementById('briefing-macro-narrative');
+            if (mEl) mEl.textContent = mc.macro_narrative || 'Macro regime indicates selective market expansion.';
+            const sEl = document.getElementById('briefing-sector-narrative');
+            if (sEl) sEl.textContent = mc.sector_flow_narrative || 'Capital concentration in strong sectors.';
+
+            // Mandates
+            const mandEl = document.getElementById('briefing-mandates-list');
+            if (mandEl && mc.execution_mandates) {
+                mandEl.innerHTML = mc.execution_mandates.map(m => `<li>${m}</li>`).join('');
+            }
+        }
+
+        function renderFunnel(data) {
+            const f = data.funnel_diagnostic || (data.macro_breadth && data.macro_breadth.funnel_diagnostic) || {
+                scanned: 476, below_floor: 265, stale_reclaim: 30, wrong_retrace: 6, low_runway: 4, pending_eod: 0, qualified: (data.stock_recommendations || []).length
+            };
+            const fEl = document.getElementById('scanner-funnel-container');
+            if (fEl) {
+                fEl.innerHTML = `
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">${f.scanned} Scanned</span>
+                    <span class="text-slate-600">➔</span>
+                    <span class="px-2 py-0.5 rounded bg-rose-950/40 text-rose-400 border border-rose-500/20">${f.below_floor} Below Floor</span>
+                    <span class="text-slate-600">➔</span>
+                    <span class="px-2 py-0.5 rounded bg-amber-950/40 text-amber-400 border border-amber-500/20">${f.stale_reclaim} Stale (>3d)</span>
+                    <span class="text-slate-600">➔</span>
+                    <span class="px-2 py-0.5 rounded bg-orange-950/40 text-orange-400 border border-orange-500/20">${f.low_runway || 0} Low Runway</span>
+                    <span class="text-slate-600">➔</span>
+                    <span class="px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 font-bold">${(data.stock_recommendations || []).length} Equity Qualified</span>
+                `;
+            }
+        }
+
+        function renderSectorPills(data) {
+            const container = document.getElementById('sector-nav-pills');
+            if (!container) return;
+            const sectors = ['ALL', 'TECH SOFTWARE', 'MATERIALS', 'INDUSTRIALS', 'FINANCIALS', 'HEALTHCARE', 'ENERGY', 'TECH CORE', 'CONSUMER DISC', 'CONSUMER STAPLES', 'COMM SERVICES', 'UTILITIES', 'TECH SEMIS', 'REAL ESTATE', 'INDEX'];
+            container.innerHTML = sectors.map(sec => {
+                const isActive = (activeGlobalSector === (sec === 'ALL' ? '' : sec));
+                return `<button onclick="filterBySector('${sec === 'ALL' ? '' : sec}')" class="tag-pill ${isActive ? 'active' : ''}">${sec}</button>`;
+            }).join('');
+        }
+
+        function filterBySector(sec) {
+            activeGlobalSector = sec.toUpperCase();
+            renderSectorPills(currentPayload);
+            const banner = document.getElementById('active-filter-banner');
+            const label = document.getElementById('active-filter-label');
+            if (activeGlobalSector) {
+                if (banner) banner.classList.remove('hidden');
+                if (label) label.textContent = activeGlobalSector;
+            } else {
+                if (banner) banner.classList.add('hidden');
+            }
+            renderStockSwings();
+            renderStockCore();
+            renderStockLedgerTable();
+            renderUniverseTable();
+        }
+
+        function clearFilter() {
+            activeGlobalSector = '';
+            document.getElementById('global-search-input').value = '';
+            document.getElementById('stock-perf-search').value = '';
+            document.getElementById('eq-ticker-search').value = '';
+            filterBySector('');
+        }
+
+        function handleGlobalSearch(val) {
+            val = (val || '').toUpperCase().trim();
+            activeGlobalSector = val;
+            renderStockSwings();
+            renderStockCore();
+            renderStockLedgerTable();
+            renderUniverseTable();
+        }
+
+        // ==========================================
+        // RENDER TABLE 1: TACTICAL EQUITY SWINGS
+        // ==========================================
+        function renderStockSwings() {
+            const tbody = document.getElementById('stock-swings-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let recs = (currentPayload?.stock_recommendations) || [];
+            if (activeGlobalSector) {
+                recs = recs.filter(r => (r.sector || '').toUpperCase().includes(activeGlobalSector) || (r.subsector || '').toUpperCase().includes(activeGlobalSector) || r.ticker.toUpperCase() === activeGlobalSector);
+            }
+
+            const countEl = document.getElementById('eq-swings-count');
+            if (countEl) countEl.textContent = `${recs.length} Swings Qualified`;
+
+            if (recs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="py-4 text-center text-slate-500">No active tactical equity swing setups matching filter.</td></tr>';
+                return;
+            }
+
+            const port = getMyEquityPortfolio();
+            const riskPerTradeDollars = equityDeployCapital * 0.015; // 1.5% fixed risk
+            const maxCapPerStock = equityDeployCapital * 0.20; // 20% max cap
+
+            recs.forEach((item, idx) => {
+                const tradeId = `STOCK_${item.ticker}_SWING`;
+                const isTaken = !!port[tradeId];
+                const portItem = port[tradeId] || {};
+
+                // Dynamic share calculation based on user's capital tier
+                const riskPerShare = parseFloat(item.risk_per_share) || (parseFloat(item.price) - parseFloat(item.stop)) || (parseFloat(item.price) * 0.08);
+                let dynamicShares = Math.floor(riskPerTradeDollars / riskPerShare);
+                // Cap at 20% total equity
+                if (dynamicShares * parseFloat(item.price) > maxCapPerStock) {
+                    dynamicShares = Math.floor(maxCapPerStock / parseFloat(item.price));
+                }
+                dynamicShares = Math.max(1, dynamicShares);
+                const capitalDeployed = Math.round(dynamicShares * parseFloat(item.price));
+                const actualRiskDollars = Math.round(dynamicShares * riskPerShare);
+                const riskPct = ((actualRiskDollars / equityDeployCapital) * 100).toFixed(2);
+
+                const rankTitle = idx === 0 ? "Rank #1 — Primary Swing" : (idx === 1 ? "Rank #2 — Secondary Swing" : `Rank #${idx+1} — Tactical Swing`);
+                const rankBadge = idx === 0 ? "bg-emerald-950/60 text-emerald-400 border border-emerald-500/30" : "bg-blue-950/60 text-blue-300 border border-blue-500/30";
+
+                let portBtnHtml = '';
+                if (isTaken) {
+                    portBtnHtml = `<button onclick="toggleEquityTrade('${tradeId}', '${item.ticker}', ${portItem.shares || dynamicShares}, ${item.price}, ${item.stop}, ${item.tp1}, ${item.tp2}, '${item.sector}')" class="mt-1.5 w-full py-1 px-2 rounded text-[10px] font-bold bg-blue-600 text-white border border-blue-400 hover:bg-rose-600 transition flex items-center justify-center gap-1"><span>✓</span> In My Portfolio (${portItem.shares} sh · $${(portItem.capitalDeployed || Math.round(portItem.shares * item.price)).toLocaleString()})</button>`;
+                } else {
+                    portBtnHtml = `<button onclick="toggleEquityTrade('${tradeId}', '${item.ticker}', ${dynamicShares}, ${item.price}, ${item.stop}, ${item.tp1}, ${item.tp2}, '${item.sector}')" class="mt-1.5 w-full py-1 px-2 rounded text-[10px] font-bold bg-slate-800 text-sky-400 border border-slate-700 hover:bg-blue-600 hover:text-white transition flex items-center justify-center gap-1"><span>+</span> Mark as Taken (${dynamicShares} sh)</button>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">
+                        <div>${item.ticker}</div>
+                        <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-950/80 text-emerald-400 border border-emerald-500/40">BUY SHARES</span>
+                    </td>
+                    <td class="py-2.5 px-2.5 text-slate-300">
+                        <div class="font-semibold text-slate-200">${item.sector}</div>
+                        <div class="text-[10px] text-slate-400">${item.subsector || ''}</div>
+                    </td>
+                    <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${parseFloat(item.price).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-amber-400 font-semibold">
+                        $${parseFloat(item.stop).toFixed(2)}
+                        <div class="text-[9px] text-slate-500 font-mono">-${(((item.price - item.stop)/item.price)*100).toFixed(1)}%</div>
+                    </td>
+                    <td class="py-2.5 px-2.5 font-mono text-emerald-400 font-semibold">
+                        <div>$${parseFloat(item.tp1).toFixed(2)} <span class="text-[9px] text-slate-400 font-normal">(Scale 50%)</span></div>
+                        <div class="text-slate-300 text-[10px]">$${parseFloat(item.tp2).toFixed(2)} <span class="text-[9px] text-slate-500 font-normal">(50 EMA Trail)</span></div>
+                    </td>
+                    <td class="py-2.5 px-2.5 font-semibold text-amber-300">${item.rr_ratio || '1:2.5'}</td>
+                    <td class="py-2.5 px-2.5">
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">D${item.reclaim_days || 2} CONFIRMED</span>
+                        <div class="text-[10px] text-slate-300 mt-0.5">RVOL: <b class="text-white">${item.rvol || 1.0}x</b></div>
+                        <div class="text-[9px] text-slate-500">${item.weekly_stage || 'STAGE 2 (Advancing)'}</div>
+                    </td>
+                    <td class="py-2.5 px-2.5 text-[11px] font-mono">
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200 SMA)</span>
+                    </td>
+                    <td class="py-2.5 px-2.5 space-y-1">
+                        <div><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${rankBadge}">★ ${rankTitle}</span></div>
+                        <div class="text-xs font-mono font-bold text-white">Buy ${dynamicShares} Shares</div>
+                        <div class="text-[10px] font-mono text-slate-400">$${capitalDeployed.toLocaleString()} deployed · ${riskPct}% risk ($${actualRiskDollars})</div>
+                        ${portBtnHtml}
+                    </td>
+                    <td class="py-2.5 px-2.5">
+                        <div class="font-mono font-bold text-emerald-400 text-xs">BUY ${dynamicShares} SHARES @ $${parseFloat(item.price).toFixed(2)} LIMIT · STOP @ $${parseFloat(item.stop).toFixed(2)}</div>
+                        <div class="text-[10px] text-slate-300 font-mono mt-0.5">Scale 50% at TP1 ($${parseFloat(item.tp1).toFixed(2)}) · Move Stop to Breakeven · Trail on 50 EMA</div>
+                        <div class="text-[10px] text-sky-400 font-mono mt-0.5">↳ Common stock cash swing · Direct equity ownership · No expiration or theta decay</div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // RENDER TABLE 2: STRATEGIC CORE STOCKS
+        // ==========================================
+        function renderStockCore() {
+            const tbody = document.getElementById('stock-core-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let core = (currentPayload?.core_stocks) || [];
+            if (activeGlobalSector) {
+                core = core.filter(r => (r.sector || '').toUpperCase().includes(activeGlobalSector) || (r.subsector || '').toUpperCase().includes(activeGlobalSector) || r.ticker.toUpperCase() === activeGlobalSector);
+            }
+
+            const countEl = document.getElementById('eq-core-count');
+            if (countEl) countEl.textContent = `${core.length} Core Compounders`;
+
+            if (core.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-slate-500">No active strategic core growth setups matching filter.</td></tr>';
+                return;
+            }
+
+            const port = getMyEquityPortfolio();
+            const coreBudgetPerStock = Math.round((equityDeployCapital * 0.60 * 0.75) / Math.max(1, core.length));
+
+            core.forEach((item, idx) => {
+                const tradeId = `STOCK_${item.ticker}_CORE`;
+                const isTaken = !!port[tradeId];
+                const portItem = port[tradeId] || {};
+
+                const shares = Math.max(1, Math.floor(coreBudgetPerStock / parseFloat(item.price)));
+                const capitalDeployed = Math.round(shares * parseFloat(item.price));
+
+                let portBtnHtml = '';
+                if (isTaken) {
+                    portBtnHtml = `<button onclick="toggleEquityTrade('${tradeId}', '${item.ticker}', ${portItem.shares || shares}, ${item.price}, ${item.macro_stop}, ${item.tp1}, ${item.tp2}, '${item.sector}')" class="mt-1.5 w-full py-1 px-2 rounded text-[10px] font-bold bg-sky-600 text-white border border-sky-400 hover:bg-rose-600 transition flex items-center justify-center gap-1"><span>✓</span> In My Portfolio (${portItem.shares} sh · $${(portItem.capitalDeployed || Math.round(portItem.shares * item.price)).toLocaleString()})</button>`;
+                } else {
+                    portBtnHtml = `<button onclick="toggleEquityTrade('${tradeId}', '${item.ticker}', ${shares}, ${item.price}, ${item.macro_stop}, ${item.tp1}, ${item.tp2}, '${item.sector}')" class="mt-1.5 w-full py-1 px-2 rounded text-[10px] font-bold bg-slate-800 text-sky-400 border border-slate-700 hover:bg-sky-600 hover:text-white transition flex items-center justify-center gap-1"><span>+</span> Mark as Taken (${shares} sh)</button>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">
+                        <div>${item.ticker}</div>
+                        <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-sky-950/80 text-sky-400 border border-sky-500/40">CORE STOCK</span>
+                    </td>
+                    <td class="py-2.5 px-2.5 text-slate-300">
+                        <div class="font-semibold text-slate-200">${item.sector}</div>
+                        <div class="text-[10px] text-slate-400">${item.subsector || ''}</div>
+                    </td>
+                    <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${parseFloat(item.price).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-rose-400 font-semibold">
+                        $${parseFloat(item.macro_stop).toFixed(2)}
+                        <div class="text-[9px] text-slate-500 font-mono">3% below 200 SMA</div>
+                    </td>
+                    <td class="py-2.5 px-2.5 font-mono text-emerald-400 font-semibold">
+                        <div>$${parseFloat(item.tp1).toFixed(2)} / $${parseFloat(item.tp2).toFixed(2)}</div>
+                    </td>
+                    <td class="py-2.5 px-2.5 font-semibold text-amber-300">${item.rr_ratio || '1:2.4'}</td>
+                    <td class="py-2.5 px-2.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">${item.trend_stack || 'Price >= EMA50 >= SMA200'}</span>
+                        <div class="text-[10px] text-slate-400 mt-1">Stage: <b class="text-white">${item.weekly_stage || 'STAGE 2 (Advancing)'}</b></div>
+                    </td>
+                    <td class="py-2.5 px-2.5 space-y-1">
+                        <div class="text-xs font-mono font-bold text-white">Buy ${shares} Shares</div>
+                        <div class="text-[10px] font-mono text-slate-400">$${capitalDeployed.toLocaleString()} capital commitment</div>
+                        ${portBtnHtml}
+                    </td>
+                    <td class="py-2.5 px-2.5">
+                        <div class="font-mono font-bold text-sky-300 text-xs">BUY ${shares} SHARES @ $${parseFloat(item.price).toFixed(2)} LIMIT · MACRO STOP @ $${parseFloat(item.macro_stop).toFixed(2)}</div>
+                        <div class="text-[10px] text-slate-300 font-mono mt-0.5">${item.execution_guidance || 'Secular Core Hold · Macro Trailing Stop on 200 SMA · Quarterly Rebalance'}</div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // RENDER VIEW 2: STOCK PERFORMANCE LEDGER
+        // ==========================================
+        function renderStockPerformanceView(logData) {
+            if (!logData) return;
+            stockTradesData = logData;
+            const summary = logData.summary || {};
+            const trades = logData.trades || [];
+
+            // Metrics KPI Ribbon
+            document.getElementById('eq-perf-total').textContent = summary.total_recommendations || trades.length || 0;
+            document.getElementById('eq-perf-open').textContent = summary.active_open !== undefined ? summary.active_open : trades.filter(t => t.status === 'OPEN').length;
+            document.getElementById('eq-perf-closed').textContent = summary.closed_trades !== undefined ? summary.closed_trades : trades.filter(t => t.status !== 'OPEN').length;
+            document.getElementById('eq-perf-winrate').textContent = `${parseFloat(summary.win_rate_pct || 0).toFixed(1)}%`;
+            document.getElementById('eq-perf-pf').textContent = parseFloat(summary.profit_factor || 0) > 0 ? `${parseFloat(summary.profit_factor).toFixed(2)}x` : '--';
+            document.getElementById('eq-perf-realized').textContent = `$${parseFloat(summary.gross_realized_gain || 0).toFixed(2)}`;
+
+            // Calculate floating unrealized gain
+            let floatingGain = 0;
+            trades.forEach(t => {
+                if (t.status === 'OPEN' && t.current_price && t.entry_price && t.shares) {
+                    floatingGain += (t.current_price - t.entry_price) * t.shares;
+                }
+            });
+            const flEl = document.getElementById('eq-perf-floating');
+            if (flEl) {
+                flEl.textContent = (floatingGain >= 0 ? '+' : '') + `$${floatingGain.toFixed(2)}`;
+                flEl.className = floatingGain >= 0 ? 'text-lg font-black text-emerald-400 font-mono mt-0.5' : 'text-lg font-black text-rose-400 font-mono mt-0.5';
+            }
+
+            document.getElementById('eq-perf-hold').textContent = `${parseFloat(summary.avg_holding_days || 5.0).toFixed(1)}d`;
+
+            renderStockLedgerTable();
+            runStockSimulation();
+        }
+
+        function setStockPerfFilter(f) {
+            activeStockPerfFilter = f;
+            document.querySelectorAll('[id^="btn-spfilt-"]').forEach(b => b.classList.remove('active'));
+            const map = { 'ALL': 'all', 'OPEN': 'open', 'WON': 'won', 'LOST': 'lost', 'MY_PORTFOLIO': 'my-port' };
+            document.getElementById(`btn-spfilt-${map[f]}`)?.classList.add('active');
+            renderStockLedgerTable();
+        }
+
+        function renderStockLedgerTable() {
+            const tbody = document.getElementById('stock-ledger-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let trades = (stockTradesData.trades) || [];
+            const query = (document.getElementById('stock-perf-search')?.value || '').toLowerCase().trim();
+            const port = getMyEquityPortfolio();
+
+            if (query) {
+                trades = trades.filter(t => t.ticker.toLowerCase().includes(query) || (t.sector || '').toLowerCase().includes(query) || (t.subsector || '').toLowerCase().includes(query));
+            }
+            if (activeGlobalSector) {
+                trades = trades.filter(t => (t.sector || '').toUpperCase().includes(activeGlobalSector) || (t.subsector || '').toUpperCase().includes(activeGlobalSector));
+            }
+
+            // Filter status
+            if (activeStockPerfFilter === 'OPEN') {
+                trades = trades.filter(t => t.status === 'OPEN' || t.status === 'TP1_HIT');
+            } else if (activeStockPerfFilter === 'WON') {
+                trades = trades.filter(t => t.status === 'TP1_HIT' || t.status === 'TP2_HIT' || t.status === 'CLOSED_WIN');
+            } else if (activeStockPerfFilter === 'LOST') {
+                trades = trades.filter(t => t.status === 'STOPPED_OUT' || t.status === 'CLOSED_LOSS');
+            } else if (activeStockPerfFilter === 'MY_PORTFOLIO') {
+                trades = trades.filter(t => !!port[`STOCK_${t.ticker}_SWING`] || !!port[`STOCK_${t.ticker}_CORE`] || !!port[t.id]);
+            }
+
+            const countEl = document.getElementById('stock-ledger-count');
+            if (countEl) countEl.textContent = `${trades.length} trades shown`;
+
+            if (trades.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="16" class="py-4 text-center text-slate-500">No stock trades matching filter criteria.</td></tr>';
+                return;
+            }
+
+            trades.forEach(t => {
+                const tradeId = t.id || `STOCK_${t.ticker}_SWING`;
+                const isTaken = !!port[tradeId] || !!port[`STOCK_${t.ticker}_SWING`] || !!port[`STOCK_${t.ticker}_CORE`];
+
+                let statusBadge = '';
+                if (t.status === 'OPEN') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-950/60 text-sky-400 border border-sky-500/30">ACTIVE OPEN</span>';
+                else if (t.status === 'TP1_HIT') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">TP1 HIT (+2.5 R)</span>';
+                else if (t.status === 'STOPPED_OUT') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30">STOPPED OUT</span>';
+                else statusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-300">${t.status}</span>`;
+
+                const pnl = parseFloat(t.pnl_pct || 0);
+                const pnlClass = pnl > 0 ? 'text-emerald-400 font-bold' : (pnl < 0 ? 'text-rose-400 font-bold' : 'text-slate-300 font-bold');
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="py-2.5 px-2.5 font-mono text-slate-400 text-xs">${t.entry_date}</td>
+                    <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">${t.ticker}</td>
+                    <td class="py-2.5 px-2.5 text-slate-300">
+                        <div>${t.sector}</div>
+                        <div class="text-[9px] text-slate-500">${t.subsector || ''}</div>
+                    </td>
+                    <td class="py-2.5 px-2.5 font-mono font-bold text-white">${t.shares}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-white">$${parseFloat(t.entry_price).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-amber-400">$${parseFloat(t.stop_price).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-emerald-400">$${parseFloat(t.tp1).toFixed(2)} / $${parseFloat(t.tp2).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-white">$${parseFloat(t.current_price || t.exit_price || t.entry_price).toFixed(2)}</td>
+                    <td class="py-2.5 px-2.5 font-mono ${pnlClass}">${pnl > 0 ? '+' : ''}${pnl.toFixed(2)}%</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-300">$${Math.round(t.capital_deployed || (t.shares * t.entry_price)).toLocaleString()}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-400">$${Math.round(t.actual_risk_dollars || ((t.entry_price - t.stop_price) * t.shares)).toLocaleString()}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-slate-400">${t.days_active || 1}d</td>
+                    <td class="py-2.5 px-2.5">${statusBadge}</td>
+                    <td class="py-2.5 px-2.5 text-[10px] text-slate-300">${t.exit_reason || t.execution_guidance || 'Active 50 EMA tracking'}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-[10px] text-slate-400">${t.order_ticket || ''}</td>
+                    <td class="py-2.5 px-2.5 text-center">
+                        <button onclick="toggleEquityTrade('${tradeId}', '${t.ticker}', ${t.shares}, ${t.entry_price}, ${t.stop_price}, ${t.tp1}, ${t.tp2}, '${t.sector}')" class="px-2 py-0.5 rounded text-[9px] font-bold ${isTaken ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}">
+                            ${isTaken ? '✓ Added' : '+ Add'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // STOCK PORTFOLIO SIMULATOR
+        // ==========================================
+        function setEqSimCap(amt) {
+            eqSimCapital = amt;
+            document.querySelectorAll('[id^="btn-eqsim-"]').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+            const map = { 10000: '10k', 25000: '25k', 50000: '50k', 100000: '100k' };
+            if (map[amt]) document.getElementById(`btn-eqsim-${map[amt]}`)?.classList.add('active', 'bg-blue-600', 'text-white');
+            runStockSimulation();
+        }
+
+        function runStockSimulation() {
+            const trades = (stockTradesData.trades) || [];
+            let totalRealized = 0;
+            let totalFloating = 0;
+
+            trades.forEach(t => {
+                const pnl = parseFloat(t.pnl_pct || 0) / 100;
+                const positionSize = (eqSimCapital * 0.015) / Math.max(0.01, (t.entry_price - t.stop_price) / t.entry_price);
+                const cappedSize = Math.min(positionSize, eqSimCapital * 0.20);
+
+                if (t.status === 'OPEN') {
+                    totalFloating += (cappedSize * pnl);
+                } else {
+                    totalRealized += (cappedSize * pnl);
+                }
+            });
+
+            const finalVal = eqSimCapital + totalRealized + totalFloating;
+            const el = document.getElementById('eq-sim-equity-val');
+            if (el) {
+                const netPct = (((finalVal - eqSimCapital) / eqSimCapital) * 100).toFixed(2);
+                el.innerHTML = `$${finalVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span class="text-xs ${finalVal >= eqSimCapital ? 'text-emerald-400' : 'text-rose-400'}">(${netPct >= 0 ? '+' : ''}${netPct}%)</span>`;
+            }
+        }
+
+        // ==========================================
+        // RENDER FULL UNIVERSE TABLE
+        // ==========================================
+        function renderUniverseTable() {
+            const tbody = document.getElementById('eq-universe-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let tickers = (currentPayload?.tickers) || [];
+            const query = (document.getElementById('eq-ticker-search')?.value || '').toLowerCase().trim();
+            const qual = document.getElementById('eq-filter-qualified')?.value || 'ALL';
+
+            if (query) {
+                tickers = tickers.filter(t => t.ticker.toLowerCase().includes(query) || (t.sector || '').toLowerCase().includes(query) || (t.subsector || '').toLowerCase().includes(query));
+            }
+            if (activeGlobalSector) {
+                tickers = tickers.filter(t => (t.sector || '').toUpperCase().includes(activeGlobalSector) || (t.subsector || '').toUpperCase().includes(activeGlobalSector));
+            }
+            if (qual === 'YES') {
+                tickers = tickers.filter(t => t.qualified === 'YES');
+            } else if (qual === 'NO') {
+                tickers = tickers.filter(t => t.qualified !== 'YES');
+            }
+
+            if (tickers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="py-4 text-center text-slate-500">No stocks matching criteria.</td></tr>';
+                return;
+            }
+
+            tickers.slice(0, 100).forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="py-2 px-2.5 font-bold text-sky-400 font-mono">${t.ticker}</td>
+                    <td class="py-2 px-2.5 text-slate-300">${t.sector}</td>
+                    <td class="py-2 px-2.5 font-mono text-white">$${parseFloat(t.price).toFixed(2)}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-400">$${parseFloat(t.ema50).toFixed(2)}</td>
+                    <td class="py-2 px-2.5 font-mono ${t.ema50_pct > 0 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${t.ema50_pct > 0 ? '+' : ''}${parseFloat(t.ema50_pct).toFixed(2)}%</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">${t.rsi ? parseFloat(t.rsi).toFixed(1) : '--'}</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-400">${t.adr || '--'}</td>
+                    <td class="py-2 px-2.5 font-mono ${t.return_pct > 0 ? 'text-emerald-400' : 'text-rose-400'}">${t.return_pct > 0 ? '+' : ''}${parseFloat(t.return_pct || 0).toFixed(2)}%</td>
+                    <td class="py-2 px-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${t.state === 'RECLAIMED' ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30' : 'bg-rose-950/60 text-rose-400 border border-rose-500/30'}">${t.state || 'BELOW'}</span></td>
+                    <td class="py-2 px-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${t.qualified === 'YES' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'}">${t.qualified === 'YES' ? 'YES' : 'NO'}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Live Clock
+        function startClock() {
+            function tick() {
+                const now = new Date();
+                const clockEl = document.getElementById('header-clock');
+                if (clockEl) clockEl.textContent = now.toLocaleTimeString();
+            }
+            tick();
+            setInterval(tick, 1000);
+        }
+
+        // Auto Refresh
+        let refreshTimer = null;
+        function setupAutoRefresh() {
+            const select = document.getElementById('auto-refresh');
+            if (!select) return;
+            function restart() {
+                if (refreshTimer) clearInterval(refreshTimer);
+                const sec = parseInt(select.value);
+                if (sec > 0) {
+                    refreshTimer = setInterval(() => {
+                        loadLatestData();
+                        loadStockPerformanceData();
+                    }, sec * 1000);
+                }
+            }
+            select.addEventListener('change', restart);
+            restart();
+        }
+
+        function refreshData() {
+            loadLatestData();
+            loadStockPerformanceData();
+        }
+
+        // Startup Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            startClock();
+            setupAutoRefresh();
+            loadLatestData();
+            loadStockPerformanceData();
+        });
+    </script>
+</body>
+</html>
