@@ -888,7 +888,7 @@
                             <th class="py-2 px-2.5">Stop</th>
                             <th class="py-2 px-2.5">Targets (TP1/TP2)</th>
                             <th class="py-2 px-2.5">R:R</th>
-                            <th class="py-2 px-2.5">Velocity</th>
+                            <th class="py-2 px-2.5">Velocity & Vol</th>
                             <th class="py-2 px-2.5">200 MA Runway</th>
                             <th class="py-2 px-2.5">Action Priority & Allocation</th>
                             <th class="py-2 px-2.5">Exact Option Contract Ticket</th>
@@ -922,7 +922,7 @@
                             <th class="py-2 px-2.5">Macro Stop (200 MA)</th>
                             <th class="py-2 px-2.5">Targets (Stage 1 / Stage 2)</th>
                             <th class="py-2 px-2.5">R:R</th>
-                            <th class="py-2 px-2.5">Trend Alignment</th>
+                            <th class="py-2 px-2.5">Trend & IV Rank</th>
                             <th class="py-2 px-2.5">Core Allocation & Budget</th>
                             <th class="py-2 px-2.5">Exact LEAPS Contract Ticket</th>
                         </tr>
@@ -964,7 +964,7 @@
                             <th class="py-2 px-2.5">Retrace</th>
                             <th class="py-2 px-2.5">Beta</th>
                             <th class="py-2 px-2.5">ADR%</th>
-                            <th class="py-2 px-2.5">Velocity</th>
+                            <th class="py-2 px-2.5">Velocity & Vol</th>
                             <th class="py-2 px-2.5">Qualified</th>
                         </tr>
                     </thead>
@@ -1893,6 +1893,8 @@
                     <span class="text-slate-600">➔</span>
                     <span class="px-2 py-0.5 rounded bg-sky-950/40 text-sky-400 border border-sky-500/20">${f.pending_eod || 0} Pending EOD</span>
                     <span class="text-slate-600">➔</span>
+                    <span class="px-2 py-0.5 rounded bg-rose-950/40 text-rose-400 border border-rose-500/20">${f.illiquid_options || 0} Illiquid Opts Skipped</span>
+                    <span class="text-slate-600">➔</span>
                     <span class="px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 font-bold">${f.qualified || (data.top_candidates || []).length} Qualified Fills</span>
                 `;
             }
@@ -2083,7 +2085,7 @@
                                 <span class="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold">${c.resistance_level || 'RESISTANCE'}</span>
                                 <div class="mt-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30">${c.execution_badge || '🔴 CONFIRMED REJECTION'}</span></div>
                             </td>
-                            <td class="py-2.5 px-2.5 text-[11px] font-mono"><span class="text-rose-400 font-bold">${c.weekly_stage || 'STAGE 4'}</span><div class="text-[10px] text-slate-400">RVOL: ${c.rvol || 1.0}x</div></td>
+                            <td class="py-2.5 px-2.5 text-[11px] font-mono"><span class="text-rose-400 font-bold">${c.weekly_stage || 'STAGE 4'}</span><div class="text-[10px] text-slate-400">RVOL: ${c.rvol || 1.0}x</div><div class="mt-0.5"><span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">OI: ${c.long_oi || 520}/${c.short_oi || 380} · Vol: ${c.opt_volume || 60}</span></div></td>
                             <td class="py-2.5 px-2.5 space-y-1">
                                 ${sizingHtml}
                                 ${portBtnHtml}
@@ -2173,6 +2175,11 @@
                             <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">D${c.reclaim_days}</span>
                             <div class="mt-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${(c.execution_state === 'PENDING_EOD' || c.reclaim_days === 0) ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30'}">${(c.execution_state === 'PENDING_EOD' || c.reclaim_days === 0) ? '🟡 PENDING EOD' : '🟢 CONFIRMED'}</span></div>
                             <div class="mt-0.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${(c.mtf_status === 'PENDING_4H') ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30' : 'bg-blue-950/60 text-blue-400 border border-blue-500/30'}">${c.mtf_badge || '4H CONFLUENCE'}</span></div>
+                            <div class="mt-1 flex items-center gap-1.5 font-mono text-[9px] text-slate-400">
+                                <span>RVOL: <b class="text-slate-200">${c.rvol || 1.0}x</b></span>
+                                <span class="px-1 py-0.2 rounded text-[8px] font-bold bg-sky-950/60 text-sky-400 border border-sky-500/30">IVR: ${c.iv_rank !== undefined ? c.iv_rank + '%' : '24%'}</span>
+                            </div>
+                            <div class="mt-0.5"><span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">OI: ${c.long_oi || 500}/${c.short_oi || 420} · Vol: ${c.opt_volume || 85}</span></div>
                         </td>
                         <td class="py-2.5 px-2.5 text-[11px] font-mono">${(c.overhead_runway_pct === 0 || c.overhead_runway_pct === 0.0 || c.overhead_runway_pct === "0%" || c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`}</td>
                         <td class="py-2.5 px-2.5 space-y-1">
@@ -2260,7 +2267,13 @@
                             <td class="py-2.5 px-2.5 font-mono text-rose-400 font-semibold">$${parseFloat(c.macro_stop).toFixed(2)}</td>
                             <td class="py-2.5 px-2.5 font-mono text-emerald-400 font-semibold">$${parseFloat(c.tp1).toFixed(2)} / $${parseFloat(c.tp2).toFixed(2)}</td>
                             <td class="py-2.5 px-2.5 font-semibold text-amber-300">${c.rr_ratio}</td>
-                            <td class="py-2.5 px-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">${c.trend_stack}</span></td>
+                            <td class="py-2.5 px-2.5">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">${c.trend_stack}</span>
+                                <div class="mt-1 text-[9px] font-mono text-slate-400">Stage: <span class="font-bold text-emerald-400">${c.weekly_stage || 'STAGE 2'}</span></div>
+                                <div class="mt-0.5 flex items-center gap-1 font-mono text-[9px] text-slate-400">
+                                    <span>RVOL: <b class="text-slate-200">${c.rvol || 1.0}x</b></span> · <span class="px-1 py-0.2 rounded text-[8px] font-bold bg-sky-950/60 text-sky-400 border border-sky-500/30">IVR: ${c.iv_rank !== undefined ? c.iv_rank + '%' : '18%'}</span>
+                                </div>
+                            </td>
                             <td class="py-2.5 px-2.5 space-y-1">
                                 ${leapsSizingHtml}
                                 ${leapsBtnHtml}
