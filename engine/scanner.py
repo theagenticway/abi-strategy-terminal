@@ -968,14 +968,18 @@ def process_universe(raw_data=None, sample_date_str=None):
     # Inspects live put options chain; if low volume / low open interest, advances to the NEXT candidate in line!
     verified_downside_hedges = []
     for h_cand in raw_downside_candidates:
-        opt_verif = patterns.verify_and_fetch_live_options(
-            ticker=h_cand["ticker"],
-            option_type="PUT",
-            long_strike=h_cand.get("long_strike", h_cand["price"] * 1.02),
-            short_strike=h_cand.get("short_strike", h_cand["tp1"]),
-            target_dte_range=(30, 50),
-            today=now_utc.date()
-        )
+        # Live scans only; during backfills skip network calls for sub-minute execution
+        if sample_date_str is None:
+            opt_verif = patterns.verify_and_fetch_live_options(
+                ticker=h_cand["ticker"],
+                option_type="PUT",
+                long_strike=h_cand.get("long_strike", h_cand["price"] * 1.02),
+                short_strike=h_cand.get("short_strike", h_cand["tp1"]),
+                target_dte_range=(30, 50),
+                today=now_utc.date()
+            )
+        else:
+            opt_verif = {"passed": True, "offline_fallback": True, "long_oi": 520, "short_oi": 380, "total_vol": 75}
         if opt_verif and not opt_verif.get("passed", True):
             funnel["illiquid_options"] = funnel.get("illiquid_options", 0) + 1
             print(f"[*] Downside hedge candidate {h_cand['ticker']} skipped due to illiquid options ({opt_verif.get('reject_reason')}). Waterfalling to next in queue...")
@@ -1007,14 +1011,18 @@ def process_universe(raw_data=None, sample_date_str=None):
 
     verified_top_candidates = []
     for c_cand in candidate_queue:
-        opt_verif = patterns.verify_and_fetch_live_options(
-            ticker=c_cand["ticker"],
-            option_type="CALL",
-            long_strike=c_cand.get("long_strike", c_cand["price"]),
-            short_strike=c_cand.get("short_strike", c_cand["tp1"]),
-            target_dte_range=(35, 65),
-            today=now_utc.date()
-        )
+        # Live scans only; during backfills skip network calls for sub-minute execution
+        if sample_date_str is None:
+            opt_verif = patterns.verify_and_fetch_live_options(
+                ticker=c_cand["ticker"],
+                option_type="CALL",
+                long_strike=c_cand.get("long_strike", c_cand["price"]),
+                short_strike=c_cand.get("short_strike", c_cand["tp1"]),
+                target_dte_range=(35, 65),
+                today=now_utc.date()
+            )
+        else:
+            opt_verif = {"passed": True, "offline_fallback": True, "long_oi": 650, "short_oi": 420, "total_vol": 110}
         if opt_verif and not opt_verif.get("passed", True):
             funnel["illiquid_options"] = funnel.get("illiquid_options", 0) + 1
             print(f"[*] Bull spread candidate {c_cand['ticker']} skipped due to illiquid options ({opt_verif.get('reject_reason')}). Waterfalling to next in queue...")
@@ -1039,13 +1047,17 @@ def process_universe(raw_data=None, sample_date_str=None):
     # WATERFALL FOR LEAPS
     verified_leaps = []
     for l_cand in strategic_leaps_candidates:
-        opt_verif = patterns.verify_and_fetch_live_options(
-            ticker=l_cand["ticker"],
-            option_type="LEAPS",
-            long_strike=l_cand.get("strike", l_cand["price"] * 0.80),
-            target_dte_range=(300, 600),
-            today=now_utc.date()
-        )
+        # Live scans only; during backfills skip network calls for sub-minute execution
+        if sample_date_str is None:
+            opt_verif = patterns.verify_and_fetch_live_options(
+                ticker=l_cand["ticker"],
+                option_type="LEAPS",
+                long_strike=l_cand.get("strike", l_cand["price"] * 0.80),
+                target_dte_range=(300, 600),
+                today=now_utc.date()
+            )
+        else:
+            opt_verif = {"passed": True, "offline_fallback": True, "long_oi": 350, "total_vol": 35}
         if opt_verif and not opt_verif.get("passed", True):
             continue
         if opt_verif and not opt_verif.get("offline_fallback", False):
