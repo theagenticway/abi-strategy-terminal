@@ -19,7 +19,7 @@ def calculate_stock_position_size(entry_price: float, stop_price: float, portfol
     - Enforces 20% single-stock capital allocation ceiling (prevents blowout on tight stops).
     - Returns integer share counts, actual dollars at risk, and total capital deployed.
     """
-    if entry_price <= 0:
+    if entry_price is None or np.isnan(entry_price) or entry_price <= 0:
         return {"shares": 0, "capital_deployed": 0.0, "actual_risk_dollars": 0.0, "risk_pct_actual": 0.0, "alloc_pct_actual": 0.0, "capped_by_max_alloc": False}
 
     risk_per_share = max(entry_price * 0.02, entry_price - stop_price)
@@ -51,8 +51,10 @@ def structure_stock_trade(ticker: str, sector: str, snapshot: dict, retrace_type
     - Minimum 1:2.5 Risk/Reward to TP1; TP2 at 1:3.5 R:R.
     - Two-tranche scale & trail mandate: Sell 50% at TP1, move stop to breakeven, trail remaining 50% on 50 EMA.
     """
-    price = snapshot["price"]
-    ema50 = snapshot["ema50"]
+    price = snapshot.get("price")
+    ema50 = snapshot.get("ema50")
+    if price is None or ema50 is None or np.isnan(price) or price <= 0:
+        return None
 
     stop_price = round(min(ema50 * 0.98, price * 0.92), 2)
     risk_per_share = round(price - stop_price, 2)
@@ -105,7 +107,9 @@ def structure_core_stock_accumulation(ticker: str, sector: str, snapshot: dict, 
     - Macro Invalidation stop anchored 3% below the structural 200-day SMA.
     - Low beta drag (<= 2.2) and positive cash-flow profile.
     """
-    price = snapshot["price"]
+    price = snapshot.get("price")
+    if price is None or np.isnan(price) or price <= 0:
+        return None
     sma200 = snapshot.get("sma200", price * 0.85)
     macro_stop = round(sma200 * 0.97, 2)
     risk_per_share = round(price - macro_stop, 2)
@@ -161,11 +165,17 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
             if not bar:
                 continue
 
-            high_p = float(bar.get("High", bar.get("Close", t["entry_price"])))
-            low_p = float(bar.get("Low", bar.get("Close", t["entry_price"])))
-            open_p = float(bar.get("Open", bar.get("Close", t["entry_price"])))
             close_p = float(bar.get("Close", t["entry_price"]))
-            ema50_p = float(bar.get("EMA50", t["entry_price"]))
+            if np.isnan(close_p) or close_p <= 0:
+                continue
+            high_p = float(bar.get("High", close_p))
+            if np.isnan(high_p): high_p = close_p
+            low_p = float(bar.get("Low", close_p))
+            if np.isnan(low_p): low_p = close_p
+            open_p = float(bar.get("Open", close_p))
+            if np.isnan(open_p): open_p = close_p
+            ema50_p = float(bar.get("EMA50", close_p))
+            if np.isnan(ema50_p): ema50_p = close_p
 
             t["max_price"] = max(t.get("max_price", t["entry_price"]), high_p)
             t["min_price"] = min(t.get("min_price", t["entry_price"]), low_p)

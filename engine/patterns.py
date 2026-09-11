@@ -117,6 +117,8 @@ def get_leaps_expiration(today=None) -> datetime.date:
 
 def calculate_strike_interval(price: float) -> float:
     """Calculates standardized option strike intervals based on underlying share price."""
+    if price is None or np.isnan(price) or price <= 0:
+        return 5.0
     if price < 25:
         return 1.0
     elif price < 100:
@@ -221,6 +223,26 @@ def model_options_contract(ticker: str, price: float, tp1: float, reclaim_days: 
     """
     if today is None:
         today = datetime.date(2026, 9, 6)
+    if price is None or np.isnan(price) or price <= 0:
+        return {
+            "vehicle": "Bull Call Spread",
+            "contract": "N/A",
+            "expiry": "2026-10-16",
+            "expiry_label": "N/A",
+            "dte": 45,
+            "theta_cliff_date": "2026-09-25",
+            "theta_cliff_label": "N/A",
+            "max_hold_sessions": 8,
+            "routing_guidance": "N/A",
+            "long_strike": 0,
+            "short_strike": 0,
+            "width": 0,
+            "est_debit": 0,
+            "max_profit": 0,
+            "est_rr": "N/A",
+            "breakeven": 0,
+            "details": "N/A"
+        }
         
     is_leaps = (reclaim_days >= 3)
     
@@ -363,8 +385,10 @@ def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_typ
     - Exact strike pair & expiration modeling (Bull Call Spread vs LEAPS)
     - Automated earnings blackout and options liquidity screening
     """
-    price = snapshot["price"]
-    ema50 = snapshot["ema50"]
+    price = snapshot.get("price")
+    ema50 = snapshot.get("ema50")
+    if price is None or ema50 is None or np.isnan(price) or price <= 0:
+        return None
     
     # Stop: 2% below EMA50 or 8% below entry price
     stop_price = round(min(ema50 * 0.98, price * 0.92), 2)
@@ -470,8 +494,10 @@ def screen_strategic_leaps_candidate(ticker: str, sector: str, snapshot: dict, t
     if today is None:
         today = datetime.date(2026, 9, 6)
         
-    price = snapshot["price"]
-    ema50 = snapshot["ema50"]
+    price = snapshot.get("price")
+    ema50 = snapshot.get("ema50")
+    if price is None or ema50 is None or np.isnan(price) or price <= 0:
+        return None
     sma150 = snapshot.get("sma150", ema50)
     sma200 = snapshot.get("sma200", ema50)
     beta = snapshot.get("beta", 1.0)
@@ -549,10 +575,15 @@ def detect_resistance_rejection(high, low, close, open_p, ema21, ema50, sma200, 
     and printed a rejection candle (Close <= Open, RSI < 52, MACD turning down).
     Returns (is_rejection, level_name, rejection_price).
     """
-    if close is None or len(close) < 50:
+    if close is None:
+        return False, None, 0.0
+    c_clean = close.dropna()
+    if len(c_clean) < 50:
         return False, None, 0.0
 
-    curr_close = float(close.iloc[-1])
+    curr_close = float(c_clean.iloc[-1])
+    if np.isnan(curr_close) or curr_close <= 0:
+        return False, None, 0.0
     curr_open = float(open_p.iloc[-1]) if open_p is not None else curr_close
     curr_high = float(high.iloc[-1]) if high is not None else curr_close
     curr_ema21 = float(ema21.iloc[-1]) if ema21 is not None else curr_close
@@ -586,6 +617,21 @@ def model_bear_put_spread(ticker: str, price: float, stop: float, target_support
     - Long Put: In-The-Money (~0.55-0.60 Delta, ~1-3% above price)
     - Short Put: Out-of-The-Money (~0.30-0.35 Delta near target support floor)
     """
+    if price is None or np.isnan(price) or price <= 0:
+        return {
+            "vehicle": "Bear Put Spread",
+            "contract": "N/A",
+            "contract_details": "N/A",
+            "long_strike": 0,
+            "short_strike": 0,
+            "width": 0,
+            "est_debit": 0,
+            "max_profit": 0,
+            "rr_ratio": "N/A",
+            "dte": 45,
+            "expiry": "2026-10-16",
+            "routing_guidance": "N/A"
+        }
     step = calculate_strike_interval(price)
     # Long put slightly ITM
     raw_long = price * 1.02

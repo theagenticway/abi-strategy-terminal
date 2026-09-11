@@ -140,21 +140,30 @@ def generate_market_commentary(benchmark_matrix, macro_breadth, all_25_etfs, top
     spy_info = indices.get("SPY", {})
     qqq_info = indices.get("QQQ", {})
     rsp_info = indices.get("RSP", {})
+    
+    def safe_pct(val):
+        try:
+            f = float(val)
+            return f if not np.isnan(f) else 0.0
+        except Exception:
+            return 0.0
+
     macro_narrative = (
         f"Macro environment is in a {regime.replace('_', ' ').title()} regime (Confluence Score: {score}/4 major indices holding 50-day EMA). "
         f"Market breadth is {'defensive' if mb_ratio < 0.35 else ('neutral' if mb_ratio < 0.55 else 'expansionary')} at {mb_ratio:.2f} "
         f"({reclaims} reclaims vs {below} testing/below floors). "
-        f"Tech Growth (QQQ) is {qqq_info.get('vs_ema50_pct', 0.0):+.2f}% vs its 50 EMA ({qqq_info.get('status', 'BELOW')}), "
-        f"while broad equal-weight RSP is {rsp_info.get('vs_ema50_pct', 0.0):+.2f}% ({rsp_info.get('status', 'ABOVE')}) and "
-        f"SPY is {spy_info.get('vs_ema50_pct', 0.0):+.2f}% ({spy_info.get('status', 'ABOVE')})."
+        f"Tech Growth (QQQ) is {safe_pct(qqq_info.get('vs_ema50_pct')):+.2f}% vs its 50 EMA ({qqq_info.get('status', 'BELOW')}), "
+        f"while broad equal-weight RSP is {safe_pct(rsp_info.get('vs_ema50_pct')):+.2f}% ({rsp_info.get('status', 'ABOVE')}) and "
+        f"SPY is {safe_pct(spy_info.get('vs_ema50_pct')):+.2f}% ({spy_info.get('status', 'ABOVE')})."
     )
 
     # 3. Tier 2: Sector Capital Flows Synthesis
-    sorted_etfs = sorted(all_25_etfs, key=lambda x: float(x.get("pct", 0) if x.get("pct") is not None else 0), reverse=True)
+    valid_etfs = [e for e in all_25_etfs if e.get("pct") is not None and not np.isnan(safe_pct(e.get("pct")))]
+    sorted_etfs = sorted(valid_etfs, key=lambda x: safe_pct(x.get("pct")), reverse=True)
     top3 = sorted_etfs[:3] if len(sorted_etfs) >= 3 else []
     bot3 = sorted_etfs[-3:] if len(sorted_etfs) >= 3 else []
-    top3_str = ", ".join([f"{e.get('sector', e.get('etf'))} ({e.get('etf')} {float(e.get('pct', 0)):+.1f}%)" for e in top3]) if top3 else "None"
-    bot3_str = ", ".join([f"{e.get('sector', e.get('etf'))} ({e.get('etf')} {float(e.get('pct', 0)):+.1f}%)" for e in bot3]) if bot3 else "None"
+    top3_str = ", ".join([f"{e.get('sector', e.get('etf'))} ({e.get('etf')} {safe_pct(e.get('pct')):+.1f}%)" for e in top3]) if top3 else "None"
+    bot3_str = ", ".join([f"{e.get('sector', e.get('etf'))} ({e.get('etf')} {safe_pct(e.get('pct')):+.1f}%)" for e in bot3]) if bot3 else "None"
     sector_narrative = (
         f"Institutional capital rotation shows stark divergence across the 25-ETF spectrum. "
         f"Outflows and distribution are heavily punishing {bot3_str}. "
@@ -193,10 +202,22 @@ import pandas as pd
 import numpy as np
 
 # Add local directory to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+_engine_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(_engine_dir)
 from universe import SECTOR_ETFS, get_complete_taxonomy, get_full_universe
 from indicators import compute_technical_snapshot
 from patterns import detect_retrace_pattern, calculate_reclaim_velocity, structure_trade_signal, screen_strategic_leaps_candidate
+
+try:
+    import stocks
+except ModuleNotFoundError:
+    import importlib.util
+    stocks_path = os.path.join(_engine_dir, "stocks.py")
+    if os.path.exists(stocks_path):
+        spec = importlib.util.spec_from_file_location("stocks", stocks_path)
+        stocks = importlib.util.module_from_spec(spec)
+        sys.modules["stocks"] = stocks
+        spec.loader.exec_module(stocks)
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 HISTORY_DIR = os.path.join(DATA_DIR, "history")
@@ -273,6 +294,16 @@ def fetch_market_data(tickers, period="1y", interval="1d"):
             except Exception as batch_err:
                 print(f"[!] Warning on batch {i//batch_size + 1}: {batch_err}")
 
+        # Guard: Truncate any trailing phantom/unfinalized session row with >50% NaNs
+        if combined_df is not None and len(combined_df) > 0:
+            try:
+                last_null_ratio = combined_df.iloc[-1].isna().sum() / max(1, len(combined_df.columns))
+                if last_null_ratio > 0.50:
+                    print(f"[*] Trimming unfinalized trailing market bar ({combined_df.index[-1]}) with {last_null_ratio*100:.1f}% NaNs")
+                    combined_df = combined_df.iloc[:-1]
+            except Exception as trim_err:
+                print(f"[!] Warning checking trailing market bar: {trim_err}")
+
         return combined_df
     except Exception as e:
         print(f"[!] Warning: yfinance download failed: {e}")
@@ -287,23 +318,31 @@ def extract_ticker_df(raw_data, ticker):
         if isinstance(raw_data.columns, pd.MultiIndex):
             if t in raw_data.columns.levels[0]:
                 try:
-                    df = raw_data[t].dropna(how="all")
-                    if len(df) >= 30 and "Close" in df.columns:
+                    df = raw_data[t].copy()
+                    if "Close" in df.columns:
+                        df = df.dropna(subset=["Close"])
+                    if len(df) >= 30 and "Close" in df.columns and not np.isnan(float(df["Close"].iloc[-1])):
                         return df
                 except Exception:
                     pass
             if len(raw_data.columns.levels) > 1 and t in raw_data.columns.levels[1]:
                 try:
-                    df = raw_data.xs(t, axis=1, level=1).dropna(how="all")
-                    if len(df) >= 30 and "Close" in df.columns:
+                    df = raw_data.xs(t, axis=1, level=1).copy()
+                    if "Close" in df.columns:
+                        df = df.dropna(subset=["Close"])
+                    if len(df) >= 30 and "Close" in df.columns and not np.isnan(float(df["Close"].iloc[-1])):
                         return df
                 except Exception:
                     pass
         else:
             if t in raw_data.columns:
                 try:
-                    df = raw_data[[t]].dropna()
-                    if len(df) >= 30:
+                    df = raw_data[[t]].copy()
+                    if "Close" in df.columns:
+                        df = df.dropna(subset=["Close"])
+                    else:
+                        df = df.dropna()
+                    if len(df) >= 30 and not np.isnan(float(df.iloc[-1, 0])):
                         return df
                 except Exception:
                     pass
@@ -520,13 +559,14 @@ def process_universe(raw_data=None, sample_date_str=None):
             qualified_candidates.append(trade_setup)
             try:
                 stock_setup = stocks.structure_stock_trade(ticker, sector, snapshot, retrace_type, reclaim_days, spy_regime_for_sizing, subsector=subsector)
-                stock_setup["overhead_runway_pct"] = runway_val
-                stock_setup["overhead_clearance_ok"] = overhead_ok
-                stock_setup["execution_state"] = trade_setup["execution_state"]
-                stock_setup["execution_badge"] = trade_setup["execution_badge"]
-                qualified_stock_candidates.append(stock_setup)
+                if stock_setup is not None:
+                    stock_setup["overhead_runway_pct"] = runway_val
+                    stock_setup["overhead_clearance_ok"] = overhead_ok
+                    stock_setup["execution_state"] = trade_setup["execution_state"]
+                    stock_setup["execution_badge"] = trade_setup["execution_badge"]
+                    qualified_stock_candidates.append(stock_setup)
             except Exception as s_err:
-                pass
+                print(f"[!] Warning structuring stock trade for {ticker}: {s_err}")
 
         # Screen for multi-quarter Strategic LEAPS accumulation (Approach 2)
         leaps_setup = screen_strategic_leaps_candidate(ticker, sector, snapshot)
@@ -538,9 +578,10 @@ def process_universe(raw_data=None, sample_date_str=None):
             strategic_leaps_candidates.append(leaps_setup)
             try:
                 core_stock = stocks.structure_core_stock_accumulation(ticker, sector, snapshot, subsector=subsector)
-                core_stock_candidates.append(core_stock)
-            except Exception:
-                pass
+                if core_stock is not None:
+                    core_stock_candidates.append(core_stock)
+            except Exception as c_err:
+                print(f"[!] Warning structuring core stock for {ticker}: {c_err}")
 
     # 3. Process All 25 Sector ETFs
     sector_results = []
@@ -670,13 +711,20 @@ def process_universe(raw_data=None, sample_date_str=None):
     sector_results = sorted(sector_results, key=lambda x: x["vs_ema50_num"], reverse=True)
 
     # 4. Sector Strength (Unique 20 Sectors)
+    all_known_sectors = set(t["sector"].upper() for t in ticker_records if t.get("sector"))
+    for meta in SECTOR_ETFS.values():
+        all_known_sectors.add(meta["name"].upper())
+    for s_name, _ in taxonomy.values():
+        all_known_sectors.add(s_name.upper())
+
     sector_strength = []
-    for sec_name in sorted(list(set(t["sector"] for t in ticker_records))):
-        sec_tickers = [t for t in ticker_records if t["sector"] == sec_name]
-        qual_count = len([t for t in sec_tickers if t["qualified"] == "YES"])
-        win_rate_val = round((qual_count / max(1, len(sec_tickers))) * 100)
-        avg_ret_val = round(sum(t.get("return_pct", 0) for t in sec_tickers) / max(1, len(sec_tickers)), 2)
-        score_val = max(1, min(10, round((win_rate_val / 10) * 0.7 + (max(0, avg_ret_val) * 0.3))))
+    for sec_name in sorted(list(all_known_sectors)):
+        sec_tickers = [t for t in ticker_records if t["sector"].upper() == sec_name]
+        qual_count = len([t for t in sec_tickers if t.get("qualified") == "YES"])
+        win_rate_val = round((qual_count / max(1, len(sec_tickers))) * 100) if sec_tickers else 0
+        valid_rets = [float(t.get("return_pct", 0)) for t in sec_tickers if t.get("return_pct") is not None and not np.isnan(float(t.get("return_pct", 0)))]
+        avg_ret_val = round(sum(valid_rets) / max(1, len(valid_rets)), 2) if valid_rets else 0.0
+        score_val = max(1, min(10, round((win_rate_val / 10) * 0.7 + (max(0, avg_ret_val) * 0.3)))) if sec_tickers else 1
         sector_strength.append({
             "sector": sec_name,
             "score": score_val,
@@ -739,7 +787,7 @@ def process_universe(raw_data=None, sample_date_str=None):
         count = len(t_list)
         qual = len([t for t in t_list if t.get("qualified") == "YES" or t.get("ema50_pct", 0) >= 0])
         win = round((qual / count) * 100)
-        rets = [t.get("return_pct", 0) for t in t_list if t.get("return_pct") is not None]
+        rets = [float(t.get("return_pct", 0)) for t in t_list if t.get("return_pct") is not None and not np.isnan(float(t.get("return_pct", 0)))]
         avg_ret = round(sum(rets) / len(rets), 2) if rets else 0.0
         score = max(1, min(10, round((win / 10) * 0.6 + min(4, max(0, avg_ret * 0.2)))))
         
@@ -1197,10 +1245,18 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
             ticker = t["ticker"]
             ticker_df = extract_ticker_df(raw_data, ticker)
             if ticker_df is not None and len(ticker_df) > 0 and "Close" in ticker_df.columns:
-                today_bar = ticker_df.iloc[-1]
-                high_p = float(today_bar.get("High", today_bar["Close"]))
-                low_p = float(today_bar.get("Low", today_bar["Close"]))
-                close_p = float(today_bar["Close"])
+                valid_df = ticker_df.dropna(subset=["Close"])
+                if len(valid_df) == 0:
+                    continue
+                today_bar = valid_df.iloc[-1]
+                close_val = float(today_bar["Close"])
+                if np.isnan(close_val) or close_val <= 0:
+                    continue
+                high_p = float(today_bar.get("High", close_val))
+                if np.isnan(high_p): high_p = close_val
+                low_p = float(today_bar.get("Low", close_val))
+                if np.isnan(low_p): low_p = close_val
+                close_p = close_val
                 
                 t["max_price"] = max(t.get("max_price", t["entry_price"]), high_p)
                 t["min_price"] = min(t.get("min_price", t["entry_price"]), low_p)
@@ -1426,13 +1482,15 @@ def save_payloads(payload: dict, raw_data=None):
     try:
         current_bars = {}
         for t_rec in payload.get("tickers", []):
-            current_bars[t_rec["ticker"]] = {
-                "High": t_rec["price"] * 1.01,
-                "Low": t_rec["price"] * 0.99,
-                "Open": t_rec["price"],
-                "Close": t_rec["price"],
-                "EMA50": t_rec["ema50"]
-            }
+            p = t_rec.get("price")
+            if p is not None and not np.isnan(p) and p > 0:
+                current_bars[t_rec["ticker"]] = {
+                    "High": p * 1.01,
+                    "Low": p * 0.99,
+                    "Open": p,
+                    "Close": p,
+                    "EMA50": t_rec.get("ema50", p)
+                }
         spy_df = extract_ticker_df(raw_data, "SPY")
         spy_ret = float(spy_df["Close"].pct_change().iloc[-1]) if (spy_df is not None and len(spy_df) >= 2) else 0.0
         stock_recs = payload.get("stock_recommendations", [])
