@@ -24,7 +24,7 @@ DEFAULT_MAX_ALLOC_PCT = 0.06   # 6.0% max capital ceiling per position ($6,000 o
 MAX_STOCK_PORTFOLIO_SLOTS = 18 # 16 to 21 active positions capacity
 MAX_STOCK_SPRINT_SLOTS = 12    # Tactical Swings (High-Risk & Balanced)
 MAX_STOCK_ANCHOR_SLOTS = 6     # Core Secular Compounders
-REPLACEMENT_HURDLE_DELTA = 25.0 # Required alpha score advantage to trigger eviction
+REPLACEMENT_HURDLE_DELTA = 18.0 # Required alpha score advantage to trigger eviction
 MIN_EVICTION_AGING_DAYS = 5     # Minimum sessions held before eviction eligibility
 
 
@@ -415,12 +415,14 @@ def structure_high_risk_stock_trade(
     if price is None or ema50 is None or np.isnan(price) or price <= 0:
         return None
 
-    stop_price = round(min(ema50 * 0.985, price * 0.94), 2)
+    # Anchor stop tightly: maximum 8.0% loss from entry to prevent runaway drawdowns
+    stop_price = round(max(ema50 * 0.985, price * 0.92), 2)
     risk_per_share = round(price - stop_price, 2)
     if risk_per_share <= 0:
         risk_per_share = round(price * 0.04, 2)
         stop_price = round(price - risk_per_share, 2)
 
+    # Velocity Harvest Target Geometry: Tranche 1 at +2.2R, Tranche 2 at +3.5R
     tp1 = round(price + (risk_per_share * 2.2), 2)
     tp2 = round(price + (risk_per_share * 3.5), 2)
     rr_ratio = f"1:{round((tp1 - price) / max(0.01, risk_per_share), 1)}"
@@ -512,12 +514,14 @@ def structure_balanced_stock_trade(
     if price is None or ema50 is None or np.isnan(price) or price <= 0:
         return None
 
-    stop_price = round(min(ema50 * 0.98, price * 0.92), 2)
+    # Anchor stop tightly: maximum 9.5% risk from entry
+    stop_price = round(max(ema50 * 0.98, price * 0.905), 2)
     risk_per_share = round(price - stop_price, 2)
     if risk_per_share <= 0:
         risk_per_share = round(price * 0.05, 2)
         stop_price = round(price - risk_per_share, 2)
 
+    # Balanced Swing Geometry: Tranche 1 at +2.5R, Tranche 2 at +3.5R
     tp1 = round(price + (risk_per_share * 2.5), 2)
     tp2 = round(price + (risk_per_share * 3.5), 2)
     rr_ratio = f"1:{round((tp1 - price) / max(0.01, risk_per_share), 1)}"
@@ -725,7 +729,12 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
                 # Check Stagnation Exits (Recycle Portfolio Heat)
                 if prong == "HIGH_RISK" and days_active >= 10:
                     current_r = (close_p - entry_p) / risk_per_share
-                    if current_r < 1.0:
+                    # If trade is healthy, trending above EMA50, and profitable, let it run!
+                    is_healthy_runner = (close_p > entry_p and close_p >= ema50_p and current_r >= 0.5)
+                    if is_healthy_runner and days_active < 22:
+                        # Trail stop to breakeven to lock in house money, give it extended runway
+                        t["stop_price"] = max(t["stop_price"], entry_p)
+                    elif current_r < 1.0:
                         realized_pnl = round(((close_p - entry_p) / entry_p) * 100, 2)
                         t["status"] = "STAGNATION_EXIT"
                         t["exit_price"] = close_p
@@ -739,8 +748,11 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
                 elif prong == "BALANCED" and days_active >= 14:
                     tp1_dist = tp1 - entry_p
                     curr_gain = close_p - entry_p
-                    if curr_gain < (0.50 * tp1_dist):
-                        # Tighten stop to breakeven or exit
+                    is_healthy_runner = (close_p > entry_p and close_p >= ema50_p)
+                    if is_healthy_runner and days_active < 35:
+                        # Trail stop to breakeven, allow extended 35-day trend compounding
+                        t["stop_price"] = max(t["stop_price"], entry_p)
+                    elif curr_gain < (0.50 * tp1_dist):
                         if close_p < entry_p:
                             realized_pnl = round(((close_p - entry_p) / entry_p) * 100, 2)
                             t["status"] = "STAGNATION_EXIT"
@@ -752,39 +764,42 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
                             t["driver_badge"] = "blue"
                             continue
                         else:
-                            # Tighten stop to Breakeven
                             t["stop_price"] = max(t["stop_price"], entry_p)
 
-                # Check Stop Loss
-                if low_p <= stop_p:
-                    fill_price = open_p if open_p < stop_p else stop_p
+                # Check Stop Loss (with hard stop capping maximum drawdown to 8.0-9.5%)
+                hard_stop = round(entry_p * (0.92 if prong == "HIGH_RISK" else 0.905), 2)
+                effective_stop = max(stop_p, hard_stop)
+                if low_p <= effective_stop:
+                    fill_price = open_p if open_p < effective_stop else effective_stop
                     realized_pnl = round(((fill_price - entry_p) / entry_p) * 100, 2)
                     t["status"] = "STOPPED_OUT"
                     t["exit_price"] = fill_price
                     t["exit_date"] = today_str
                     t["pnl_pct"] = realized_pnl
                     t["exit_reason"] = f"Technical Stop Hit at ${fill_price:.2f} ({realized_pnl:+.2f}%)"
-                    
                     if spy_ret is not None and spy_ret <= -0.012:
                         t["invalidation_driver"] = "MACRO CONTAGION"
                         t["driver_badge"] = "orange"
                     else:
                         t["invalidation_driver"] = "IDIOSYNCRATIC"
                         t["driver_badge"] = "rose"
+                    continue
 
                 elif high_p >= tp1:
                     t["status"] = "TP1_SCALED"
+                    t["stop_price"] = max(t["stop_price"], entry_p)
                     t["tp1_hit_date"] = today_str
                     t["tp1_fill_price"] = tp1
-                    t["stop_price"] = entry_p
                     t["invalidation_driver"] = "TP1 SCALED (+2.5 R:R)"
                     t["driver_badge"] = "emerald"
                     t["exit_reason"] = f"Scaled 50% at TP1 (${tp1:.2f}) · Stop Trailed to Breakeven (${entry_p:.2f})"
                     t["pnl_pct"] = round(((close_p - entry_p) / entry_p) * 100, 2)
-                else:
-                    t["pnl_pct"] = round(((close_p - entry_p) / entry_p) * 100, 2)
-                    t["invalidation_driver"] = "ACTIVE"
-                    t["driver_badge"] = "amber"
+                    continue
+
+                # Floating PnL update for active open position
+                t["pnl_pct"] = round(((close_p - entry_p) / entry_p) * 100, 2)
+                t["invalidation_driver"] = "ACTIVE"
+                t["driver_badge"] = "amber"
 
             elif t["status"] == "TP1_SCALED":
                 if ema50_p > t["stop_price"]:
@@ -921,7 +936,7 @@ def update_stock_trades_log(
             max_sprint = kwargs.get("max_sprint_slots", MAX_STOCK_SPRINT_SLOTS) if "kwargs" in locals() else MAX_STOCK_SPRINT_SLOTS
             max_anchor = kwargs.get("max_anchor_slots", MAX_STOCK_ANCHOR_SLOTS) if "kwargs" in locals() else MAX_STOCK_ANCHOR_SLOTS
             book_full = (len(sprint_open) >= max_sprint if cand_book == "SPRINT" else len(anchor_open) >= max_anchor)
-            portfolio_full = (total_open >= max_active_positions)
+            portfolio_full = (total_open >= max_active_positions or total_open >= max(1, int(max_active_positions * 0.85)))
 
             if book_full or portfolio_full:
                 target_book_trades = sprint_open if cand_book == "SPRINT" else anchor_open

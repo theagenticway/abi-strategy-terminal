@@ -2,7 +2,7 @@ import patterns
 MAX_OPTIONS_SLOTS = 18
 MAX_OPTIONS_SPRINT_SLOTS = 12   # Tactical Spreads (45-60 DTE)
 MAX_OPTIONS_ANCHOR_SLOTS = 6    # Strategic LEAPS (Jan 2028)
-REPLACEMENT_HURDLE_DELTA = 25.0 # Alpha score advantage required to trigger eviction
+REPLACEMENT_HURDLE_DELTA = 18.0 # Alpha score advantage required to trigger eviction
 MIN_EVICTION_AGING_DAYS = 5     # Minimum sessions held before eviction eligibility
 try:
     from engine.indicators import compute_active_health_tier, compute_technical_snapshot, get_regime_tier_capacities
@@ -1620,7 +1620,7 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
             anchor_open = [t for t in open_trades if "LEAPS" in t.get("structure", "")]
             
             book_full = (len(sprint_open) >= max_sprint if cand_book == "SPRINT" else len(anchor_open) >= max_anchor)
-            portfolio_full = (total_open >= max_slots)
+            portfolio_full = (total_open >= max_slots or total_open >= max(1, int(max_slots * 0.85)))
 
             if book_full or portfolio_full:
                 target_book_trades = sprint_open if cand_book == "SPRINT" else anchor_open
@@ -1822,7 +1822,7 @@ def save_payloads(payload: dict, raw_data=None):
                 }
         spy_df = extract_ticker_df(raw_data, "SPY")
         spy_ret = float(spy_df["Close"].pct_change().iloc[-1]) if (spy_df is not None and len(spy_df) >= 2) else 0.0
-        stock_recs = payload.get("stock_recommendations", [])
+        stock_recs = payload.get("stock_recommendations", []) + payload.get("core_stocks", [])
         stocks.update_stock_trades_log(stock_recs, current_bars, date_str, spy_ret)
         print(f"[+] Updated stock_trades_log.json ({len(stock_recs)} stock recommendations evaluated)")
     except Exception as s_log_err:

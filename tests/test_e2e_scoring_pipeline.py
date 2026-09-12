@@ -96,7 +96,7 @@ class TestEndToEndScoringPipeline(unittest.TestCase):
 
             current_market_bars = {
                 "NVDA": {"Close": 108.0, "Open": 107.0, "High": 109.0, "Low": 106.5, "EMA50": 102.0, "rsi": 62.0, "macd_hist": 0.3, "rvol": 1.4, "market_structure": "BULLISH_HH_HL"},
-                "INTC": {"Close": 23.5, "Open": 23.8, "High": 24.0, "Low": 23.2, "EMA50": 27.0, "rsi": 32.0, "macd_hist": -0.2, "rvol": 0.6, "market_structure": "BEARISH_LH_LL"}
+                "INTC": {"Close": 28.0, "Open": 28.2, "High": 28.5, "Low": 27.8, "EMA50": 29.5, "rsi": 32.0, "macd_hist": -0.2, "rvol": 0.6, "market_structure": "BEARISH_LH_LL"}
             }
 
             new_stock_recs = [

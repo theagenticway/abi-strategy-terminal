@@ -3,337 +3,457 @@
 This document provides the definitive, production-grade technical specification for the **ABI Strategy Terminal & Quantitative Execution Engine**.
 
 It details:
-1. **The Twin-Engine Architecture**: Independent $100,000 Common Stock and $100,000 Options portfolios ($200,000 total capital base) operating with dedicated 16–21 position holding capacity.
-2. **The 3-Pronged Strategy Framework**: Low Risk (Core Compounders), Balanced (Tactical Swings & LEAPS), and High Risk (High-Velocity Momentum Sprints) across cash equities and derivatives.
-3. **Two-Level Macro vs. Sector Separation**: Macro Confluence as the Level 1 Top-Level Portfolio Governor vs. Sector Relative Strength as an active Level 2 scoring factor.
-4. **Direct Beta & Elasticity Scoring**: Active incorporation of 60-day rolling Beta and ADR% into equity scoring (rewarding high beta in High-Risk; rewarding low beta in Core).
-5. **Universal Indicator Telemetry**: Complete mathematical definitions for all raw inputs, derived moving averages, RVOL, Wilder's RSI(14) pullback floors, and MACD(12, 26, 9) histogram momentum hooks.
-6. **Bi-Directional Execution & Natural Macro Steering**: Dynamic allocation between Call and Put spreads driven by the 4-Index Benchmark Matrix.
-7. **Execution Guardrails**: Dynamic sector capital caps (30%–35%), the "Liquid Route" options-to-stock auto-switch, 70% max-profit spread harvesting, and anti-chop re-entry cooldowns.
-8. **Persistence Lifecycle**: Complete left-to-right mapping and daily JSON storage vs. ephemeral memory boundaries.
 
----
+1.  **The Twin-Engine Architecture**: Independent $100,000 Common Stock and $100,000 Options portfolios ($200,000 total capital base) operating with dedicated 16–21 position holding capacity.
+2.  **The 3-Pronged Strategy Framework**: Low Risk (Core Compounders), Balanced (Tactical Swings & LEAPS), and High Risk (High-Velocity Momentum Sprints) across cash equities and derivatives.
+3.  **Universal Indicator Telemetry**: Complete mathematical definitions for all raw inputs, derived moving averages, RVOL, Wilder's RSI(14) pullback floors, and MACD(12, 26, 9) histogram momentum hooks.
+4.  **Bi-Directional Execution & Natural Macro Steering**: Dynamic allocation between Call and Put spreads driven by the 4-Index Benchmark Matrix.
+5.  **Execution Guardrails**: Dynamic sector capital caps (30%–35%), the "Liquid Route" options-to-stock auto-switch, 70% max-profit spread harvesting, and anti-chop re-entry cooldowns.
+6.  **Persistence Lifecycle**: Complete left-to-right mapping and daily JSON storage vs. ephemeral memory boundaries.
 
-## 1. Capital Architecture & The Twin-Engine Model
+-----
+
+## 1\. Capital Architecture & The Twin-Engine Model
 
 The engine operates two fully decoupled, independent portfolios to prevent cross-asset competition, avoid liquidity bottlenecks, and allow high-conviction mega-cap leaders to be traded without capital distortion:
 
-```
                           ┌────────────────────────────────────────────────────────┐
+
                           │         ABI QUANTITATIVE EXECUTION ENGINE              │
+
                           │             Total Capital: $200,000                    │
+
                           └──────────────────────────┬─────────────────────────────┘
+
                                                      │
+
                      ┌───────────────────────────────┴───────────────────────────────┐
+
                      ▼                                                               ▼
+
   ┌──────────────────────────────────────┐                       ┌──────────────────────────────────────┐
+
   │      OPTIONS PORTFOLIO ($100,000)    │                       │       STOCK PORTFOLIO ($100,000)     │
+
   ├──────────────────────────────────────┤                       ├──────────────────────────────────────┤
+
   │ • Capacity: 16 – 21 Active Positions │                       │ • Capacity: 16 – 21 Active Positions │
-  │ • Capital / Slot: ~$4,500 – $6,000   │                       │ • Capital / Slot: ~$4,500 – $6,000   │
+
+  │ • Capital / Slot: \~$4,500 – $6,000   │                       │ • Capital / Slot: \~$4,500 – $6,000   │
+
   │ • Dollar-at-Risk: $1,000 max (1.0%)  │                       │ • Dollar-at-Risk: $350 – $500 (0.4%) │
+
   │ • Vehicles: Spreads & Deep LEAPS     │                       │ • Vehicles: Common Shares (Cash)     │
+
   └──────────────────────────────────────┘                       └──────────────────────────────────────┘
-```
 
 ### A. Position Capacity & Heat Management
-* **Legacy Bottleneck Solved**: The legacy terminal enforced a flat ceiling of 7 concurrent open trades. A single slow-moving stock holding for 40 days throttled the entire system.
-* **Expanded Capacity**: Active holding capacity is expanded to **16 to 21 concurrent positions per portfolio** (32 to 42 active holdings across the entire terminal).
-* **Dedicated Execution Pools**: The Stock Engine and Options Engine scan the 500-constituent universe independently. An equity recommendation does not consume an options slot, and high-dollar mega-caps (e.g., NVDA, MSFT, META, LLY) can be traded via LEAPS or shares without starving other positions.
+
+  - **Legacy Bottleneck Solved**: The legacy terminal enforced a flat ceiling of 7 concurrent open trades. A single slow-moving stock holding for 40 days throttled the entire system.
+  - **Expanded Capacity**: Active holding capacity is expanded to **16 to 21 concurrent positions per portfolio** (32 to 42 active holdings across the entire terminal).
+  - **Dedicated Execution Pools**: The Stock Engine and Options Engine scan the 500-constituent universe independently. An equity recommendation does not consume an options slot, and high-dollar mega-caps (e.g., NVDA, MSFT, META, LLY) can be traded via LEAPS or shares without starving other positions.
 
 ### B. Dollar-at-Risk Position Sizing
+
 Every recommendation is sized strictly on **Dollar-at-Risk (Capital Protection First)**:
-* **Options Book ($100K)**: Max risk per trade is hard-capped at **$1,000 (1.0% account equity)**.
-  * *Vertical Spreads*: Buy 4–5 contracts @ $2.00–$2.50 net debit ($800–$1,000 max risk).
-  * *Call LEAPS*: 1 contract on secular leaders ($3,500–$5,000 capital deployed), protected by an invalidation stop at the 50 EMA / 200 SMA.
-* **Stock Book ($100K)**: Max risk per trade is sized to **$350–$500 (0.35%–0.50% account equity)**.
-  * Sized via:
-    $$\text{Shares} = \min\left(\left\lfloor \frac{\text{Max Risk Dollars}}{\text{Entry Price} - \text{Stop Price}} \right\rfloor, \left\lfloor \frac{\text{Max Capital Ceiling (6\%)}}{\text{Entry Price}} \right\rfloor\right)$$
-  * Sizing shares to a 7% technical stop risks only ~$350–$420 on a $5,000–$6,000 position, providing high-beta equities ample breathing room while bounding drawdown.
 
----
+  - **Options Book ($100K)**: Max risk per trade is hard-capped at **$1,000 (1.0% account equity)**.
+      
+      - *Vertical Spreads*: Buy 4–5 contracts @ $2.00–$2.50 net debit ($800–$1,000 max risk).
+      - *Call LEAPS*: 1 contract on secular leaders ($3,500–$5,000 capital deployed), protected by an invalidation stop at the 50 EMA / 200 SMA.
+  - **Stock Book ($100K)**: Max risk per trade is sized to **$350–$500 (0.35%–0.50% account equity)**.
+      
+      - Sized via: $$\\text{Shares} = \\min\\left(\\left\\lfloor \\frac{\\text{Max Risk Dollars}}{\\text{Entry Price} - \\text{Stop Price}} \\right\\rfloor, \\left\\lfloor \\frac{\\text{Max Capital Ceiling (6%)}}{\\text{Entry Price}} \\right\\rfloor\\right)$$
+      - Sizing shares to a 7% technical stop risks only \~$350–$420 on a $5,000–$6,000 position, providing high-beta equities ample breathing room while bounding drawdown.
 
-## 2. Raw Market Data Ingestion Pipeline
+-----
 
-Data ingestion is orchestrated in `engine/scanner.py`, `engine/stocks.py`, and `engine/patterns.py` via `yfinance`.
+## 2\. Raw Market Data Ingestion Pipeline
+
+Data ingestion is orchestrated in engine/scanner.py, engine/stocks.py, and engine/patterns.py via yfinance.
 
 ### A. Universe Definition
-* **S&P 500 & Key NASDAQ-100 Constituents**: 493+ liquid US large-cap equities dynamically fetched and mapped to the master sector/sub-industry taxonomy in `engine/universe.py`.
-* **25 Sector & Industry Benchmark ETFs**: `XLK`, `SMH`, `IGV`, `IHAK`, `XLC`, `XLF`, `KRE`, `XLE`, `XLV`, `IBB`, `XBI`, `XLI`, `IYT`, `JETS`, `XLY`, `XRT`, `ITB`, `XLP`, `XLU`, `XLB`, `XME`, `GDX`, `XLRE`, `TAN`, `QQQ`.
-* **4-Index Macro Benchmark Ribbon**: `SPY` (S&P 500), `QQQ` (Nasdaq 100), `RSP` (Equal-Weight S&P), and `IWM` (Russell 2000).
+
+  - **S\&P 500 & Key NASDAQ-100 Constituents**: 493+ liquid US large-cap equities dynamically fetched and mapped to the master sector/sub-industry taxonomy in engine/universe.py.
+  - **25 Sector & Industry Benchmark ETFs**: XLK, SMH, IGV, IHAK, XLC, XLF, KRE, XLE, XLV, IBB, XBI, XLI, IYT, JETS, XLY, XRT, ITB, XLP, XLU, XLB, XME, GDX, XLRE, TAN, QQQ.
+  - **4-Index Macro Benchmark Ribbon**: SPY (S\&P 500), QQQ (Nasdaq 100), RSP (Equal-Weight S\&P), and IWM (Russell 2000).
 
 ### B. Batching Mechanics & Rate-Limit Shielding
-* Raw OHLCV market history is downloaded in **batches of 75 tickers** (`batch_size = 75`) using multi-threaded batch calls (`yf.download(batch, period="1y", interval="1d", group_by="ticker", auto_adjust=False, threads=True)`).
-* For the full 500-constituent universe, this requires only **~7 bulk HTTP queries per scan session**, entirely bypassing Yahoo Finance IP rate limiters (which trigger on thousands of individual single-ticker REST calls).
 
----
+  - Raw OHLCV market history is downloaded in **batches of 75 tickers** (batch\_size = 75) using multi-threaded batch calls (yf.download(batch, period="1y", interval="1d", group\_by="ticker", auto\_adjust=False, threads=True)).
+  - For the full 500-constituent universe, this requires only **\~7 bulk HTTP queries per scan session**, entirely bypassing Yahoo Finance IP rate limiters (which trigger on thousands of individual single-ticker REST calls).
 
-## 3. Universal Technical Telemetry & Indicator Engine
+-----
 
-Every raw OHLCV bar and options quote is processed through `engine/indicators.py` to extract structural, volatility, and trend metrics.
+## 3\. Universal Technical Telemetry & Indicator Engine
 
-### 1. Moving Average Confluence & Structural Baselines
-* **`EMA 10` & `EMA 21`**: Fast trend velocity and short-term trailing baselines.
-* **`EMA 50`**: The primary institutional accumulation/distribution floor:
-  $$\text{EMA}_t = \text{Price}_t \times \left(\frac{2}{N+1}\right) + \text{EMA}_{t-1} \times \left(1 - \frac{2}{N+1}\right), \quad N=50$$
-* **`SMA 150`**: Intermediate cyclical support.
-* **`SMA 200`**: Secular institutional macro boundary.
-* **`Overhead 200 SMA Runway %`**:
-  * If $\text{Price} \ge \text{SMA}_{200}$: Tagged as `CLEAR (Above 200MA)` (`runway = 999.0` or `0.0`).
-  * If $\text{Price} < \text{SMA}_{200}$: Measured as $\frac{\text{SMA}_{200} - \text{Price}}{\text{Price}} \times 100$. Minimum **$5.0\%$ clearance runway required** to ensure take-profit targets are not capped directly below major institutional supply.
-  * If History $< 200$ bars (Recent IPOs/Spinoffs): Tagged as `has_200sma = False`, labeled `N/A (<200d History)`, and granted a neutral pass.
+Every raw OHLCV bar and options quote is processed through engine/indicators.py to extract structural, volatility, and trend metrics.
 
-### 2. Universal Oscillators: RSI & MACD Long Integration
+### 1\. Moving Average Confluence & Structural Baselines
+
+  - **EMA 10** **&** **EMA 21**: Fast trend velocity and short-term trailing baselines.
+  - **EMA 50**: The primary institutional accumulation/distribution floor: $$\\text{EMA}\_t = \\text{Price}*t \\times \\left(\\frac{2}{N+1}\\right) + \\text{EMA}*{t-1} \\times \\left(1 - \\frac{2}{N+1}\\right), \\quad N=50$$
+  - **SMA 150**: Intermediate cyclical support.
+  - **SMA 200**: Secular institutional macro boundary.
+  - **Overhead 200 SMA Runway %**:
+      
+      - If $\\text{Price} \\ge \\text{SMA}\_{200}$: Tagged as CLEAR (Above 200MA) (runway = 999.0 or 0.0).
+      - If $\\text{Price} \< \\text{SMA}*{200}$: Measured as $\\frac{\\text{SMA}*{200} - \\text{Price}}{\\text{Price}} \\times 100$. Minimum **$5.0%$ clearance runway required** to ensure take-profit targets are not capped directly below major institutional supply.
+      - If History $\< 200$ bars (Recent IPOs/Spinoffs): Tagged as has\_200sma = False, labeled N/A (\<200d History), and granted a neutral pass.
+
+### 2\. Universal Oscillators: RSI & MACD Long Integration
+
 Previously used only in downside resistance rejection detection, **RSI and MACD are now mandatory across all long equity and options scans**:
-* **`RSI(14)` Pullback Floor (Wilder's Smoothing)**:
-  $$\text{RSI} = 100 - \left(\frac{100}{1 + \frac{\text{EMA}_{14}(\text{Gains})}{\text{EMA}_{14}(\text{Losses})}}\right)$$
-  * **Mandatory Floor**: $\text{RSI}(14) \ge 45.0$.
-  * *Institutional Rationale*: In a healthy Stage 2 uptrend, pullbacks to the 50-day EMA find support with RSI in the 45–55 zone. An RSI $< 40$ indicates aggressive institutional distribution or a falling knife rather than an orderly support retest.
-* **`MACD(12, 26, 9)` Histogram Momentum Hook**:
-  $$\text{MACD Line} = \text{EMA}_{12}(\text{Close}) - \text{EMA}_{26}(\text{Close})$$
-  $$\text{Signal Line} = \text{EMA}_9(\text{MACD Line})$$
-  $$\text{Histogram} = \text{MACD Line} - \text{Signal Line}$$
-  * **Mandatory Leading Hook**: $\text{Histogram}_t > \text{Histogram}_{t-1}$.
-  * *Institutional Rationale*: Waiting for a full MACD signal line crossover introduces 3 to 7 days of lag, ruining favorable risk-to-reward entries. The Histogram Slope Hook confirms that downward selling momentum has decelerated and is curling upward at support on Day 0/Day 1 without lag.
 
-### 3. Institutional Relative Volume (RVOL)
-Measures capital commitment on support reclaims and breakouts:
-$$\text{RVOL} = \frac{\text{Volume}_0}{\frac{1}{20}\sum_{i=1}^{20} \text{Volume}_{-i}}$$
-* $\text{RVOL} \ge 1.0\times$: Baseline institutional interest.
-* $\text{RVOL} \ge 1.5\times$: Strong accumulation.
-* $\text{RVOL} \ge 2.0\times$: High-velocity volume surge (mandatory for High-Risk Sprint setups).
+  - **RSI(14)** **Pullback Floor (Wilder's Smoothing)**: $$\\text{RSI} = 100 - \\left(\\frac{100}{1 + \\frac{\\text{EMA}*{14}(\\text{Gains})}{\\text{EMA}*{14}(\\text{Losses})}}\\right)$$
+      
+      - **Mandatory Floor**: $\\text{RSI}(14) \\ge 45.0$.
+      - *Institutional Rationale*: In a healthy Stage 2 uptrend, pullbacks to the 50-day EMA find support with RSI in the 45–55 zone. An RSI $\< 40$ indicates aggressive institutional distribution or a falling knife rather than an orderly support retest.
+  - **MACD(12, 26, 9)** **Histogram Momentum Hook**: $$\\text{MACD Line} = \\text{EMA}*{12}(\\text{Close}) - \\text{EMA}*{26}(\\text{Close})$$ $$\\text{Signal Line} = \\text{EMA}\_9(\\text{MACD Line})$$ $$\\text{Histogram} = \\text{MACD Line} - \\text{Signal Line}$$
+      
+      - **Mandatory Leading Hook**: $\\text{Histogram}*t \> \\text{Histogram}*{t-1}$.
+      - *Institutional Rationale*: Waiting for a full MACD signal line crossover introduces 3 to 7 days of lag, ruining favorable risk-to-reward entries. The Histogram Slope Hook confirms that downward selling momentum has decelerated and is curling upward at support on Day 0/Day 1 without lag.
 
-### 4. Volatility, Range & Beta Analytics
-* **Average Daily Range (`ADR%`)**:
-  $$\text{ADR\%} = \frac{\frac{1}{20}\sum_{i=0}^{19} (\text{High}_{-i} - \text{Low}_{-i})}{\text{Close}_0} \times 100$$
-  * High Risk: $\text{ADR} \ge 3.2\%$ (guarantees price elasticity).
-  * Balanced: $\text{ADR } 2.0\% - 3.2\%$.
-  * Core: $\text{ADR } < 2.5\%$.
-* **60-Day Rolling `Beta` vs. `SPY`**:
-  $$\beta = \frac{\text{Cov}(R_{\text{Stock}}, R_{\text{SPY}})}{\text{Var}(R_{\text{SPY}})}$$
-  * High Risk: $\beta \ge 1.8$ heavily rewarded (accelerates move toward target).
-  * Balanced: $\beta \in [1.0, 1.5]$.
-  * Core: $\beta \le 1.0$ heavily rewarded (low volatility drag for compounders).
-* **1-Year Implied Volatility Rank (`IV Rank`)**:
-  $$\text{IV Rank} = \frac{\text{IV}_{\text{Current}} - \text{IV}_{\text{Min}, 252\text{d}}}{\text{IV}_{\text{Max}, 252\text{d}} - \text{IV}_{\text{Min}, 252\text{d}}} \times 100$$
-  * *High-Risk Spreads*: High IV Rank (60–85+) awarded maximum score (volatility expansion & momentum).
-  * *Balanced Spreads*: Sweet Spot IV Rank (35–65) awarded maximum score.
-  * *Core LEAPS*: Low IV Rank ($< 35$) awarded maximum score (minimizes multi-month extrinsic decay).
+### 3\. Institutional Relative Volume (RVOL)
 
-### 5. Retrace Taxonomy & Reclaim Velocity
-* **Retrace Types**:
-  * `EMA50`: Clean touch and bounce within $1.5\%$ of the 50-day EMA.
-  * `DB`: Double Bottom test within $1.5\%$ of prior 20-day swing low.
-  * `OTE`: Optimal Trade Entry (Fibonacci $61.8\% - 78.6\%$ retracement).
-  * `MA150`: Deep cyclical retest of the 150-day moving average.
-* **`reclaim_days` Velocity ("Sooner Metric")**:
-  * `Day 0`: Intraday breakout (marked `🟡 PENDING CLOSE` until official 4:00 PM ET close).
-  * `Day 1`: Confirmed daily close above 50 EMA with follow-through (Prime velocity entry).
-  * `Day 2`: Secondary confirmation test.
-  * `Day > 2`: Stale reclaim; penalized or excluded.
+Measures capital commitment on support reclaims and breakouts: $$\\text{RVOL} = \\frac{\\text{Volume}*0}{\\frac{1}{20}\\sum*{i=1}^{20} \\text{Volume}\_{-i}}$$
 
-### 6. Dow Theory Market Structure Engine & Hard Disqualification Gate
-Derived via `engine/indicators.py::detect_market_structure()` by evaluating 5-day rolling swing highs and swing lows across price history:
-* **Regime Classifications**:
-  1. `BULLISH_HH_HL`: Series of Higher Highs and Higher Lows. Confirms an active Stage 2 institutional mark-up trend.
-  2. `CONSOLIDATION_BASE`: Forming higher lows above multi-week accumulation baselines or horizontal range support.
-  3. `BEARISH_LH_LL`: Series of Lower Highs and Lower Lows. Confirms an active Stage 4 institutional distribution trend.
-* **Universal Hard Qualification Filter for Long Plays (`dow_structure_ok`)**:
-  $$\text{Market Structure Regime} \neq \text{"BEARISH\_LH\_LL"}$$
-  * **Eliminating the "Bear Trap" Relief Bounce**: When an equity is in a confirmed `BEARISH_LH_LL` downtrend, any bounce into the 50-day EMA represents a dead-cat relief rally into falling overhead supply, NOT a trend continuation.
-  * **Application to Derivatives & Equities**:
-    * **Bull Call Spreads & Deep-ITM Call LEAPS**: In options, buying into a `BEARISH_LH_LL` relief bounce almost always results in a 100% loss of net debit as the stock rolls over to make a new lower low while theta accelerates. Hard disqualification shields premium buyers from bear traps.
-    * **Cash Equities**: Prevents premature accumulation in broken structural downtrends.
-  * **Downside Hedge Requirement**: For Bear Put Spreads (`downside_hedges`), `BEARISH_LH_LL` is actively required or rewarded as structural confirmation of continuing institutional distribution.
+  - $\\text{RVOL} \\ge 1.0\\times$: Baseline institutional interest.
+  - $\\text{RVOL} \\ge 1.5\\times$: Strong accumulation.
+  - $\\text{RVOL} \\ge 2.0\\times$: High-velocity volume surge (mandatory for High-Risk Sprint setups).
 
----
+### 4\. Volatility, Range & Beta Analytics
 
-## 4. The 3-Pronged Strategy Engine Specification
+  - **Average Daily Range (****ADR%****)**: $$\\text{ADR%} = \\frac{\\frac{1}{20}\\sum\_{i=0}^{19} (\\text{High}*{-i} - \\text{Low}*{-i})}{\\text{Close}\_0} \\times 100$$
+      
+      - High Risk: $\\text{ADR} \\ge 3.2%$ (guarantees price elasticity).
+      - Balanced: $\\text{ADR } 2.0% - 3.2%$.
+      - Core: $\\text{ADR } \< 2.5%$.
+  - **60-Day Rolling** **Beta** **vs.** **SPY**: $$\\beta = \\frac{\\text{Cov}(R\_{\\text{Stock}}, R\_{\\text{SPY}})}{\\text{Var}(R\_{\\text{SPY}})}$$
+      
+      - High Risk: $\\beta \\ge 1.5$ (accelerates move toward target).
+      - Balanced: $\\beta \\in \[1.0, 1.5\]$.
+      - Core: $\\beta \\le 1.2$ (low beta drag for secular compounders).
+  - **1-Year Implied Volatility Rank (****IV Rank****)**: $$\\text{IV Rank} = \\frac{\\text{IV}*{\\text{Current}} - \\text{IV}*{\\text{Min}, 252\\text{d}}}{\\text{IV}*{\\text{Max}, 252\\text{d}} - \\text{IV}*{\\text{Min}, 252\\text{d}}} \\times 100$$
+      
+      - *High-Risk Spreads*: High IV Rank (60–85+) awarded maximum score (volatility expansion & momentum).
+      - *Balanced Spreads*: Sweet Spot IV Rank (35–65) awarded maximum score.
+      - *Core LEAPS*: Low IV Rank ($\< 35$) awarded maximum score (minimizes multi-month extrinsic decay).
 
-```
+### 5\. Retrace Taxonomy & Reclaim Velocity
+
+  - **Retrace Types**:
+      
+      - EMA50: Clean touch and bounce within $1.5%$ of the 50-day EMA.
+      - DB: Double Bottom test within $1.5%$ of prior 20-day swing low.
+      - OTE: Optimal Trade Entry (Fibonacci $61.8% - 78.6%$ retracement).
+      - MA150: Deep cyclical retest of the 150-day moving average.
+  - **reclaim\_days** **Velocity ("Sooner Metric")**:
+      
+      - Day 0: Intraday breakout (marked ð¡ PENDING CLOSE until official 4:00 PM ET close).
+      - Day 1: Confirmed daily close above 50 EMA with follow-through (Prime velocity entry).
+      - Day 2: Secondary confirmation test.
+      - Day \> 2: Stale reclaim; penalized or excluded.
+
+### 6\. Dow Theory Market Structure Engine & Hard Disqualification Gate
+
+Derived via engine/indicators.py::detect\_market\_structure() by evaluating 5-day rolling swing highs and swing lows across price history:
+
+  - **Regime Classifications**:
+      
+      - BULLISH\_HH\_HL: Series of Higher Highs and Higher Lows. Confirms an active Stage 2 institutional mark-up trend.
+      - CONSOLIDATION\_BASE: Forming higher lows above multi-week accumulation baselines or horizontal range support.
+      - BEARISH\_LH\_LL: Series of Lower Highs and Lower Lows. Confirms an active Stage 4 institutional distribution trend.
+  - **Universal Hard Qualification Filter for Long Plays (****dow\_structure\_ok****)**:
+      
+      - $$\\text{Market Structure Regime} \\neq \\text{"BEARISH\_LH\_LL"}$$
+      - **Eliminating the "Bear Trap" Relief Bounce**: When an equity is in a confirmed BEARISH\_LH\_LL downtrend, any bounce into the 50-day EMA represents a dead-cat relief rally into falling overhead supply, NOT a trend continuation.
+      - **Application to Derivatives & Equities**:
+          
+        1.  **Bull Call Spreads & Deep-ITM Call LEAPS**: In options, buying into a BEARISH\_LH\_LL relief bounce almost always results in a 100% loss of net debit as the stock rolls over to make a new lower low while theta accelerates. Hard disqualification shields premium buyers from bear traps.
+        2.  **Cash Equities**: Prevents premature accumulation in broken structural downtrends.
+      - **Downside Hedge Requirement**: For Bear Put Spreads (downside\_hedges), BEARISH\_LH\_LL is actively required or rewarded as structural confirmation of continuing institutional distribution.
+
+-----
+
+## 4\. The 3-Pronged Strategy Engine Specification
+
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+
 │                                       3-PRONGED MULTI-HORIZON FRAMEWORK                                          │
+
 ├─────────────────────────┬───────────────────────────────────┬────────────────────────────────────────────────────┤
+
 │ STRATEGY PRONG          │ EQUITIES SPECIFICATION            │ DERIVATIVES SPECIFICATION                          │
+
 ├─────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────┤
-│ 🚀 HIGH RISK (VELOCITY) │ • Holding Horizon: 10–14 sessions │ • Vehicle: 45–90 DTE Bull/Bear Call/Put Spreads    │
-│    "Momentum Sprint"    │ • Target: Beta >= 1.8, ADR >= 3.5%│ • Volatility: High IV Rank (60–85+) Rewarded       │
-│    Capacity: 7-8 Slots  │ • Entry: D0-D1 Reclaim, RVOL>=1.8x│ • Exit: 70% Max Profit or Day 10 Stagnation Stop   │
+
+│ ð HIGH RISK (VELOCITY) │ • Holding Horizon: 10–14 sessions │ • Vehicle: 45–90 DTE Bull/Bear Call/Put Spreads    │
+
+│    "Momentum Sprint"    │ • Target: Beta \>= 1.5, ADR \>= 3.2%│ • Volatility: High IV Rank (60–85+) Rewarded       │
+
+│    Capacity: 7-8 Slots  │ • Entry: D0-D1 Reclaim, RVOL\>=1.8x│ • Exit: 70% Max Profit or Day 10 Stagnation Stop   │
+
 ├─────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────┤
+
 │ ⚖️ BALANCED (TACTICAL)   │ • Holding Horizon: 15–25 sessions │ • Vehicle: 60–120 DTE Spreads & Deep-ITM LEAPS     │
+
 │    "Core Swing"         │ • Target: Beta 1.0-1.5, ADR 2-3.2%│ • Volatility: Sweet Spot IV Rank (35–65) Rewarded  │
-│    Capacity: 7 Slots    │ • Entry: D0-D2 Reclaim, RVOL>=1.2x│ • Exit: TP1 (+2.5 R:R), Day 14 Stagnation Stop     │
+
+│    Capacity: 7 Slots    │ • Entry: D0-D2 Reclaim, RVOL\>=1.2x│ • Exit: TP1 (+2.5 R:R), Day 14 Stagnation Stop     │
+
 ├─────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────┤
-│ 🛡️ LOW RISK (CORE)       │ • Holding Horizon: 40–120+ sess.  │ • Vehicle: Jan 2028 Call LEAPS (Delta >= 0.75)     │
-│    "Compounder"         │ • Target: Beta <= 1.0, Pos. FCF   │ • Volatility: Low IV Rank (< 35) Mandatory         │
-│    Capacity: 4-5 Slots  │ • Trend: Stage 2 Stack (50>150>200│ • Exit: 3% below 200 SMA Macro Invalidation Stop   │
+
+│ ð¡️ LOW RISK (CORE)       │ • Holding Horizon: 40–120+ sess.  │ • Vehicle: Jan 2028 Call LEAPS (Delta \>= 0.75)     │
+
+│    "Compounder"         │ • Target: Beta \<= 1.2, Pos. FCF   │ • Volatility: Low IV Rank (\< 35) Mandatory         │
+
+│    Capacity: 4-5 Slots  │ • Trend: Stage 2 Stack (50\>150\>200│ • Exit: 3% below 200 SMA Macro Invalidation Stop   │
+
 └─────────────────────────┴───────────────────────────────────┴────────────────────────────────────────────────────┘
-```
 
 ### Stagnation Stop Rules (Recycling Portfolio Heat)
-* **High-Risk Prong**: If a position fails to reach at least $+1.0\text{R}$ of profit within **10 trading sessions**, exit immediately at market or close the spread. Capital is recycled into fresh setups.
-* **Balanced Prong**: If a position fails to achieve $>50\%$ of the distance to TP1 within **14 trading sessions**, tighten stop to breakeven or close to prevent theta decay.
-* **Core Prong**: No time-based stagnation stop. Governed strictly by trend stack integrity and macro moving averages.
 
----
+  - **High-Risk Prong**: If a position fails to reach at least $+1.0\\text{R}$ of profit within **10 trading sessions**, exit immediately at market or close the spread. Capital is recycled into fresh setups.
+  - **Balanced Prong**: If a position fails to achieve $\>50%$ of the distance to TP1 within **14 trading sessions**, tighten stop to breakeven or close to prevent theta decay.
+  - **Core Prong**: No time-based stagnation stop. Governed strictly by trend stack integrity and macro moving averages.
 
-## 5. Two-Level Architecture: Macro Governor vs. Sector Scoring
+-----
 
-A key architectural principle separates macro-level controls from micro-level ticker ranking:
+## 5\. Bi-Directional Directional Guidance: Macro Steering
 
-```
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                   LEVEL 1: MACRO GOVERNOR (PORTFOLIO LEVEL)                      │
-│   • 4-Index Benchmark Matrix (SPY, QQQ, RSP, IWM vs. 50 EMA)                     │
-│   • Controls: Bullish/Bearish Directional Bias (Calls vs. Puts)                  │
-│   • Controls: Global Cash Allocation (10% to 70% cash reserves)                  │
-│   • Controls: Emergency Regime Freezes (e.g. 100% Freeze on Long Calls)          │
-│   * Does NOT score individual tickers (Macro is uniform across all 500 stocks)   │
-└────────────────────────────────────────┬─────────────────────────────────────────┘
-                                         │ Governs Portfolio Bias & Constraints
-                                         ▼
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                   LEVEL 2: TICKER ALPHA SCORING (MICRO LEVEL)                    │
-│   • Sector Relative Strength (15 pts): Top-Quartile ETF + mom_spread > 0        │
-│   • Beta & Price Elasticity (15 pts): Beta >= 1.8 & ADR >= 3.5% (High Risk)      │
-│   • Retrace Reclaim Velocity (20 pts) + Institutional RVOL (20 pts)              │
-│   • Universal Momentum (15 pts): RSI >= 45 floor + MACD Histogram Curl Hook      │
-│   • Dow Theory Market Structure (15 pts): Confirmed HH/HL vs Consolidation Base  │
-└──────────────────────────────────────────────────────────────────────────────────┘
-```
+Rather than imposing an arbitrary 50/50 ratio between Call Spreads and Put Spreads, the distribution of bullish vs. bearish setups is guided organically by the **4-Index Macro Benchmark Matrix** (SPY, QQQ, RSP, IWM vs. 50 EMA):
 
-### Macro Benchmark Steering Matrix
-$$\text{Macro Confluence Score} = \sum_{i=1}^4 \mathbf{1}_{\{\text{Index}_i \ge \text{EMA}_{50}\}}$$
+$$\\text{Macro Confluence Score} = \\sum\_{i=1}^4 \\mathbf{1}\_{{\\text{Index}*i \\ge \\text{EMA}*{50}}}$$
 
-| Macro Regime | Confluence Score | Market Breadth Ratio | Strategy Directive | Portfolio Bias |
-| :--- | :---: | :---: | :--- | :--- |
-| **RISK-ON** | **4 / 4** | $> 0.55$ | **Aggressive Expansion**: Full offense across High-Risk and Balanced tiers. Puts restricted to extreme overbought blow-offs. | **85% – 100% Long** |
-| **CAUTIOUS RISK-ON** | **3 / 4** | $0.45 - 0.55$ | **Selective Trend Longs**: Target top-quartile relative strength sectors. Long calls favored. | **70% Long / 30% Short** |
-| **MIXED / ROTATION** | **2 / 4** | $0.35 - 0.45$ | **Hedged Pairs Trading**: Long relative strength leaders (e.g., Energy, Biotech); Bear Put Spreads on breakdown sectors (e.g., Solar, Airlines). | **50% Long / 50% Short** |
-| **DEFENSIVE / CHOP** | **1 / 4** | $0.25 - 0.35$ | **Capital Preservation**: 100% freeze on new long calls/LEAPS. Tactical Bear Put Spreads on resistance rejections. | **20% Long / 80% Short** |
-| **SYSTEMIC LIQUIDATION**| **0 / 4** | $< 0.25$ | **Regime Lockdown**: Strict freeze on all long positions. 50%–70% cash reserves; downside put hedges dominate. | **0% Long / 100% Short** |
+|  |  |  |  |  |
+| :-: | :-: | :-: | :-: | :-: |
+| \*\*Macro Regime\*\* | \*\*Confluence Score\*\* | \*\*Market Breadth Ratio\*\* | \*\*Strategy Directive\*\* | \*\*Portfolio Bias\*\* |
+| \*\*RISK-ON\*\* | \*\*4 / 4\*\* | $\\\> 0.55$ | \*\*Aggressive Expansion\*\*: Full offense across High-Risk and Balanced tiers. Puts restricted to extreme overbought blow-offs. | \*\*85% – 100% Long\*\* |
+| \*\*CAUTIOUS RISK-ON\*\* | \*\*3 / 4\*\* | $0.45 - 0.55$ | \*\*Selective Trend Longs\*\*: Target top-quartile relative strength sectors. Long calls favored. | \*\*70% Long / 30% Short\*\* |
+| \*\*MIXED / ROTATION\*\* | \*\*2 / 4\*\* | $0.35 - 0.45$ | \*\*Hedged Pairs Trading\*\*: Long relative strength leaders (e.g., Energy, Biotech); Bear Put Spreads on breakdown sectors (e.g., Solar, Airlines). | \*\*50% Long / 50% Short\*\* |
+| \*\*DEFENSIVE / CHOP\*\* | \*\*1 / 4\*\* | $0.25 - 0.35$ | \*\*Capital Preservation\*\*: 100% freeze on new long calls/LEAPS. Tactical Bear Put Spreads on resistance rejections. | \*\*20% Long / 80% Short\*\* |
+| \*\*SYSTEMIC LIQUIDATION\*\* | \*\*0 / 4\*\* | $\\\< 0.25$ | \*\*Regime Lockdown\*\*: Strict freeze on all long positions. 50%–70% cash reserves; downside put hedges dominate. | \*\*0% Long / 100% Short\*\* |
 
----
+-----
 
-## 6. Execution & Risk Guardrails
+## 6\. Execution & Risk Guardrails
 
 ### A. Dynamic Sector Capital Allocation (30%–35% Cap)
-* **The Principle**: When institutional capital concentrates aggressively into a dominant theme (e.g., Semiconductors or Energy), a rigid "max 3 per sector" cap arbitrarily rejects top-tier setups.
-* **The Rule**: Enforce a **maximum 30%–35% capital allocation per sector** across each 16–21 position book.
-  * In an 18-position portfolio, this permits up to **5 to 6 positions in the #1 leading relative strength sector**.
-  * Prevents catastrophic 70%+ hyper-concentration while fully capitalizing on institutional sector momentum.
+
+  - **The Principle**: When institutional capital concentrates aggressively into a dominant theme (e.g., Semiconductors or Energy), a rigid "max 3 per sector" cap arbitrarily rejects top-tier setups.
+  - **The Rule**: Enforce a **maximum 30%–35% capital allocation per sector** across each 16–21 position book.
+      
+      - In a 18-position portfolio, this permits up to **5 to 6 positions in the \#1 leading relative strength sector**.
+      - Prevents catastrophic 70%+ hyper-concentration while fully capitalizing on institutional sector momentum.
 
 ### B. The "Liquid Route" Auto-Switch (Options vs. Stock)
-* Before executing an options structure, the engine screens options chain market quality:
-  * Minimum Open Interest: $\text{OI} \ge 500$ on target strikes.
-  * Maximum Bid-Ask Spread: $\text{Spread Width} \le 8.0\%$ of mid-price.
-* **Auto-Routing Protocol**: If a setup meets all technical criteria (50 EMA, RSI, MACD, RVOL) but fails the liquidity test, the engine automatically routes the order ticket to the **Stock Portfolio as Common Shares**, preventing execution slippage while preserving the technical idea.
+
+  - Before executing an options structure, the engine screens options chain market quality:
+      
+      - Minimum Open Interest: $\\text{OI} \\ge 500$ on target strikes.
+      - Maximum Bid-Ask Spread: $\\text{Spread Width} \\le 8.0%$ of mid-price.
+  - **Auto-Routing Protocol**: If a setup meets all technical criteria (50 EMA, RSI, MACD, RVOL) but fails the liquidity test, the engine automatically routes the order ticket to the **Stock Portfolio as Common Shares**, preventing execution slippage while preserving the technical idea.
 
 ### C. The 70% Max-Profit Harvest Rule
-* For vertical spreads (Bull Call or Bear Put Spreads), as the underlying reaches the short strike, the spread achieves 70%–80% of max profit. Squeezing out the remaining 20% requires holding until expiration while bearing 100% reversal risk.
-* **Harvest Mandate**: Close vertical spreads when they reach **70%–75% of maximum potential spread width** (or at TP1). Recycles portfolio heat and frees up capital days ahead of expiration.
+
+  - For vertical spreads (Bull Call or Bear Put Spreads), as the underlying reaches the short strike, the spread achieves 70%–80% of max profit. Squeezing out the remaining 20% requires holding until expiration while bearing 100% reversal risk.
+  - **Harvest Mandate**: Close vertical spreads when they reach **70%–75% of maximum potential spread width** (or at TP1). Recycles portfolio heat and frees up capital days ahead of expiration.
 
 ### D. Anti-Chop Re-Entry Cooldown
-* If an equity or option position hits its invalidation stop, the ticker enters a mandatory **3-to-5 trading day Re-Entry Cooldown**.
-* Even if the stock closes back above the 50 EMA the following day, re-entry is blocked until the cooldown elapses, shielding the portfolio from choppy, range-bound whip patterns.
+
+  - If an equity or option position hits its invalidation stop, the ticker enters a mandatory **3-to-5 trading day Re-Entry Cooldown**.
+  - Even if the stock closes back above the 50 EMA the following day, re-entry is blocked until the cooldown elapses, shielding the portfolio from choppy, range-bound whip patterns.
 
 ### E. News Cycle Telemetry Synthesis
-* Real-time news events are incorporated directly through quantitative footprint indicators rather than noisy, lagging news headline scrapers:
-  * **RVOL $\ge 1.8\times - 2.5\times$**: The institutional footprint of breaking news and catalyst accumulation.
-  * **Expanding IV Rank**: Captures market anticipation and volatility expansion.
-  * **Price Action Confirmation**: A confirmed close above the 50 EMA confirms the market has absorbed the news constructively.
-  * **Corporate Earnings Calendar Blackout**: The only hard calendar gatekeeper, requiring $\ge 21$ days clearance before upcoming earnings reports to prevent binary gap-down stop-outs.
+
+  - Real-time news events are incorporated directly through quantitative footprint indicators rather than noisy, lagging news headline scrapers:
+      
+      - **RVOL $\\ge 1.8\\times - 2.5\\times$**: The institutional footprint of breaking news and catalyst accumulation.
+      - **Expanding IV Rank**: Captures market anticipation and volatility expansion.
+      - **Price Action Confirmation**: A confirmed close above the 50 EMA confirms the market has absorbed the news constructively.
+      - **Corporate Earnings Calendar Blackout**: The only hard calendar gatekeeper, requiring $\\ge 21$ days clearance before upcoming earnings reports to prevent binary gap-down stop-outs.
 
 ### F. Universal Hard Qualification Gatekeeper Matrix
+
 Before any ticker is submitted to the mathematical scoring engines (Composite Alpha Score or Options Quality Index), it must pass **100% of the six universal gatekeeper filters**:
 
-| Gatekeeper Filter | Parameter / Condition | Institutional Rationale | Enforcement Target |
-| :--- | :--- | :--- | :--- |
-| **1. 50 EMA Velocity** | `Price >= EMA50` & `reclaim_days <= 3` | Captures fresh momentum; rejects stale, extended moves. | Long Options & Stocks |
-| **2. Retrace Taxonomy** | `retrace_type in ["EMA50", "DB", "OTE"]` | Requires high-probability institutional pullback structures. | Long Options & Stocks |
-| **3. Overhead Runway** | `runway >= 5.0%` or `CLEAR (Above 200 SMA)` | Prevents entering directly below major 200 SMA supply walls. | Long Options & Stocks |
-| **4. RSI Floor** | `RSI(14) >= 45.0` | Filters out severe institutional distribution and falling knives. | Long Options & Stocks |
-| **5. MACD Momentum** | `Histogram[t] > Histogram[t-1]` | Confirms selling deceleration and upward curl without lag. | Long Options & Stocks |
-| **6. Dow Market Structure**| `Market Structure != "BEARISH_LH_LL"` | Rejects dead-cat bounces and bear traps in structural downtrends. | Long Options & Stocks |
+|  |  |  |  |
+| :-: | :-: | :-: | :-: |
+| \*\*Gatekeeper Filter\*\* | \*\*Parameter / Condition\*\* | \*\*Institutional Rationale\*\* | \*\*Enforcement Target\*\* |
+| \*\*1. 50 EMA Velocity\*\* | Price \\\>= EMA50 & reclaim\\\_days \\\<= 3 | Captures fresh momentum; rejects stale, extended moves. | Long Options & Stocks |
+| \*\*2. Retrace Taxonomy\*\* | retrace\\\_type in \\\["EMA50", "DB", "OTE"\\\] | Requires high-probability institutional pullback structures. | Long Options & Stocks |
+| \*\*3. Overhead Runway\*\* | runway \\\>= 5.0% or CLEAR (Above 200 SMA) | Prevents entering directly below major 200 SMA supply walls. | Long Options & Stocks |
+| \*\*4. RSI Floor\*\* | RSI(14) \\\>= 45.0 | Filters out severe institutional distribution and falling knives. | Long Options & Stocks |
+| \*\*5. MACD Momentum\*\* | Histogram\\\[t\\\] \\\> Histogram\\\[t-1\\\] | Confirms selling deceleration and upward curl without lag. | Long Options & Stocks |
+| \*\*6. Dow Market Structure\*\* | Market Structure \\\!= "BEARISH\\\_LH\\\_LL" | Rejects dead-cat bounces and bear traps in structural downtrends. | Long Options & Stocks |
 
----
+-----
 
-## 7. Mathematical Scoring Engines
+## 7\. Mathematical Scoring Engines
 
 ### A. Cash Equities Alpha Composite Score (0 to 100)
-Calculated in `engine/stocks.py` (`compute_alpha_composite_score`).
 
-$$\text{Stock Alpha Score} = S_{\text{Reclaim}} + S_{\text{RVOL}} + S_{\text{Sector RS}} + S_{\text{Beta/Elasticity}} + S_{\text{Momentum}} + S_{\text{Structure}}$$
+Calculated in engine/stocks.py (compute\_alpha\_composite\_score).
 
-| Component | Weight | 🚀 High-Risk Sprint | ⚖️ Balanced Swing | 🛡️ Core Compounder |
-| :--- | :---: | :--- | :--- | :--- |
-| **1. Reclaim Velocity & Freshness** | **20 pts** | Day 0–1 Reclaim (20 pts) | Day 0–2 Reclaim (20 pts) | Stage 2 Stack (20 pts) |
-| **2. Institutional RVOL** | **20 pts** | $\text{RVOL} \ge 2.0\times$ (20 pts) | $\text{RVOL} \ge 1.3\times$ (20 pts) | Steady Volume (15 pts) |
-| **3. Sector Relative Strength (RS)** | **15 pts** | **Top-Quartile ETF & $\text{mom\_spread} > 0$** | **Top-Half ETF & $\text{mom\_spread} > 0$** | **Defensive/Secular Sector** |
-| **4. Beta & Price Elasticity** | **15 pts** | **$\beta \ge 1.8$ & $\text{ADR} \ge 3.5\%$ (15 pts)** | **$\beta \in [1.0, 1.5]$ & $\text{ADR } 2.2 - 3.2\%$** | **$\beta \le 1.0$ (Low Drag, 15 pts)** |
-| **5. Universal Momentum (RSI + MACD)**| **15 pts** | $\text{RSI} \ge 50$ + MACD Hist Hook | $\text{RSI} \ge 45$ + MACD Hist Hook | $\text{RSI} \ge 45$ + Bullish Stack |
-| **6. Dow Theory Market Structure** | **15 pts** | Confirmed HH/HL (15 pts) | Emerging Base / HH (15 pts) | Multi-Month Base (15 pts) |
+$$\\text{Stock Alpha Score} = S\_{\\text{Retrace}} + S\_{\\text{RVOL}} + S\_{\\text{Proximity}} + S\_{\\text{Momentum}} + S\_{\\text{Structure}} + S\_{\\text{RR}}$$
 
----
+|  |  |  |  |  |
+| :-: | :-: | :-: | :-: | :-: |
+| \*\*Component\*\* | \*\*Weight\*\* | \*\*High-Risk Metric\*\* | \*\*Balanced Metric\*\* | \*\*Core Metric\*\* |
+| \*\*1. Reclaim Velocity & Freshness\*\* | \*\*25 pts\*\* | Day 0–1 Reclaim (25 pts) | Day 0–2 Reclaim (25 pts) | Stage 2 Stack (25 pts) |
+| \*\*2. Volume & Institutional RVOL\*\* | \*\*20 pts\*\* | $\\\\text{RVOL} \\\\ge 2.0\\\\times$ (20 pts) | $\\\\text{RVOL} \\\\ge 1.3\\\\times$ (20 pts) | Steady Volume (15 pts) |
+| \*\*3. Support Retest Proximity\*\* | \*\*15 pts\*\* | $\\\\le 1.5%$ from 50 EMA (15 pts) | $\\\\le 2.5%$ from 50 EMA (15 pts) | Near 50/150 Support (15 pts) |
+| \*\*4. Universal Momentum (RSI + MACD)\*\* | \*\*15 pts\*\* | $\\\\text{RSI} \\\\ge 50$ + MACD Hist Hook | $\\\\text{RSI} \\\\ge 45$ + MACD Hist Hook | $\\\\text{RSI} \\\\ge 45$ + Bullish Stack |
+| \*\*5. Dow Theory Market Structure\*\* | \*\*15 pts\*\* | Confirmed HH/HL (15 pts) | Emerging Base / HH (15 pts) | Multi-Month Base (15 pts) |
+| \*\*6. Reward-to-Risk Geometry\*\* | \*\*10 pts\*\* | $\\\\text{R:R} \\\\ge 2.0:1$ (10 pts) | $\\\\text{R:R} \\\\ge 2.5:1$ (10 pts) | $\\\\text{R:R} \\\\ge 3.0:1$ (10 pts) |
+
+-----
 
 ### B. Derivatives Options Alpha Radar Score (0 to 100)
-Calculated in `engine/patterns.py` (`compute_options_alpha_score`).
 
-$$\text{Options Alpha Score} = (\text{Directional Alpha} \times 0.35) + S_{\text{IV}} + S_{\text{Liquidity}} + S_{\text{Runway}} + S_{\text{Momentum}} + P_{\text{Earnings}}$$
+Calculated in engine/patterns.py (compute\_options\_alpha\_score).
 
-| Component | Weight | High-Risk Sprint (45–90 DTE) | Balanced Swing (60–120 DTE) | Core LEAPS (Jan 2028) |
-| :--- | :---: | :--- | :--- | :--- |
-| **1. Directional Foundation** | **35 pts** | $0.35 \times \text{Stock Alpha}$ *(includes Dow Theory)* | $0.35 \times \text{Stock Alpha}$ *(includes Dow Theory)* | $0.35 \times \text{Stock Alpha}$ *(includes Dow Theory)* |
-| **2. IV Rank Behavior** | **20 pts** | **High IV (60–85+) = 20 pts** | **Sweet Spot (35–65) = 20 pts**| **Low IV (< 35) = 20 pts** |
-| **3. Contract Liquidity** | **20 pts** | $\text{OI} \ge 1000$, $\text{Spread} \le 5\%$ | $\text{OI} \ge 500$, $\text{Spread} \le 8\%$ | $\text{OI} \ge 250$, $\text{Spread} \le 10\%$|
-| **4. 200 SMA Clearance Runway**| **15 pts** | Runway $\ge 8\%$ or Blue Sky | Runway $\ge 5\%$ or Blue Sky | Above 200 SMA Mandatory |
-| **5. Universal MACD/RSI Hook** | **10 pts** | MACD Hist Hook + $\text{RSI} \ge 45$| MACD Hist Hook + $\text{RSI} \ge 45$| Stage 2 Trend Stack |
-| **6. Earnings Blackout** | **Penalty** | $-35$ pts if inside trade DTE | $-35$ pts if inside trade DTE | $-35$ pts if inside 60 days |
+$$\\text{Options Alpha Score} = (\\text{Directional Alpha} \\times 0.35) + S\_{\\text{IV}} + S\_{\\text{Liquidity}} + S\_{\\text{Runway}} + S\_{\\text{Momentum}} + P\_{\\text{Earnings}}$$
+
+|  |  |  |  |  |
+| :-: | :-: | :-: | :-: | :-: |
+| \*\*Component\*\* | \*\*Weight\*\* | \*\*High-Risk Sprint (45–90 DTE)\*\* | \*\*Balanced Swing (60–120 DTE)\*\* | \*\*Core LEAPS (Jan 2028)\*\* |
+| \*\*1. Directional Foundation\*\* | \*\*35 pts\*\* | $0.35 \\\\times \\\\text{Stock Alpha}$ | $0.35 \\\\times \\\\text{Stock Alpha}$ | $0.35 \\\\times \\\\text{Stock Alpha}$ |
+| \*\*2. IV Rank Behavior\*\* | \*\*20 pts\*\* | \*\*High IV (60–85+) = 20 pts\*\* | \*\*Sweet Spot (35–65) = 20 pts\*\* | \*\*Low IV (\\\< 35) = 20 pts\*\* |
+| \*\*3. Contract Liquidity\*\* | \*\*20 pts\*\* | $\\\\text{OI} \\\\ge 1000$, $\\\\text{Spread} \\\\le 5%$ | $\\\\text{OI} \\\\ge 500$, $\\\\text{Spread} \\\\le 8%$ | $\\\\text{OI} \\\\ge 250$, $\\\\text{Spread} \\\\le 10%$ |
+| \*\*4. 200 SMA Clearance Runway\*\* | \*\*15 pts\*\* | Runway $\\\\ge 8%$ or Blue Sky | Runway $\\\\ge 5%$ or Blue Sky | Above 200 SMA Mandatory |
+| \*\*5. Universal MACD/RSI Hook\*\* | \*\*10 pts\*\* | MACD Hist Hook + $\\\\text{RSI} \\\\ge 45$ | MACD Hist Hook + $\\\\text{RSI} \\\\ge 45$ | Stage 2 Trend Stack |
+| \*\*6. Earnings Blackout\*\* | \*\*Penalty\*\* | $-35$ pts if inside trade DTE | $-35$ pts if inside trade DTE | $-35$ pts if inside 60 days |
 
 #### Dow Theory Market Structure in Options Logic:
-1. **Mandatory Hard Gatekeeper (`dow_structure_ok`)**:
-   * Before any options contract is modeled or fetched, the underlying equity must pass the universal market structure filter:
-     $$\text{Market Structure Regime} \neq \text{"BEARISH_LH_LL"}$$
-   * If a ticker is printing Lower Highs and Lower Lows, it is **100% hard-disqualified from Bull Call Spreads and Call LEAPS**, preventing net debit burn on dead-cat bounces.
-2. **Mathematical Score Transmission**:
-   * Component 1 (Directional Foundation, 35 pts) directly incorporates the **15-point Dow Theory Market Structure score** from the underlying stock:
-     $$\text{Options Dow Component} = 0.35 \times \text{Stock Dow Score (up to 15 pts)} = \mathbf{+5.25\text{ pts}}$$
-   * Confirmed Higher Highs and Higher Lows (`BULLISH_HH_HL`) directly contribute $+5.25$ points toward the final Options Quality ranking.
-3. **Downside Hedges (Bear Put Spreads)**:
-   * For downside hedge recommendations, the engine reverses this logic: setups actively *require* `BEARISH_LH_LL` or overhead resistance rejections to qualify.
 
----
+1.  **Mandatory Hard Gatekeeper (****dow\_structure\_ok****)**:
+      
+      - Before any options contract is modeled or fetched, the underlying equity must pass the universal market structure filter: $$\\text{Market Structure Regime} \\neq \\text{"BEARISH\_LH\_LL"}$$
+      - If a ticker is printing Lower Highs and Lower Lows, it is **100% hard-disqualified from Bull Call Spreads and Call LEAPS**, preventing net debit burn on dead-cat bounces.
+2.  **Mathematical Score Transmission**:
+      
+      - Component 1 (Directional Foundation, 35 pts) directly incorporates the **15-point Dow Theory Market Structure score** from the underlying stock: $$\\text{Options Dow Component} = 0.35 \\times \\text{Stock Dow Score (up to 15 pts)} = \\mathbf{+5.25\\text{ pts}}$$
+      - Confirmed Higher Highs and Higher Lows (BULLISH\_HH\_HL) directly contribute $+5.25$ points toward the final Options Quality ranking.
+3.  **Downside Hedges (Bear Put Spreads)**:
+      
+      - For downside hedge recommendations, the engine reverses this logic: setups actively *require* BEARISH\_LH\_LL or overhead resistance rejections to qualify.
 
-## 8. Complete Left-to-Right Architecture Mapping
+-----
 
-| Raw Ingestion Input | Derived Metric | Engine Function | Cash Equities Role | Options Derivatives Role | Storage Lifecycle |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **`Close` (504 daily bars)** | `EMA 10, 21, 50, 200`<br>`SMA 150, 200` | `indicators.py`<br>`compute_technical_snapshot()` | Primary support floors; sets stop-loss anchor | Primary support floors; sets vertical spread strikes | **Stored Daily** (`latest.json` & `history/*.json`) |
-| **`Close` (Sector ETF vs SPY 20d)**| `mom_spread` + Top Quartile | `scanner.py`<br>`compute_relative_strength_matrix()` | **Level 2 Scoring Factor (15 pts)**: Rewards parent ETF momentum tailwind | Feeds into Directional Alpha base score | **Stored Daily** (`sector_strength` & `latest.json`) |
-| **`Close` vs `SPY` (60d)** | `Beta` + `ADR%` | `indicators.py`<br>`compute_beta()` & `compute_adr()` | **Level 2 Scoring Factor (15 pts)**: Rewards $\beta \ge 1.8$ in High Risk; $\le 1.0$ in Core | Calibrates strike widths and delta expansion targets | **Stored Daily** (`latest.json`) |
-| **`High`, `Low`, `Close`** | `RSI(14)` | `indicators.py`<br>`calculate_rsi()` | **Universal Floor**: Disqualifies any setup with $\text{RSI} < 45.0$ | **Universal Floor**: Disqualifies any setup with $\text{RSI} < 45.0$ | **Stored Daily** (`latest.json`) |
-| **`Close` (12, 26, 9)** | `MACD Histogram` | `indicators.py`<br>`calculate_macd()` | **Momentum Hook**: Requires $\text{Hist}_t > \text{Hist}_{t-1}$ at 50 EMA | **Momentum Hook**: Requires $\text{Hist}_t > \text{Hist}_{t-1}$ at 50 EMA | **Stored Daily** (`latest.json`) |
-| **`Volume` (20-day window)** | `RVOL` | `indicators.py`<br>`compute_technical_snapshot()` | Confirms institutional accumulation ($\ge 1.8\times$ for High-Risk) | Validates breakout volume on options entry | **Stored Daily** (`latest.json`) |
-| **`Close` + `Low` (20d)** | `retrace_type`<br>`reclaim_days` | `patterns.py`<br>`detect_support_retrace()` | Classifies EMA50, DB, OTE, MA150 retests; D0–D2 velocity | Determines spread vehicle vs. LEAPS structure | **Stored Daily** (`latest.json`) |
-| **`Close` (252-day window)** | `IV Rank` | `indicators.py`<br>`compute_technical_snapshot()` | Contextual range metric for share elasticity | **Key Divergence**: High-Risk rewards High IV; Core rewards Low IV | **Stored Daily** (`latest.json`) |
-| **`option_chain(exp)`** | `bid`, `ask`, `openInterest`, `volume` | `patterns.py`<br>`verify_and_fetch_live_options()` | Liquid Route Switch: If illiquid, routes setup to Stock Portfolio | Guarantees $\text{OI} \ge 500$ and spread $\le 8\%$ | **Stored Daily** (`latest.json`) |
-| **4 Benchmark Indices** | `Macro Confluence`<br>(0 to 4 score) | `scanner.py`<br>`compute_benchmark_confluence()` | **Level 1 Governor**: Controls overall equity vs cash allocation | Dictates Call Spread vs. Bear Put Spread portfolio ratio | **Stored Daily** (`latest.json` & `summary.json`) |
-| **Calendar / Earnings** | `days_to_earnings` | `patterns.py`<br>`evaluate_earnings_blackout()` | Informational risk flag | **Hard Gate**: $-35$ pts penalty if earnings inside 21–45 DTE | **Stored Daily** (`latest.json`) |
+## 8\. Complete Left-to-Right Architecture Mapping
 
----
+|  |  |  |  |  |  |
+| :-: | :-: | :-: | :-: | :-: | :-: |
+| \*\*Raw Ingestion Input\*\* | \*\*Derived Metric\*\* | \*\*Engine Function\*\* | \*\*Cash Equities Role\*\* | \*\*Options Derivatives Role\*\* | \*\*Storage Lifecycle\*\* |
+| \*\*Close\*\* \*\*(504 daily bars)\*\* | EMA 10, 21, 50, 200SMA 150, 200 | indicators.pycompute\\\_technical\\\_snapshot() | Primary support floors; sets stop-loss anchor | Primary support floors; sets vertical spread strikes | \*\*Stored Daily\*\* (latest.json & history/\\\*.json) |
+| \*\*High\*\*\*\*,\*\* \*\*Low\*\*\*\*,\*\* \*\*Close\*\* | RSI(14) | indicators.pycalculate\\\_rsi() | \*\*Universal Floor\*\*: Disqualifies any setup with $\\\\text{RSI} \\\< 45.0$ | \*\*Universal Floor\*\*: Disqualifies any setup with $\\\\text{RSI} \\\< 45.0$ | \*\*Stored Daily\*\* (latest.json) |
+| \*\*Close\*\* \*\*(12, 26, 9)\*\* | MACD Histogram | indicators.pycalculate\\\_macd() | \*\*Momentum Hook\*\*: Requires $\\\\text{Hist}\*t \\\> \\\\text{Hist}\*{t-1}$ at 50 EMA | \*\*Momentum Hook\*\*: Requires $\\\\text{Hist}\*t \\\> \\\\text{Hist}\*{t-1}$ at 50 EMA | \*\*Stored Daily\*\* (latest.json) |
+| \*\*Volume\*\* \*\*(20-day window)\*\* | RVOL | indicators.pycompute\\\_technical\\\_snapshot() | Confirms institutional accumulation ($\\\\ge 1.8\\\\times$ for High-Risk) | Validates breakout volume on options entry | \*\*Stored Daily\*\* (latest.json) |
+| \*\*Close\*\* \*\*+\*\* \*\*Low\*\* \*\*(20d)\*\* | retrace\\\_typereclaim\\\_days | patterns.pydetect\\\_support\\\_retrace() | Classifies EMA50, DB, OTE, MA150 retests; D0–D2 velocity | Determines spread vehicle vs. LEAPS structure | \*\*Stored Daily\*\* (latest.json) |
+| \*\*Close\*\* \*\*vs\*\* \*\*SPY\*\* \*\*(60d)\*\* | Beta | indicators.pycompute\\\_beta() | Allocates to High Risk ($\\\\ge 1.5$) vs Balanced vs Core ($\\\\le 1.2$) | Calibrates strike widths and delta expansion targets | \*\*Stored Daily\*\* (latest.json) |
+| \*\*Close\*\* \*\*(252-day window)\*\* | IV Rank | indicators.pycompute\\\_technical\\\_snapshot() | Contextual range metric for share elasticity | \*\*Key Divergence\*\*: High-Risk rewards High IV; Core rewards Low IV | \*\*Stored Daily\*\* (latest.json) |
+| \*\*option\\\_chain(exp)\*\* | bid, ask, openInterest, volume | patterns.pyverify\\\_and\\\_fetch\\\_live\\\_options() | Liquid Route Switch: If illiquid, routes setup to Stock Portfolio | Guarantees $\\\\text{OI} \\\\ge 500$ and spread $\\\\le 8%$ | \*\*Stored Daily\*\* (latest.json) |
+| \*\*4 Benchmark Indices\*\* | Macro Confluence(0 to 4 score) | scanner.pycompute\\\_benchmark\\\_confluence() | Governs long share allocation vs cash defense | Dictates Call Spread vs. Bear Put Spread portfolio ratio | \*\*Stored Daily\*\* (latest.json & summary.json) |
+| \*\*Calendar / Earnings\*\* | days\\\_to\\\_earnings | patterns.pyevaluate\\\_earnings\\\_blackout() | Informational risk flag | \*\*Hard Gate\*\*: $-35$ pts penalty if earnings inside 21–45 DTE | \*\*Stored Daily\*\* (latest.json) |
 
-## 9. Storage & Persistence Lifecycle
+-----
 
-To maintain complete auditability while keeping repository storage within GitHub Pages static serving limits (~15MB–20MB), the system enforces strict state separation:
+## 9\. Storage & Persistence Lifecycle
 
-### What Is Stored Daily in `data/latest.json` and `data/history/YYYY-MM-DD.json`
-1. **`stock_recommendations` & `all_qualified_stocks`**: Active common share setups partitioned across High-Risk, Balanced, and Core prongs with exact dollar-at-risk share counts, stops, TP1, and TP2 targets.
-2. **`top_candidates`, `strategic_leaps`, and `downside_hedges`**: Complete derivatives execution tickets specifying contract month, strike intervals, mid-price limit debits, max profit, delta, and verified Open Interest.
-3. **`macro_breadth` & `benchmark_matrix`**: 4-index confluence metrics, market breadth ratios, regime status, and narrative execution directives.
-4. **`sector_strength` & `subsector_matrix`**: 25 Sector ETF momentum rankings, 90 sub-industry metrics, and sector rotation cards.
-5. **`trades_log.json` & `stock_trades_log.json`**: Permanent stateful trade ledgers tracking active entries, scale-outs, trailing stops, realized P&L, hold times, and root-cause loss attribution.
+To maintain complete auditability while keeping repository storage within GitHub Pages static serving limits (\~15MB–20MB), the system enforces strict state separation:
+
+### What Is Stored Daily in data/latest.json and data/history/YYYY-MM-DD.json
+
+1.  **stock\_recommendations** **&** **all\_qualified\_stocks**: Active common share setups partitioned across High-Risk, Balanced, and Core prongs with exact dollar-at-risk share counts, stops, TP1, and TP2 targets.
+2.  **top\_candidates****,** **strategic\_leaps****, and** **downside\_hedges**: Complete derivatives execution tickets specifying contract month, strike intervals, mid-price limit debits, max profit, delta, and verified Open Interest.
+3.  **macro\_breadth** **&** **benchmark\_matrix**: 4-index confluence metrics, market breadth ratios, regime status, and narrative execution directives.
+4.  **sector\_strength** **&** **subsector\_matrix**: 25 Sector ETF momentum rankings, 90 sub-industry metrics, and sector rotation cards.
+5.  **trades\_log.json** **&** **stock\_trades\_log.json**: Permanent stateful trade ledgers tracking active entries, scale-outs, trailing stops, realized P\&L, hold times, and root-cause loss attribution.
 
 ### What Is Ephemeral and NEVER Stored in JSON
-1. **Raw Historical 2-Year OHLCV Data**: The ~1.5 million historical data points ingested across the 520+ symbols are computed entirely in volatile RAM and discarded.
-2. **Exhaustive Multi-Strike Option Chains**: Thousands of strike/bid/ask combinations are evaluated in memory; only the selected long and short contract pair is retained.
-3. **Rolling Array Buffers**: Intermediate NumPy matrix calculations for rolling covariance, ATR, and Wilder's smoothing are garbage-collected immediately after computing the scalar indicators.
+
+1.  **Raw Historical 2-Year OHLCV Data**: The \~1.5 million historical data points ingested across the 520+ symbols are computed entirely in volatile RAM and discarded.
+2.  **Exhaustive Multi-Strike Option Chains**: Thousands of strike/bid/ask combinations are evaluated in memory; only the selected long and short contract pair is retained.
+3.  **Rolling Array Buffers**: Intermediate NumPy matrix calculations for rolling covariance, ATR, and Wilder's smoothing are garbage-collected immediately after computing the scalar indicators.
+
+  
+
+-----
+
+## 10\. Continuous Daily Re-Scoring, Active Ledger Scoring & Relative-Strength Eviction
+
+The engine maintains constant surveillance of existing positions through a recursive scoring loop that ensures capital is always allocated to the highest-velocity relative strength leaders.
+
+### A. Active Ledger Scoring
+
+  - Every open trade in data/trades\_log.json and data/stock\_trades\_log.json is re-scored daily against live market closes, RVOL, and sector momentum.
+  - **JSON Schema Fields** added to active trade objects:
+      
+      - current\_alpha\_score: 0-100 float.
+      - score\_breakdown: dictionary of component scores.
+      - active\_health\_tier: TIER\_A (De-risked), TIER\_B (On-Track), TIER\_C (Stagnant), TIER\_D (Eviction Candidate).
+      - consecutive\_low\_score\_days: integer count.
+      - eviction\_eligible: boolean flag.
+
+### B. Hysteresis & Hurdle Eviction Protocol
+
+  - **3-session degradation persistence**: score \< 40/100 or sector in bottom 30% for \>= 3 consecutive closes, with days\_active \>= 5.
+  - **Replacement hurdle**: newly qualified incoming candidate must outscore the lowest eviction-eligible incumbent by Delta \>= 25 points.
+  - **Minimum aging buffer**: 3-5 trading days minimum holding before an eviction can be triggered.
+  - **Exit classification**: status = 'CLOSED\_EVICTED', exit\_reason = 'Relative Strength Eviction'.
+
+### C. Decoupled Sprint vs Anchor Book Heat Management
+
+  - **Tactical Sprint Book**: Max 10-12 active slots (45-60 DTE Spreads and 10-14d Stock Swings).
+  - **Strategic Anchor Book**: Max 6-8 active slots (Jan 2028 LEAPS and Core Compounders).
+  - **Prevention of Throttling**: This separation prevents multi-month LEAPS holdings from freezing tactical turnover.
+
+### D. Regime-Gated 3-Tier Risk Architecture
+
+  - **Dynamic Capacity Caps**: 0 to 5 per tier (Core, Balanced, High-Risk) governed by the 4-Index Confluence Score (0 to 4).
+
+### E. Strict Breakeven Accounting
+
+  - **Separation of Outcomes**: Separation of CLOSED\_BREAKEVEN (PnL == 0.00%) from strictly profitable trades (PnL \> 0.00%) to prevent average winner dilution.
+
+## 11\. Optimized Runway Architecture, Price-Gated Stagnation, Bounded Stop Limits & Calibrated Eviction
+
+This section formalizes the empirical calibration and institutional risk optimizations implemented in Engine Release v2.2.
+
+### A. The Price-Gated Stagnation Protocol (Protecting Compounders)
+
+  - **The Core Rule**: Never liquidate a trade on a calendar timer if it is profitable (PnL \> 0.0%) and holding above its 50-day EMA.
+  - **Legacy Bottleneck Solved**: Previously, rigid Day 10 and Day 14 timers liquidated winning momentum runners (such as MU, VSAT, ON, FCX, KLAC) after early +10% to +20% gains during normal pullbacks, capping average winners at +18.7% and causing a 6.9% win rate on Balanced swings.
+  - **The Refined Algorithm**:
+      
+      - If a position reaches its nominal horizon (Day 10 for Sprint, Day 14 for Balanced) while trading above its 50-day EMA with positive PnL (current\_r \>= 0.5R), the calendar kill-switch is bypassed.
+      - The stop-loss is automatically moved to Breakeven (entry\_price), converting the position into Tier A (House Money) and granting an extended runway (up to Day 22 for Sprints and Day 35 for Balanced) to reach final TP2 targets.
+      - Stagnation exits trigger strictly if the trade is in negative territory or has broken below its 50-day EMA support.
+
+### B. Bounded Stop-Loss Limits (Eliminating -20%+ High-Beta Bleed)
+
+  - **Legacy Bottleneck Solved**: Previously, using min(ema50 \* 0.985, price \* 0.94) on extended large caps pushed stop losses up to 35% below entry, causing +1.0R targets to require unreachable +35% to +50% rallies, while allowing losing sprints (such as WULF, AMAT, LRCX) to drift down -20% to -24% before Day 10.
+  - **The Bounded Stop Mandate**:
+      
+      - High-Risk Sprints: stop\_price = round(max(ema50 \* 0.985, price \* 0.92), 2), capping maximum technical risk at strictly 8.0% from entry.
+      - Balanced Swings: stop\_price = round(max(ema50 \* 0.98, price \* 0.905), 2), capping maximum technical risk at strictly 9.5% from entry.
+      - If an equity breaks its technical stop, it is liquidated immediately on Day 1, 2, or 3, bounding average losses to -4.5% to -5.0%.
+
+### C. Realistic Two-Tranche Harvest Geometry
+
+  - **Tranche 1 (Velocity Scale)**: 50% shares closed at TP1 (+1.5R to +2.5R, or +8% to +15% gain), banking the early momentum burst identified by RVOL and 50 EMA reclaims.
+  - **Stop Trailing to Breakeven**: Once TP1 is scaled, stop moves to entry price.
+  - **Tranche 2 (Trend Runner)**: Remaining 50% shares trailed along the rising 50 EMA / 21 EMA toward TP2 (+2.8R to +3.5R).
+
+### D. Equity Anchor Book Activation (Stage 2 Secular Compounders)
+
+  - To prevent 100% equity exposure to high-beta tactical swings, core\_stock\_candidates are merged into stock\_recommendations in save\_payloads().
+  - Actively populates 4 to 6 slots in data/stock\_trades\_log.json under anchor\_open, providing low-beta (beta \<= 1.1), high-FCF stability with 200 SMA macro trailing stops.
+
+### E. Calibrated Relative-Strength Eviction Gatekeepers
+
+  - **Degradation Floor**: Lowered from score \< 40.0 to score \< 55.0 (Tier C Stagnant) for \>= 2 consecutive closes, or prolonged stagnation (days\_active \>= 18) with score \< 58.0.
+  - **Replacement Hurdle**: Lowered from Delta \>= 25.0 to Delta \>= 18.0 points.
+  - **Near-Capacity Threshold**: Eviction triggers when active open positions reach \>= 85% capacity (\>= 15 slots in an 18-slot book), actively recycling sluggish capital before total 

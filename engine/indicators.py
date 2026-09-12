@@ -389,11 +389,12 @@ def compute_active_health_tier(
         }
 
     score_val = float(current_alpha_score) if current_alpha_score is not None else 65.0
-    is_low = bool(score_val < 40.0 or sector_weakness)
+    is_low = bool(score_val < 55.0 or sector_weakness)
     consecutive_low = (int(prev_consecutive_low or 0) + 1) if is_low else 0
     days_act = int(days_active or 1)
 
-    if consecutive_low >= 3 and days_act >= 5:
+    # Calibrated Eviction Gatekeeper: score < 55 for >= 2 days, or prolonged stagnation >= 18d with score < 58
+    if (consecutive_low >= 2 and days_act >= 5) or (score_val < 58.0 and days_act >= 18):
         return {
             "tier": "TIER_D_EVICTION_CANDIDATE",
             "badge": "🔴 TIER D (EVICTION CANDIDATE)",
@@ -402,8 +403,8 @@ def compute_active_health_tier(
         }
 
     prong_upper = (strategy_prong or "BALANCED").upper()
-    is_stagnant_time = (days_act >= 7 if "HIGH" in prong_upper else days_act >= 10)
-    if is_stagnant_time or score_val < 60.0:
+    is_stagnant_time = (days_act >= 15 if "HIGH" in prong_upper else days_act >= 25)
+    if is_stagnant_time or score_val < 62.0:
         return {
             "tier": "TIER_C_STAGNANT",
             "badge": "🟡 TIER C (STAGNANT)",
