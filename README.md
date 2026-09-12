@@ -1,6 +1,6 @@
 # ABI Strategy Terminal & Quantitative Execution Engine
 
-Institutional-grade quantitative market telemetry, multi-index benchmark confluence engine, dual-portal execution architecture (**Options Terminal** and **Dedicated Stocks Terminal**), scalable multi-horizon portfolio allocator ($100K baseline scaling dynamically to $500K+), 3-pronged strategic execution framework, and automated multi-asset trade lifecycle auditor.
+Institutional-grade quantitative market telemetry, multi-index benchmark confluence engine, tri-portal execution architecture (**Options Terminal**, **Dedicated Stocks Terminal**, and **365-Day Historical Signal Archive**), scalable multi-horizon portfolio allocator ($100K baseline scaling dynamically to $500K+), 3-pronged strategic execution framework, price-gated runner protection, relative-strength eviction, and automated multi-asset trade lifecycle auditor.
 
 Engineered to replace fragmented TradingView alerts, third-party webhooks, and manual spreadsheets with an autonomous, zero-cost quantitative pipeline hosted entirely on **GitHub Actions** and **GitHub Pages**.
 
@@ -9,7 +9,7 @@ For the complete, granular data dictionary, yfinance field mapping, and mathemat
 
 ---
 
-## 🏛️ Capital Architecture & The Twin-Engine Model
+## 🏛️ Capital Architecture & The Decoupled Twin-Engine Model
 
 The engine operates two fully decoupled, independent portfolios to prevent cross-asset competition, avoid liquidity bottlenecks, and allow high-conviction mega-cap leaders and high-beta momentum stocks to be traded without capital distortion:
 
@@ -29,14 +29,17 @@ The engine operates two fully decoupled, independent portfolios to prevent cross
   │ • Capital / Slot: ~$4,500 – $6,000   │                       │ • Capital / Slot: ~$4,500 – $6,000   │
   │ • Dollar-at-Risk: $1,000 max (1.0%)  │                       │ • Dollar-at-Risk: $350 – $500 (0.45%)│
   │ • Vehicles: Spreads & Multi-Yr LEAPS │                       │ • Vehicles: Common Shares (Cash)     │
-  │ • Stagnation Stops: Day 10 / Day 14  │                       │ • Stagnation Stops: Day 10 / Day 14  │
+  │ • Tactical Sprint: 10–12 Slots       │                       │ • Tactical Sprint: 10–12 Slots       │
+  │ • Strategic Anchor: 6–8 Slots        │                       │ • Strategic Anchor: 6–8 Slots        │
+  │ • Relative-Strength Eviction Enabled │                       │ • Relative-Strength Eviction Enabled │
   └──────────────────────────────────────┘                       └──────────────────────────────────────┘
 ```
 
 ### A. Position Capacity & Heat Management
-* **Legacy Bottleneck Solved**: The legacy terminal enforced a flat ceiling of 7 concurrent open trades. A single slow-moving stock holding for 30+ sessions throttled the entire system.
-* **Expanded Capacity**: Active holding capacity is expanded to **16 to 21 concurrent positions per portfolio** (32 to 42 active holdings across the entire terminal).
-* **Dedicated Execution Pools**: The Stock Engine and Options Engine scan the 500-constituent universe independently. An equity recommendation does not consume an options slot, and high-dollar mega-caps (e.g., NVDA, MSFT, META, LLY) can be traded via LEAPS or shares without starving other positions.
+* **Decoupled Execution Pools**: The Stock Engine and Options Engine scan the 500-constituent universe independently. An equity recommendation does not consume an options slot, and high-dollar mega-caps (e.g., NVDA, MSFT, META, LLY) can be traded via LEAPS or shares without starving other positions.
+* **Decoupled Sprint vs. Anchor Books**: Within each portfolio, capacity is split between:
+  * **Tactical Sprint Book (10–12 slots)**: 45–90 DTE vertical spreads and 10–22 day stock swings for high capital velocity.
+  * **Strategic Anchor Book (6–8 slots)**: January 2028 multi-year LEAPS and Stage 2 secular compounders with 200 SMA trailing stops. Multi-month holdings never freeze tactical trading bandwidth.
 * **Scalable Capital**: Starting baseline is **$100,000 per book** ($200,000 terminal total), with position sizing and capital allocation formulas designed to scale seamlessly up to **$500,000 or higher**.
 
 ### B. Dollar-at-Risk Position Sizing
@@ -63,15 +66,15 @@ The strategy engine divides all recommendations across three distinct holding ho
 ├─────────────────────────┬───────────────────────────────────┬────────────────────────────────────────────────────┤
 │ STRATEGY PRONG          │ EQUITIES SPECIFICATION            │ DERIVATIVES SPECIFICATION (INCL. LEAPS)            │
 ├─────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────┤
-│ 🚀 HIGH RISK (VELOCITY) │ • Holding Horizon: 10–14 sessions │ • Vehicles: 45–90 DTE Spreads OR 6–9 Mo ITM LEAPS │
+│ 🚀 HIGH RISK (VELOCITY) │ • Holding Horizon: 10–22 sessions │ • Vehicles: 45–90 DTE Spreads OR 6–9 Mo ITM LEAPS │
 │    "Momentum Sprint"    │ • Target: Beta >= 1.8, ADR >= 3.5%│ • Volatility: High IV Rank (60–85+) Rewarded       │
-│    Capacity: 7-8 Slots  │ • Entry: D0-D1 Reclaim, RVOL>=1.8x│ • LEAPS: ~0.70-0.75 Delta, Uncapped High-Beta Run  │
-│                         │ • Stagnation: Day 10 if < +1.0R   │ • Exit: 70% Max Profit or Day 10 Stagnation Stop   │
+│    Capacity: 7-8 Slots  │ • Entry: D0-D1 Reclaim, RVOL>=1.8x│ • Max Risk: Bounded Stop at -8.0% Max Loss         │
+│                         │ • Stop: max(ema50*0.985, p*0.92)  │ • Exit: 70% Max Profit or Day 10 Stagnation Stop   │
 ├─────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────┤
-│ ⚖️ BALANCED (TACTICAL)   │ • Holding Horizon: 15–25 sessions │ • Vehicles: 60–120 DTE Spreads OR 9–15 Mo LEAPS    │
+│ ⚖️ BALANCED (TACTICAL)   │ • Holding Horizon: 15–35 sessions │ • Vehicles: 60–120 DTE Spreads OR 9–15 Mo LEAPS    │
 │    "Core Swing"         │ • Target: Beta 1.0-1.5, ADR 2-3.2%│ • Volatility: Sweet Spot IV Rank (35–65) Rewarded  │
-│    Capacity: 7 Slots    │ • Entry: D0-D2 Reclaim, RVOL>=1.2x│ • LEAPS: ~0.75-0.80 Delta, High Sector RS Leaders  │
-│                         │ • Stagnation: Day 14 if < 50% TP1 │ • Exit: TP1 (+2.5 R:R), Day 14 Stagnation Stop     │
+│    Capacity: 7 Slots    │ • Entry: D0-D2 Reclaim, RVOL>=1.2x│ • Max Risk: Bounded Stop at -9.5% Max Loss         │
+│                         │ • Stop: max(ema50*0.98, p*0.905)  │ • Exit: TP1 (+2.5 R:R), Day 14 Stagnation Stop     │
 ├─────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────┤
 │ 🛡️ LOW RISK (CORE)       │ • Holding Horizon: 40–120+ sess.  │ • Vehicle: Jan 2028 Call LEAPS (~0.78-0.82 Delta)  │
 │    "Compounder"         │ • Target: Beta <= 1.0, Pos. FCF   │ • Volatility: Low IV Rank (< 35) Mandatory         │
@@ -80,11 +83,83 @@ The strategy engine divides all recommendations across three distinct holding ho
 └─────────────────────────┴───────────────────────────────────┴────────────────────────────────────────────────────┘
 ```
 
-### Are LEAPS Included in All Three Strategies?
-**YES.** LEAPS are tailored and available across all three strategy prongs:
-1. **🚀 High-Risk Sprint LEAPS**: 6 to 9 months to expiration (~210 DTE), aggressive ~0.70–0.75 Delta strikes. Designed for explosive high-beta stocks ($\beta \ge 1.8$) to participate in rapid momentum runs with **uncapped upside** while avoiding the severe 30-day theta cliff.
-2. **⚖️ Balanced Tactical LEAPS**: 9 to 15 months to expiration (~360 DTE), Deep-ITM ~0.75–0.80 Delta strikes on top-half sector relative strength leaders. Combines high directional sensitivity with minimal theta drag over a 15–25+ session holding horizon.
-3. **🛡️ Core Secular LEAPS**: January 2028 multi-year contracts (18–24+ months, ~500+ DTE), Deep-ITM ~0.78–0.82 Delta strikes on institutional mega-cap compounders with low IV Rank ($< 35\%$). Governed strictly by the 200-day moving average macro stop with zero time-based stagnation pressure.
+---
+
+## 🏃 Extended Runway & Price-Gated Stagnation Protocol
+
+To eliminate arbitrary calendar selloffs on winning positions, the engine incorporates an institutional price-gated stagnation model:
+
+```text
+       ┌─────────────────────────────────────────────────────────────┐
+       │             PRICE-GATED RUNNER PROTECTION                   │
+       ├─────────────────────────────────────────────────────────────┤
+       │ IF Close > Entry Price AND Close ≥ EMA50:                   │
+       │   • BYPASS calendar exit (Day 10/14 kill-switch disabled)   │
+       │   • TRAIL stop to Breakeven (Tier A: House Money)           │
+       │   • EXTEND holding runway:                                  │
+       │       - Sprints: Up to 22 trading sessions                  │
+       │       - Balanced: Up to 35 trading sessions                 │
+       │ ELSE IF Close < Stop OR Close < EMA50:                      │
+       │   • Trigger immediate technical / stagnation exit           │
+       └─────────────────────────────────────────────────────────────┘
+```
+
+* **Legacy Issue Resolved**: Previously, rigid Day 10 and Day 14 timers liquidated momentum leaders after initial +10% to +18% gains during normal pullbacks, truncating winners and hurting win rates.
+* **House Money Protection**: Winning trades that cross Day 10 (Sprint) or Day 14 (Balanced) have their stop loss automatically trailed to **Breakeven (entry price)**, guaranteeing zero capital loss while allowing the second half of the position to run toward final targets.
+
+---
+
+## 🛑 Bounded Stop-Loss Limits (-8.0% Max Loss on Sprints)
+
+To prevent high-beta equities from bleeding into severe drawdowns:
+* **High-Risk Sprints**: Enforces `stop_price = round(max(ema50 * 0.985, price * 0.92), 2)`. Maximum technical risk is bounded at strictly **8.0% from entry**.
+* **Balanced Swings**: Enforces `stop_price = round(max(ema50 * 0.98, price * 0.905), 2)`. Maximum technical risk is bounded at strictly **9.5% from entry**.
+* **Immediate Failure Discipline**: If a stock breaks technical support, it is stopped out on Day 2 or 3 at -4% to -8%, rather than drifting down to -20% or -25% waiting for a calendar timer.
+
+---
+
+## 🔄 Dynamic Active Re-Scoring & Relative-Strength Eviction
+
+The engine continuously audits all active holdings on every scan run to ensure capital stays concentrated in top relative-strength leaders:
+
+```text
+       ┌─────────────────────────────────────────────────────────────┐
+       │             RELATIVE-STRENGTH EVICTION ENGINE               │
+       ├─────────────────────────────────────────────────────────────┤
+       │ 1. Continuous Re-Scoring: Live Alpha Score on all positions │
+       │ 2. Health Tier Classification:                              │
+       │    • Tier A: House Money (TP1 scaled, stop at breakeven)    │
+       │    • Tier B: On-Track (Score ≥ 60.0, holding above EMA50)   │
+       │    • Tier C: Stagnant (Score 50.0–59.9, stalled momentum)   │
+       │    • Tier D: Eviction Eligible (Score < 55.0 for ≥ 2 days)  │
+       │ 3. Hysteresis & Hurdle Gatekeeper:                          │
+       │    • Near-Capacity Trigger: Active positions ≥ 85% (≥ 15/18) │
+       │    • Replacement Hurdle: New candidate outscores by Δ ≥ 18  │
+       │    • Outcome: Stagnant holding evicted -> capital recycled  │
+       └─────────────────────────────────────────────────────────────┘
+```
+
+* **Hysteresis Guard**: Prevents premature churn by requiring at least 2 consecutive daily closes below 55.0 score (or prolonged stagnation $\ge 18$ days with score $< 58.0$).
+* **Recycling Hurdle ($\Delta \ge 18.0$ pts)**: Existing holdings are only evicted if a verified incoming setup exceeds the incumbent by at least 18.0 Alpha points.
+* **Audit Tagging**: Evicted trades are logged with `status = 'CLOSED_EVICTED'` and `exit_reason = 'Relative Strength Eviction'`, separate from technical stop-outs.
+
+---
+
+## 🗄️ 365-Day Historical Signal Archive Module
+
+A dedicated historical signal registry and search portal (`archive.html`) captures and indexes all daily recommendations generated by the platform:
+
+* **Automated Intraday Logging (`engine/archive.py`)**: Runs automatically inside `save_payloads()` on every scan execution and historical backfill.
+* **Intraday Upsert Idempotency**: Running at 11:00 AM, 12:30 PM, and 2:00 PM ET updates that day's records in place rather than creating duplicate rows.
+* **365-Day Rolling Pruning**: Automatically drops records older than 365 days on every pass, ensuring `data/recommendations_archive.json` stays permanently bounded ($\le 1\text{ MB}$) for high-speed client-side loading.
+* **Standalone UI (`archive.html`)**:
+  * Full-text search across Ticker, Company Name, Sector, and Strategy Structure.
+  * Category filter pills (`All`, `🚀 High-Risk Sprint`, `⚖️ Balanced Swing`, `🛡️ Core Accumulation`, `🛑 Downside Hedge`).
+  * Asset type filter (`All`, `Options Only`, `Stocks Only`).
+  * Date range limits (`Last 7D`, `14D`, `30D`, `90D`, `365D Full Archive`).
+  * Minimum Alpha Score filter (`≥ 70`, `≥ 80`, `≥ 85`, `≥ 90`).
+  * One-click **JSON** and **CSV** dataset exports.
+  * Linked in top navigation across `index.html`, `stocks.html`, and `archive.html`.
 
 ---
 
@@ -145,52 +220,50 @@ $$\text{Options Alpha Score} = (\text{Directional Alpha} \times 0.35) + S_{\text
 1. **Dynamic Sector Capital Allocation (30%–35% Cap)**: Rather than an arbitrary rigid cap of 3 per sector, each 16–21 slot book permits up to **30%–35% total capital per sector** (~5 to 6 positions in the #1 relative strength sector). This fully captures institutional sector momentum while preventing hyper-concentration.
 2. **The "Liquid Route" Auto-Switch (Options vs. Stock)**: If an options candidate meets all technical criteria (50 EMA, RSI, MACD, RVOL) but fails options chain liquidity ($\text{OI} < 500$ or spread $> 8\%$), the engine automatically routes the order ticket to the **Stock Portfolio as Common Shares** with a `🔄 AUTO-ROUTED FROM OPTIONS` badge.
 3. **The 70% Max-Profit Harvest Rule**: Vertical spreads that achieve $\ge 70\%$ of maximum potential spread width or reach TP1 trigger an automated early harvest, locking in profits and freeing up portfolio slots days ahead of expiration.
-4. **Stagnation Exits (Recycling Portfolio Heat)**:
-   * *High-Risk*: Position exits at Day 10 if profit $< +1.0\text{R}$.
-   * *Balanced*: Position exits or stop tightens to breakeven at Day 14 if gain $< 50\%$ of distance to TP1.
-   * *Core*: Governed strictly by trend stack integrity and the 200 SMA macro stop.
+4. **Strict Breakeven Accounting**: Closed trades with PnL == 0.00% are cataloged as `CLOSED_BREAKEVEN`, completely decoupled from profitable winners to preserve audit integrity and prevent average-winner dilution.
 5. **Anti-Chop Re-Entry Cooldown**: When a position is stopped out, the ticker enters a mandatory **4-to-5 trading day re-entry blackout**, protecting the portfolio from range-bound whipsaw markets.
 
 ---
 
-## 🖥️ Terminal Interface & Display Controls
+## ⏰ Active Market Hours Workflow (`.github/workflows/scan.yml`)
 
-### 3-Prong Strategic Allocation Filter Bars
-Both portals feature interactive strategy prong filter buttons directly above the primary recommendation tables:
-* **Options Terminal (`index.html`)**: `[ALL SETUPS]`, `[🚀 HIGH RISK (45–90d SPRINT)]`, `[⚖️ BALANCED (60–120d SWING)]`. Table 2 displays `[🛡️ CORE SECULAR COMPOUNDER]` Jan 2028 Call LEAPS.
-* **Stocks Terminal (`stocks.html`)**: `[ALL SWINGS]`, `[🚀 HIGH RISK (10d SPRINT)]`, `[⚖️ BALANCED (15–25d SWING)]`. Table 2 displays `[🛡️ STRATEGIC CORE ACCUMULATION]` Common Shares.
+The scanner operates strictly during active US market trading hours to guarantee liquid, representative bid/ask quotes and eliminate erratic pre-market or post-market pricing artifacts:
 
-### Real-Time Qualification Badges
-Every row in both terminals renders granular indicator telemetry:
-* **Prong Badge**: `🚀 HIGH RISK (SPRINT)`, `⚖️ BALANCED (SWING)`, or `🛡️ CORE (COMPOUNDER)`.
-* **Oscillators**: `RSI: 54.2 (≥45 Floor 🟢)` and `MACD: ↗ Hook (Hist+ 🟢)`.
-* **Elasticity**: `β: 1.85` and `ADR: 3.8%`.
-* **Volume**: `RVOL: 2.1x Institutional`.
-* **Velocity**: `D0 Reclaimed Today` / `D1 Confirmed`.
-* **Runway**: `CLEAR (Above 200MA)` or exact `% Runway` to overhead resistance.
-* **Options Liquidity**: `OI: 850/620 · Vol: 110` with live mid-price debits.
+```yaml
+on:
+  schedule:
+    # 11:00 AM ET (15:00 UTC) Mon-Fri: Morning Momentum Confirmation
+    - cron: '0 15 * * 1-5'
+    # 12:30 PM ET (16:30 UTC) Mon-Fri: Midday Trend Follow-Through
+    - cron: '30 16 * * 1-5'
+    # 2:00 PM ET (18:00 UTC) Mon-Fri: Afternoon Institutional Setup Finalization
+    - cron: '0 18 * * 1-5'
+```
+
+* **Concurrency Protection**: Uses `concurrency.group = abi-telemetry-scanner` with `cancel-in-progress: false` to prevent overlapping runs or git push collisions.
+* **Auto-Pruned Artifacts**: Automatically commits telemetry, ledger logs, and the rolling 365-day recommendation archive in a single atomic git commit.
 
 ---
 
-## 🧪 Automated Testing & Verification Suite
+## 🧪 Comprehensive Testing & Verification Suite
 
-A comprehensive automated testing suite of **73 automated tests** (53 Python unit/functional tests + 20 Node.js DOM simulation tests) verifies mathematical, architectural, and visual integrity:
+A complete verification suite of **112 automated tests** across Python and Node.js guarantees structural, mathematical, and DOM integrity:
 
 ```bash
-# 1. Run all Python unit & functional test suites
-cd terminal/abi-strategy-terminal
-python3 -m unittest discover -s tests -p "test_*.py"
+# 1. Run all Python unit & functional test suites (81 tests)
+cd abi-strategy-terminal
+for f in tests/test_*.py; do python3 "$f"; done
 
-# 2. Run Node.js end-to-end simulation suites
+# 2. Run Node.js end-to-end simulation suites (31 tests)
 node tests/test_allocator_node.js
 node tests/test_stocks_page_node.js
+node tests/test_archive_html.js
 ```
 
 ### Verified Test Matrix:
-* **Scalable Capital Sizing**: Verifies $100K baseline scaling dynamically to $500K+ with dollar-at-risk share limits.
-* **3-Prong Generators**: Verifies High-Risk Sprint (10d), Balanced Swing (15–25d), and Core Compounder (40–120d).
-* **Stagnation Exits**: Verifies Day 10 ($<1.0\text{R}$) and Day 14 ($<50\%$ TP1) capital recycling stops.
-* **Bifurcated IV Scoring**: Verifies High-Risk rewards high IV (60–85+), Balanced rewards sweet spot (35–65), and Core rewards low IV ($<35$).
-* **Liquid Route Auto-Switch**: Verifies automatic re-routing of illiquid options to the common stock book.
-* **Universal Momentum Hooks**: Verifies RSI $\ge 45$ floor and MACD histogram slope gating.
-* **Capacity & Dynamic Sector Allocation**: Verifies 16–21 slot capacity per ledger and dynamic 30%–35% sector caps.
+* **Active Re-Scoring & Health Tiers (`test_active_rescoring.py`)**: Validates continuous scoring and Tier A–D classification.
+* **Relative-Strength Eviction (`test_eviction_and_decoupled_books.py`)**: Validates the 18-point hurdle, 85% capacity threshold, and sprint vs. anchor slot decoupling.
+* **Regime Gating & Breakeven Accounting (`test_regime_and_breakeven.py`)**: Validates 4-index macro gating and zero-dilution breakeven logging.
+* **365-Day Archive Module (`test_archive_module.py` & `test_archive_html.js`)**: Validates signal normalization, same-day upsert idempotency, 365-day boundary pruning, and DOM rendering.
+* **Scalable Capital Sizing & Guardrails (`test_stock_engine.py`)**: Verifies $100K to $500K dynamic scaling, 1.0% dollar-at-risk options limits, and 6.0% stock capital ceilings.
+* **Allocator & UI Simulations (`test_allocator_node.js` & `test_stocks_page_node.js`)**: Verifies multi-portfolio localStorage management, cross-terminal navigation, and execution ticket generation.

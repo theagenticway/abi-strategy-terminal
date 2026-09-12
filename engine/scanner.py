@@ -1,4 +1,4 @@
-import patterns
+import os, sys
 MAX_OPTIONS_SLOTS = 18
 MAX_OPTIONS_SPRINT_SLOTS = 12   # Tactical Spreads (45-60 DTE)
 MAX_OPTIONS_ANCHOR_SLOTS = 6    # Strategic LEAPS (Jan 2028)
@@ -8,10 +8,24 @@ try:
     from engine.indicators import compute_active_health_tier, compute_technical_snapshot, get_regime_tier_capacities
     from engine.stocks import compute_alpha_composite_score
     from engine.patterns import compute_options_alpha_score
-except ImportError:
+    import engine.patterns as patterns
+    from engine import archive
+except (ImportError, ModuleNotFoundError):
     from indicators import compute_active_health_tier, compute_technical_snapshot, get_regime_tier_capacities
     from stocks import compute_alpha_composite_score
     from patterns import compute_options_alpha_score
+    import patterns
+    try:
+        import archive
+    except (ImportError, ModuleNotFoundError):
+        import importlib.util
+        _arch_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "archive.py")
+        if os.path.exists(_arch_file):
+            _spec = importlib.util.spec_from_file_location("archive", _arch_file)
+            archive = importlib.util.module_from_spec(_spec)
+            _spec.loader.exec_module(archive)
+        else:
+            archive = None
 
 def calculate_benchmark_matrix(raw_data, sample_date_str=None):
     """
@@ -1773,6 +1787,13 @@ def ensure_ledgers_exist():
                 }, f, indent=2)
             print(f"[+] Auto-initialized missing ledger file: {fpath}")
 
+    arch_path = os.path.join(DATA_DIR, "recommendations_archive.json")
+    if not os.path.exists(arch_path):
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(arch_path, "w") as f:
+            json.dump([], f, indent=2)
+        print(f"[+] Auto-initialized missing archive file: {arch_path}")
+
 def save_payloads(payload: dict, raw_data=None):
     """Writes latest.json, updates summary.json, and prunes old files."""
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -1853,6 +1874,12 @@ def save_payloads(payload: dict, raw_data=None):
     with open(summary_path, "w") as f:
         json.dump(summary_data, f, indent=2)
     prune_old_history()
+
+    # Update 365-day rolling recommendations archive on every scan run
+    try:
+        archive.update_recommendations_archive(payload, date_str)
+    except Exception as arch_err:
+        print(f"[!] Warning updating recommendations archive: {arch_err}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ABI Strategy Scanner Engine")
