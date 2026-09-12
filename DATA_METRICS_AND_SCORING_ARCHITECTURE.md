@@ -132,6 +132,20 @@ $$\text{RVOL} = \frac{\text{Volume}_0}{\frac{1}{20}\sum_{i=1}^{20} \text{Volume}
   * `Day 2`: Secondary confirmation test.
   * `Day > 2`: Stale reclaim; penalized or excluded.
 
+### 6. Dow Theory Market Structure Engine & Hard Disqualification Gate
+Derived via `engine/indicators.py::detect_market_structure()` by evaluating 5-day rolling swing highs and swing lows across price history:
+* **Regime Classifications**:
+  1. `BULLISH_HH_HL`: Series of Higher Highs and Higher Lows. Confirms an active Stage 2 institutional mark-up trend.
+  2. `CONSOLIDATION_BASE`: Forming higher lows above multi-week accumulation baselines or horizontal range support.
+  3. `BEARISH_LH_LL`: Series of Lower Highs and Lower Lows. Confirms an active Stage 4 institutional distribution trend.
+* **Universal Hard Qualification Filter for Long Plays (`dow_structure_ok`)**:
+  $$\text{Market Structure Regime} \neq \text{"BEARISH\_LH\_LL"}$$
+  * **Eliminating the "Bear Trap" Relief Bounce**: When an equity is in a confirmed `BEARISH_LH_LL` downtrend, any bounce into the 50-day EMA represents a dead-cat relief rally into falling overhead supply, NOT a trend continuation.
+  * **Application to Derivatives & Equities**:
+    * **Bull Call Spreads & Deep-ITM Call LEAPS**: In options, buying into a `BEARISH_LH_LL` relief bounce almost always results in a 100% loss of net debit as the stock rolls over to make a new lower low while theta accelerates. Hard disqualification shields premium buyers from bear traps.
+    * **Cash Equities**: Prevents premature accumulation in broken structural downtrends.
+  * **Downside Hedge Requirement**: For Bear Put Spreads (`downside_hedges`), `BEARISH_LH_LL` is actively required or rewarded as structural confirmation of continuing institutional distribution.
+
 ---
 
 ## 4. The 3-Pronged Strategy Engine Specification
@@ -229,6 +243,18 @@ $$\text{Macro Confluence Score} = \sum_{i=1}^4 \mathbf{1}_{\{\text{Index}_i \ge 
   * **Expanding IV Rank**: Captures market anticipation and volatility expansion.
   * **Price Action Confirmation**: A confirmed close above the 50 EMA confirms the market has absorbed the news constructively.
   * **Corporate Earnings Calendar Blackout**: The only hard calendar gatekeeper, requiring $\ge 21$ days clearance before upcoming earnings reports to prevent binary gap-down stop-outs.
+
+### F. Universal Hard Qualification Gatekeeper Matrix
+Before any ticker is submitted to the mathematical scoring engines (Composite Alpha Score or Options Quality Index), it must pass **100% of the six universal gatekeeper filters**:
+
+| Gatekeeper Filter | Parameter / Condition | Institutional Rationale | Enforcement Target |
+| :--- | :--- | :--- | :--- |
+| **1. 50 EMA Velocity** | `Price >= EMA50` & `reclaim_days <= 3` | Captures fresh momentum; rejects stale, extended moves. | Long Options & Stocks |
+| **2. Retrace Taxonomy** | `retrace_type in ["EMA50", "DB", "OTE"]` | Requires high-probability institutional pullback structures. | Long Options & Stocks |
+| **3. Overhead Runway** | `runway >= 5.0%` or `CLEAR (Above 200 SMA)` | Prevents entering directly below major 200 SMA supply walls. | Long Options & Stocks |
+| **4. RSI Floor** | `RSI(14) >= 45.0` | Filters out severe institutional distribution and falling knives. | Long Options & Stocks |
+| **5. MACD Momentum** | `Histogram[t] > Histogram[t-1]` | Confirms selling deceleration and upward curl without lag. | Long Options & Stocks |
+| **6. Dow Market Structure**| `Market Structure != "BEARISH_LH_LL"` | Rejects dead-cat bounces and bear traps in structural downtrends. | Long Options & Stocks |
 
 ---
 

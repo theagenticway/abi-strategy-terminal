@@ -1189,7 +1189,11 @@
                 tr.className = 'hover:bg-slate-800/40 transition';
                 tr.innerHTML = `
                     <td class="py-2.5 px-2.5 font-mono text-slate-400 text-xs">${t.entry_date}</td>
-                    <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">${t.ticker}</td>
+                    <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">
+                        <div>${t.ticker}</div>
+                        ${t.strategy_prong ? `<div class="mt-0.5"><span class="px-1 py-0.2 rounded text-[8px] font-black ${t.strategy_prong === 'HIGH_RISK' ? 'bg-amber-950/80 text-amber-300 border border-amber-500/30' : 'bg-sky-950/80 text-sky-300 border border-sky-500/30'}">${t.strategy_prong === 'HIGH_RISK' ? '🚀 SPRINT' : '⚖️ SWING'}</span></div>` : ''}
+                        ${t.structure_badge ? `<div class="mt-0.5"><span class="px-1 py-0.2 rounded text-[8px] font-black ${t.structure_badge.includes('HH/HL') ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/30' : 'bg-amber-950/80 text-amber-300 border border-amber-500/30'}">${t.structure_badge}</span></div>` : ''}
+                    </td>
                     <td class="py-2.5 px-2.5 text-slate-300">
                         <div>${t.sector}</div>
                         <div class="text-[9px] text-slate-500">${t.subsector || ''}</div>
@@ -1234,10 +1238,12 @@
 
             trades.forEach(t => {
                 const pnl = parseFloat(t.pnl_pct || 0) / 100;
-                const positionSize = (eqSimCapital * 0.015) / Math.max(0.01, (t.entry_price - t.stop_price) / t.entry_price);
-                const cappedSize = Math.min(positionSize, eqSimCapital * 0.20);
+                const stopDistPct = Math.max(0.02, Math.abs((t.entry_price - t.stop_price) / t.entry_price));
+                const riskDollars = eqSimCapital * 0.0045; // 0.45% dollar-at-risk per trade ($450 on $100k)
+                const maxCap = eqSimCapital * 0.06; // 6.0% max capital ceiling ($6,000 on $100k)
+                const cappedSize = Math.min(riskDollars / stopDistPct, maxCap);
 
-                if (t.status === 'OPEN') {
+                if (t.status === 'OPEN' || t.status === 'TP1_HIT') {
                     totalFloating += (cappedSize * pnl);
                 } else {
                     totalRealized += (cappedSize * pnl);

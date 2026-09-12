@@ -1057,12 +1057,14 @@
                     <div class="flex items-center gap-1">
                         <button onclick="setSimCapital(10000)" class="sim-cap-btn filter-btn text-xs" id="btn-scap-10k">$10k</button>
                         <button onclick="setSimCapital(25000)" class="sim-cap-btn filter-btn text-xs" id="btn-scap-25k">$25k</button>
-                        <button onclick="setSimCapital(50000)" class="sim-cap-btn filter-btn active text-xs bg-blue-600 text-white" id="btn-scap-50k">$50k</button>
-                        <button onclick="setSimCapital(100000)" class="sim-cap-btn filter-btn text-xs" id="btn-scap-100k">$100k</button>
+                        <button onclick="setSimCapital(50000)" class="sim-cap-btn filter-btn text-xs" id="btn-scap-50k">$50k</button>
+                        <button onclick="setSimCapital(100000)" class="sim-cap-btn filter-btn active text-xs bg-blue-600 text-white" id="btn-scap-100k">$100k</button>
+                        <button onclick="setSimCapital(250000)" class="sim-cap-btn filter-btn text-xs" id="btn-scap-250k">$250k</button>
+                        <button onclick="setSimCapital(500000)" class="sim-cap-btn filter-btn text-xs" id="btn-scap-500k">$500k</button>
                     </div>
                     <div class="flex items-center gap-1.5 pt-1">
                         <span class="text-xs text-slate-500 font-mono">$</span>
-                        <input type="number" id="sim-custom-capital" value="50000" step="5000" min="1000" max="1000000" class="bg-slate-950 border border-slate-700 text-xs text-white font-mono rounded px-2 py-1 w-28 focus:outline-none focus:border-sky-500" onchange="setSimCapital(parseFloat(this.value))">
+                        <input type="number" id="sim-custom-capital" value="100000" step="5000" min="1000" max="1000000" class="bg-slate-950 border border-slate-700 text-xs text-white font-mono rounded px-2 py-1 w-28 focus:outline-none focus:border-sky-500" onchange="setSimCapital(parseFloat(this.value))">
                     </div>
                 </div>
 
@@ -1083,11 +1085,12 @@
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">3. Position Sizing Model</label>
                     <select id="sim-sizing-mode" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2.5 py-1.5 w-full focus:outline-none focus:border-sky-500" onchange="runPortfolioSimulation()">
-                        <option value="risk_2pct" selected>Fixed Risk (2% of Equity / Trade)</option>
-                        <option value="alloc_10pct">Fixed Allocation (10% Cash / Trade)</option>
-                        <option value="fixed_1k">Flat Baseline ($1,000 / Trade)</option>
+                        <option value="dollar_at_risk" selected>Target Dollar-at-Risk ($1,000 Debit / 16–21 Slots)</option>
+                        <option value="risk_1pct">Conservative (1.0% Account Risk / Trade)</option>
+                        <option value="risk_2pct">Aggressive (2.0% Account Risk / Trade)</option>
+                        <option value="alloc_5pct">Equal-Weight (5.0% Capital / Slot — 20 Positions)</option>
                     </select>
-                    <p class="text-[10px] text-slate-500 mt-1" id="sim-sizing-desc">Sizes each trade so max loss to stop equals 2% of portfolio equity.</p>
+                    <p class="text-[10px] text-slate-500 mt-1" id="sim-sizing-desc">Sizes each vertical spread to $1,000 max debit scaled across 16–21 positions.</p>
                 </div>
 
                 <!-- Simulated Summary Mini-Banner -->
@@ -1380,6 +1383,8 @@
             if (amt === 25000) document.getElementById('btn-dcap-25k')?.classList.add('active', 'bg-blue-600', 'text-white');
             if (amt === 50000) document.getElementById('btn-dcap-50k')?.classList.add('active', 'bg-blue-600', 'text-white');
             if (amt === 100000) document.getElementById('btn-dcap-100k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 250000) document.getElementById('btn-dcap-250k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 500000) document.getElementById('btn-dcap-500k')?.classList.add('active', 'bg-blue-600', 'text-white');
             const inp = document.getElementById('deploy-custom-capital');
             if (inp) inp.value = amt;
             updateAllocationPlan();
@@ -1472,18 +1477,20 @@
         // ==========================================
         // PORTFOLIO CAPITAL & TIMEFRAME SIMULATOR
         // ==========================================
-        var simStartingCapital = 50000;
+        var simStartingCapital = 100000;
         var simStartDate = 'all';
-        var simSizingMode = 'risk_2pct';
+        var simSizingMode = 'dollar_at_risk';
 
         function setSimCapital(amt) {
-            if (isNaN(amt) || amt <= 0) amt = 50000;
+            if (isNaN(amt) || amt <= 0) amt = 100000;
             simStartingCapital = amt;
             document.querySelectorAll('.sim-cap-btn').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
             if (amt === 10000) document.getElementById('btn-scap-10k')?.classList.add('active', 'bg-blue-600', 'text-white');
             if (amt === 25000) document.getElementById('btn-scap-25k')?.classList.add('active', 'bg-blue-600', 'text-white');
             if (amt === 50000) document.getElementById('btn-scap-50k')?.classList.add('active', 'bg-blue-600', 'text-white');
             if (amt === 100000) document.getElementById('btn-scap-100k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 250000) document.getElementById('btn-scap-250k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 500000) document.getElementById('btn-scap-500k')?.classList.add('active', 'bg-blue-600', 'text-white');
             const inp = document.getElementById('sim-custom-capital');
             if (inp) inp.value = amt;
             runPortfolioSimulation();
@@ -1501,10 +1508,10 @@
         }
 
         function resetSimulator() {
-            setSimCapital(50000);
+            setSimCapital(100000);
             setSimDate('all');
             const sMode = document.getElementById('sim-sizing-mode');
-            if (sMode) sMode.value = 'risk_2pct';
+            if (sMode) sMode.value = 'dollar_at_risk';
             runPortfolioSimulation();
         }
 
@@ -1527,11 +1534,16 @@
             trades.forEach(t => {
                 const pnlPct = (t.pnl_pct || 0) / 100;
                 let posSize = 1000;
-                if (simSizingMode === 'risk_2pct') {
-                    const maxRiskDollars = Math.max(200, (cash + realizedDollars) * 0.02);
-                    posSize = Math.min(maxRiskDollars / 0.08, (cash + realizedDollars) * 0.20);
-                } else if (simSizingMode === 'alloc_10pct') {
-                    posSize = Math.max(500, (cash + realizedDollars) * 0.10);
+                const currentEq = cash + realizedDollars;
+                if (simSizingMode === 'dollar_at_risk') {
+                    const scaleFactor = Math.max(0.1, currentEq / 100000.0);
+                    posSize = Math.min(1000 * scaleFactor, currentEq * 0.06);
+                } else if (simSizingMode === 'risk_1pct') {
+                    posSize = Math.min(currentEq * 0.01 / 0.15, currentEq * 0.06);
+                } else if (simSizingMode === 'risk_2pct') {
+                    posSize = Math.min(currentEq * 0.02 / 0.15, currentEq * 0.10);
+                } else if (simSizingMode === 'alloc_5pct') {
+                    posSize = Math.max(500, currentEq * 0.05);
                 } else {
                     posSize = 1000;
                 }
@@ -1621,11 +1633,15 @@
             chronological.forEach(t => {
                 const pnlPct = (t.pnl_pct || 0) / 100;
                 let posSize = 1000;
-                if (simSizingMode === 'risk_2pct') {
-                    const maxRiskDollars = Math.max(200, runningEquity * 0.02);
-                    posSize = Math.min(maxRiskDollars / 0.08, runningEquity * 0.20);
-                } else if (simSizingMode === 'alloc_10pct') {
-                    posSize = Math.max(500, runningEquity * 0.10);
+                if (simSizingMode === 'dollar_at_risk') {
+                    const scaleFactor = Math.max(0.1, runningEquity / 100000.0);
+                    posSize = Math.min(1000 * scaleFactor, runningEquity * 0.06);
+                } else if (simSizingMode === 'risk_1pct') {
+                    posSize = Math.min(runningEquity * 0.01 / 0.15, runningEquity * 0.06);
+                } else if (simSizingMode === 'risk_2pct') {
+                    posSize = Math.min(runningEquity * 0.02 / 0.15, runningEquity * 0.10);
+                } else if (simSizingMode === 'alloc_5pct') {
+                    posSize = Math.max(500, runningEquity * 0.05);
                 } else {
                     posSize = 1000;
                 }
@@ -1707,7 +1723,11 @@
 
                 tr.innerHTML = `
                     <td class="py-2.5 px-2.5 font-mono text-slate-400 text-[11px]">${t.entry_date}</td>
-                    <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">${t.ticker}</td>
+                    <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">
+                        <div>${t.ticker}</div>
+                        ${t.strategy_prong ? `<div class="mt-0.5"><span class="px-1 py-0.2 rounded text-[8px] font-black ${t.strategy_prong === 'HIGH_RISK' ? 'bg-amber-950/80 text-amber-300 border border-amber-500/30' : 'bg-sky-950/80 text-sky-300 border border-sky-500/30'}">${t.strategy_prong === 'HIGH_RISK' ? '🚀 SPRINT' : '⚖️ SWING'}</span></div>` : ''}
+                        ${t.structure_badge ? `<div class="mt-0.5"><span class="px-1 py-0.2 rounded text-[8px] font-black ${t.structure_badge.includes('HH/HL') ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/30' : 'bg-amber-950/80 text-amber-300 border border-amber-500/30'}">${t.structure_badge}</span></div>` : ''}
+                    </td>
                     <td class="py-2.5 px-2.5 text-slate-400">${t.sector}</td>
                     <td class="py-2.5 px-2.5"><div class="font-bold text-slate-200 text-[11px]">${contractLabel}</div></td>
                     <td class="py-2.5 px-2.5 font-mono text-slate-200">$${parseFloat(t.entry_price).toFixed(2)}</td>
@@ -1717,7 +1737,7 @@
                     <td class="py-2.5 px-2.5 font-mono font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${pnl.toFixed(2)}%</td>
                     <td class="py-2.5 px-2.5 font-mono text-slate-300 font-semibold">$${(simInfo.posSize || 1000).toLocaleString()}</td>
                     <td class="py-2.5 px-2.5 font-mono font-bold ${(simInfo.dollarPnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(simInfo.dollarPnl || 0) >= 0 ? '+$' : '-$'}${Math.abs(simInfo.dollarPnl || 0).toLocaleString()}</td>
-                    <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${(simInfo.equityAfter || 50000).toLocaleString()}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${(simInfo.equityAfter || 100000).toLocaleString()}</td>
                     <td class="py-2.5 px-2.5 font-mono text-slate-400">${t.days_active}d</td>
                     <td class="py-2.5 px-2.5">${statusBadge}</td>
                     <td class="py-2.5 px-2.5">${driverBadge}</td>
