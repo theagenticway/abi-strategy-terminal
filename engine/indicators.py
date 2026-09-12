@@ -84,6 +84,104 @@ def calculate_beta(ticker_returns: pd.Series, spy_returns: pd.Series, window: in
     except Exception:
         return 1.0
 
+
+def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, lookback: int = 60) -> dict:
+    """
+    Analyzes Dow Theory market structure across rolling swing pivots:
+    - Identifies recent swing highs and swing lows.
+    - Classifies regime:
+      * 'BULLISH_HH_HL': Higher Highs & Higher Lows (ideal for Longs & Bull Call Spreads).
+      * 'BEARISH_LH_LL': Lower Highs & Lower Lows (ideal for Downside Hedges, dangerous for Longs).
+      * 'CONSOLIDATION_BASE': Mixed / base building (Higher Low formed after a prior swing low).
+    - Checks Structural Higher Low confirmation: Is current bounce floor higher than prior swing low?
+    - Calculates Overhead Resistance Runway %: Distance to nearest overhead prior swing high.
+    - Checks Break of Structure (BOS): Did recent price break above the previous swing high?
+    """
+    if high is None or low is None or close is None or len(close) < 15:
+        return {
+            "regime": "NEUTRAL",
+            "badge": "⚪ NEUTRAL",
+            "higher_high": False,
+            "higher_low": True,
+            "overhead_resistance_runway": 15.0,
+            "break_of_structure": False,
+            "prior_swing_high": 100.0,
+            "prior_swing_low": 90.0,
+            "structure_score": 12.0
+        }
+
+    h = high.tail(lookback).values if hasattr(high, "values") else np.array(high)
+    l = low.tail(lookback).values if hasattr(low, "values") else np.array(low)
+    c = close.tail(lookback).values if hasattr(close, "values") else np.array(close)
+    n = len(c)
+    current_price = float(c[-1])
+
+    swing_highs = []
+    swing_lows = []
+
+    for i in range(2, n - 2):
+        if h[i] >= h[i-1] and h[i] >= h[i-2] and h[i] >= h[i+1] and h[i] >= h[i+2]:
+            swing_highs.append((i, float(h[i])))
+        if l[i] <= l[i-1] and l[i] <= l[i-2] and l[i] <= l[i+1] and l[i] <= l[i+2]:
+            swing_lows.append((i, float(l[i])))
+
+    if len(swing_highs) < 2 or len(swing_lows) < 2:
+        mid = n // 2
+        sh1 = float(np.max(h[:mid]))
+        sh2 = float(np.max(h[mid:]))
+        sl1 = float(np.min(l[:mid]))
+        sl2 = float(np.min(l[mid:]))
+    else:
+        sh1 = swing_highs[-2][1]
+        sh2 = swing_highs[-1][1]
+        sl1 = swing_lows[-2][1]
+        sl2 = swing_lows[-1][1]
+
+    cur_support_floor = float(np.min(l[-5:])) if n >= 5 else current_price * 0.96
+
+    has_higher_high = bool(sh2 >= sh1 * 0.995)
+    has_higher_low = bool(cur_support_floor >= sl1 * 0.99)
+    
+    recent_max = float(np.max(c[-3:])) if n >= 3 else current_price
+    break_of_structure = bool(recent_max >= sh2 * 0.998)
+
+    overhead_targets = [sh for sh in [sh1, sh2] if sh > current_price]
+    if overhead_targets:
+        nearest_resistance = min(overhead_targets)
+        overhead_runway = max(0.0, round(((nearest_resistance - current_price) / current_price) * 100, 2))
+    else:
+        overhead_runway = 999.0
+
+    if has_higher_high and has_higher_low:
+        regime = "BULLISH_HH_HL"
+        badge = "🟢 HH/HL BULLISH"
+        structure_score = 25.0
+    elif has_higher_low and not has_higher_high:
+        regime = "CONSOLIDATION_BASE"
+        badge = "🟡 BASE BUILDING"
+        structure_score = 18.0
+    elif not has_higher_low and not has_higher_high:
+        regime = "BEARISH_LH_LL"
+        badge = "🔴 LH/LL BEARISH"
+        structure_score = 5.0
+    else:
+        regime = "NEUTRAL"
+        badge = "⚪ NEUTRAL"
+        structure_score = 12.0
+
+    return {
+        "regime": regime,
+        "badge": badge,
+        "higher_high": has_higher_high,
+        "higher_low": has_higher_low,
+        "overhead_resistance_runway": overhead_runway,
+        "break_of_structure": break_of_structure,
+        "prior_swing_high": round(sh2, 2),
+        "prior_swing_low": round(sl1, 2),
+        "structure_score": structure_score
+    }
+
+
 def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) -> dict:
     """
     Computes complete technical telemetry from an OHLCV dataframe.
@@ -182,6 +280,7 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
     d1_return = round(float(returns.iloc[-1] * 100), 2) if len(returns) > 1 and not np.isnan(returns.iloc[-1]) else 0.0
     d5_return = round(float(((close.iloc[-1] - close.iloc[-5]) / close.iloc[-5]) * 100), 2) if len(close) >= 5 and float(close.iloc[-5]) > 0 else 0.0
     d20_return = round(float(((close.iloc[-1] - close.iloc[-20]) / close.iloc[-20]) * 100), 2) if len(close) >= 20 and float(close.iloc[-20]) > 0 else 0.0
+    market_structure = analyze_market_structure(high, low, close)
 
     return {
         "price": round(current_price, 2),
@@ -214,6 +313,7 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
         "iv_rank": iv_rank,
         "iv_status": iv_status,
         "iv_badge": iv_badge,
+        "market_structure": market_structure,
         "raw_close": close,
         "raw_high": high,
         "raw_low": low,

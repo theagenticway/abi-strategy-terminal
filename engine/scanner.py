@@ -228,6 +228,10 @@ def compute_alpha_composite_score(*args, **kwargs):
     """Re-export Alpha Composite Scorer from engine/stocks.py."""
     return stocks.compute_alpha_composite_score(*args, **kwargs)
 
+def compute_options_alpha_score(*args, **kwargs):
+    """Re-export Options Alpha Scorer from engine/patterns.py."""
+    return patterns.compute_options_alpha_score(*args, **kwargs)
+
 
 # Comprehensive mapping of 25 Sector/Industry ETFs to constituent sectors & keywords
 ETF_SECTOR_MAP = {
@@ -1127,7 +1131,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             break
 
     # =========================================================================
-    # DYNAMIC ALPHA COMPOSITE SCORING & SECTOR DIVERSIFICATION (RELEASE V13)
+    # DYNAMIC ALPHA COMPOSITE SCORING & SECTOR DIVERSIFICATION (RELEASE V14)
     # =========================================================================
     top_quartile_sectors = set()
     num_tq_etfs = max(1, len(all_25_etfs) // 4 + 1)
@@ -1140,7 +1144,18 @@ def process_universe(raw_data=None, sample_date_str=None):
         if s.get("sector"):
             top_quartile_sectors.add(s["sector"].upper())
 
+    sector_mom_map = {}
+    for e in all_25_etfs:
+        sec_name = (e.get("sector") or "").upper()
+        spread = float(e.get("mom5_num", 0)) - float(e.get("mom20_num", 0))
+        sector_mom_map[sec_name] = spread
+        if e.get("etf"):
+            sector_mom_map[e["etf"].upper()] = spread
+
+    macro_confluence = benchmark_matrix.get("score", 2)
+
     for s_cand in qualified_stock_candidates:
+        s_sec = (s_cand.get("sector") or "").upper()
         s_score, s_breakdown = stocks.compute_alpha_composite_score(
             reclaim_days=s_cand.get("reclaim_days", 0),
             rvol=s_cand.get("rvol", 1.0),
@@ -1149,10 +1164,49 @@ def process_universe(raw_data=None, sample_date_str=None):
             sector=s_cand.get("sector"),
             rr_ratio=s_cand.get("rr_ratio", 2.5),
             top_quartile_sectors=top_quartile_sectors,
+            market_structure=s_cand.get("market_structure"),
+            macro_confluence=macro_confluence,
+            mom_spread=sector_mom_map.get(s_sec, 0.0),
             return_breakdown=True
         )
         s_cand["alpha_score"] = s_score
         s_cand["alpha_score_breakdown"] = s_breakdown
+
+    # Score and dynamically rank Options Candidates (Bull Call Spreads)
+    for c_cand in verified_top_candidates:
+        opt_s, opt_b = patterns.compute_options_alpha_score(
+            directional_alpha=c_cand.get("alpha_score", 75.0),
+            iv_rank=c_cand.get("iv_rank", 25.0),
+            long_oi=c_cand.get("long_oi", 650),
+            short_oi=c_cand.get("short_oi", 420),
+            bid_ask_spread_pct=c_cand.get("bid_ask_spread_pct", 0.05),
+            overhead_runway_pct=c_cand.get("overhead_runway_pct", 999.0),
+            days_to_earnings=c_cand.get("days_to_earnings", 60),
+            is_leaps=False,
+            return_breakdown=True
+        )
+        c_cand["options_alpha_score"] = opt_s
+        c_cand["options_alpha_breakdown"] = opt_b
+
+    verified_top_candidates.sort(key=lambda x: x.get("options_alpha_score", 0), reverse=True)
+
+    # Score and dynamically rank Strategic LEAPS
+    for l_cand in verified_leaps:
+        l_s, l_b = patterns.compute_options_alpha_score(
+            directional_alpha=l_cand.get("alpha_score", 70.0),
+            iv_rank=l_cand.get("iv_rank", 20.0),
+            long_oi=l_cand.get("long_oi", 350),
+            short_oi=None,
+            bid_ask_spread_pct=0.06,
+            overhead_runway_pct=l_cand.get("overhead_runway_pct", 999.0),
+            days_to_earnings=l_cand.get("days_to_earnings", 60),
+            is_leaps=True,
+            return_breakdown=True
+        )
+        l_cand["options_alpha_score"] = l_s
+        l_cand["options_alpha_breakdown"] = l_b
+
+    verified_leaps.sort(key=lambda x: x.get("options_alpha_score", 0), reverse=True)
 
     # Dynamic sort: descending by multi-factor Alpha Composite Score
     qualified_stock_candidates.sort(key=lambda x: x.get("alpha_score", 0), reverse=True)

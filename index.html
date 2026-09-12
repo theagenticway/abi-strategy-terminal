@@ -2323,6 +2323,7 @@
                         } else {
                             leapsSizingHtml = `
                                 <div class="mb-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${idx === 0 ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30' : 'bg-blue-950/60 text-blue-300 border border-blue-500/30'}">★ ${idx === 0 ? 'Rank #1 — Primary Core' : 'Rank #2 — Secondary Core'}</span></div>
+                                ${c.options_alpha_score !== undefined ? `<div class="mb-1"><span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-purple-950/80 text-purple-300 border border-purple-500/40">LEAPS ALPHA: ${c.options_alpha_score}/100</span></div>` : ''}
                                 <div class="text-xs font-mono font-bold text-emerald-400">Buy ${contracts} Contract${contracts > 1 ? 's' : ''}</div>
                                 <div class="text-[10px] font-mono text-slate-400">$${totalLeapsDebit.toLocaleString()} premium ($${allocPerLeaps.toLocaleString()} budget${idleRolledLeaps > 0 ? ` · $${idleRolledLeaps} rolled` : ''})</div>
                             `;

@@ -271,5 +271,114 @@ class TestStockStrategyEngine(unittest.TestCase):
         self.assertNotIn("FIN4", [c["ticker"] for c in selected])
 
 
+    def test_market_structure_analysis(self):
+        """
+        Validates Dow Theory market structure detection:
+        - Bullish HH/HL trend classification
+        - Bearish LH/LL classification
+        - Higher low confirmation and overhead resistance runway
+        """
+        import pandas as pd
+        import numpy as np
+        from indicators import analyze_market_structure
+
+        # 1. Bullish Higher High / Higher Low series
+        bull_close = pd.Series([100, 103, 101, 106, 104, 110, 108, 115, 112, 118, 115, 122, 119, 125, 122, 128])
+        bull_high = bull_close * 1.01
+        bull_low = bull_close * 0.99
+        res_bull = analyze_market_structure(bull_high, bull_low, bull_close)
+        self.assertEqual(res_bull["regime"], "BULLISH_HH_HL")
+        self.assertTrue(res_bull["higher_high"])
+        self.assertTrue(res_bull["higher_low"])
+        self.assertIn("HH/HL", res_bull["badge"])
+
+        # 2. Bearish Lower High / Lower Low series (Bear trap)
+        bear_close = pd.Series([130, 125, 126, 120, 122, 115, 117, 110, 112, 105, 107, 100, 102, 95, 96, 90])
+        bear_high = bear_close * 1.01
+        bear_low = bear_close * 0.99
+        res_bear = analyze_market_structure(bear_high, bear_low, bear_close)
+        self.assertEqual(res_bear["regime"], "BEARISH_LH_LL")
+        self.assertFalse(res_bear["higher_low"])
+        self.assertIn("LH/LL", res_bear["badge"])
+
+    def test_strengthened_alpha_scoring_with_market_structure_and_macro(self):
+        """
+        Validates that Market Structure and Macro Confluence strengthen the Alpha Score:
+        - Bullish HH/HL + 4/4 Macro Confluence significantly elevates score
+        - Bearish LH/LL penalizes score, weeding out bear trap relief bounces
+        """
+        cand_base = {
+            "reclaim_days": 1,
+            "rvol": 1.6,
+            "price": 101.5,
+            "ema50": 100.0,
+            "sector": "TECH SEMIS",
+            "rr_ratio": "1:2.5"
+        }
+        # Baseline score without structure
+        base_score = stocks.compute_alpha_composite_score(cand_base, top_quartile_sectors=["TECH SEMIS"])
+
+        # Enhanced with Bullish HH/HL and 4/4 Macro Confluence
+        cand_bull = dict(cand_base)
+        cand_bull["market_structure"] = {
+            "regime": "BULLISH_HH_HL",
+            "higher_high": True,
+            "higher_low": True,
+            "break_of_structure": True,
+            "overhead_resistance_runway": 12.0
+        }
+        cand_bull["macro_confluence"] = 4
+        cand_bull["mom_spread"] = 1.8
+        bull_score, bull_breakdown = stocks.compute_alpha_composite_score(cand_bull, top_quartile_sectors=["TECH SEMIS"], return_breakdown=True)
+
+        self.assertGreater(bull_score, base_score, "Bullish market structure must boost alpha score")
+        self.assertGreaterEqual(bull_breakdown["market_structure"], 10.0)
+        self.assertGreaterEqual(bull_breakdown["macro_confluence"], 5.0)
+
+        # Enhanced with Bearish LH/LL structure (Bear trap)
+        cand_bear = dict(cand_base)
+        cand_bear["market_structure"] = {
+            "regime": "BEARISH_LH_LL",
+            "higher_high": False,
+            "higher_low": False,
+            "break_of_structure": False,
+            "overhead_resistance_runway": 1.2
+        }
+        cand_bear["macro_confluence"] = 1
+        bear_score, bear_breakdown = stocks.compute_alpha_composite_score(cand_bear, top_quartile_sectors=["TECH SEMIS"], return_breakdown=True)
+
+        self.assertLess(bear_score, base_score, "Bearish LH/LL structure must penalize alpha score")
+        self.assertLess(bear_breakdown["market_structure"], 0.0)
+        self.assertLess(bear_breakdown["macro_confluence"], 0.0)
+
+    def test_options_alpha_scoring(self):
+        """
+        Validates Options Alpha Scorer:
+        - Awards top points for cheap IV (<30%), high OI/tight spreads, and blue sky runway
+        - Heavily penalizes options with earnings within 45 DTE (-35 pts)
+        """
+        from patterns import compute_options_alpha_score
+
+        # 1. High Quality Liquid Option
+        high_qual_score, b_high = compute_options_alpha_score(
+            directional_alpha=85.0, iv_rank=22.0, long_oi=850, short_oi=620,
+            bid_ask_spread_pct=0.04, overhead_runway_pct=999.0, days_to_earnings=65,
+            return_breakdown=True
+        )
+        self.assertGreaterEqual(high_qual_score, 90.0)
+        self.assertEqual(b_high["iv_rank_efficiency"], 25.0)
+        self.assertEqual(b_high["liquidity_quality"], 20.0)
+        self.assertEqual(b_high["earnings_penalty"], 0.0)
+
+        # 2. Earnings Trap (imminent earnings inside 45 DTE)
+        trap_score, b_trap = compute_options_alpha_score(
+            directional_alpha=85.0, iv_rank=22.0, long_oi=850, short_oi=620,
+            bid_ask_spread_pct=0.04, overhead_runway_pct=999.0, days_to_earnings=15,
+            return_breakdown=True
+        )
+        self.assertLess(trap_score, high_qual_score)
+        self.assertEqual(b_trap["earnings_penalty"], -35.0)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

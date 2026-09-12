@@ -377,6 +377,115 @@ def evaluate_earnings_blackout(ticker: str, earnings_date=None, today=None) -> d
             "badge": "emerald"
         }
 
+
+def compute_options_alpha_score(
+    directional_alpha=70.0,
+    iv_rank=25.0,
+    long_oi=650,
+    short_oi=420,
+    bid_ask_spread_pct=0.05,
+    overhead_runway_pct=12.0,
+    days_to_earnings=60,
+    is_leaps=False,
+    return_breakdown=False
+):
+    """
+    Computes Options Alpha Composite Score (0 - 100 points):
+    Options Alpha = Directional Foundation (40%) + IV Rank Efficiency (25%) + Liquidity Quality (20%) + 200 SMA Runway (15%)
+    Includes Earnings Blackout penalty (-35 pts) if earnings fall within trade DTE.
+    """
+    if isinstance(directional_alpha, dict):
+        d = directional_alpha
+        directional_alpha = d.get("alpha_score", 70.0)
+        iv_rank = d.get("iv_rank", iv_rank)
+        long_oi = d.get("long_oi", long_oi)
+        short_oi = d.get("short_oi", short_oi)
+        bid_ask_spread_pct = d.get("bid_ask_spread_pct", bid_ask_spread_pct)
+        overhead_runway_pct = d.get("overhead_runway_pct", overhead_runway_pct)
+        days_to_earnings = d.get("days_to_earnings", days_to_earnings)
+        is_leaps = d.get("vehicle") == "Call LEAPS" or is_leaps
+
+    # 1. Directional Foundation (40 pts max)
+    try:
+        d_val = float(directional_alpha) if directional_alpha is not None else 70.0
+    except (ValueError, TypeError):
+        d_val = 70.0
+    dir_pts = round(min(100.0, max(0.0, d_val)) * 0.40, 1)
+
+    # 2. IV Rank Efficiency (25 pts max)
+    try:
+        iv = float(iv_rank) if iv_rank is not None else 30.0
+    except (ValueError, TypeError):
+        iv = 30.0
+    if iv < 30.0:
+        iv_pts = 25.0
+    elif iv < 45.0:
+        iv_pts = 20.0
+    elif iv < 60.0:
+        iv_pts = 12.0
+    else:
+        iv_pts = 4.0
+
+    # 3. Liquidity Quality (20 pts max)
+    try:
+        l_oi = int(long_oi) if long_oi is not None else 300
+    except (ValueError, TypeError):
+        l_oi = 300
+    try:
+        s_oi = int(short_oi) if short_oi is not None else l_oi
+    except (ValueError, TypeError):
+        s_oi = l_oi
+    min_oi = min(l_oi, s_oi)
+    try:
+        spread = float(bid_ask_spread_pct) if bid_ask_spread_pct is not None else 0.08
+    except (ValueError, TypeError):
+        spread = 0.08
+
+    if min_oi >= 500 and spread <= 0.08:
+        liq_pts = 20.0
+    elif min_oi >= 250 and spread <= 0.15:
+        liq_pts = 14.0
+    elif min_oi >= 100:
+        liq_pts = 8.0
+    else:
+        liq_pts = 3.0
+
+    # 4. Overhead Runway to 200 SMA (15 pts max)
+    try:
+        runway = float(overhead_runway_pct) if overhead_runway_pct is not None else 10.0
+    except (ValueError, TypeError):
+        runway = 10.0
+    if runway >= 900.0:
+        runway_pts = 15.0 # Blue sky / above 200 SMA
+    elif runway >= 8.0:
+        runway_pts = 12.0
+    elif runway >= 5.0:
+        runway_pts = 8.0
+    else:
+        runway_pts = 2.0
+
+    # 5. Earnings Blackout Penalty
+    try:
+        dte_earnings = int(days_to_earnings) if days_to_earnings is not None else 60
+    except (ValueError, TypeError):
+        dte_earnings = 60
+    earnings_penalty = -35.0 if (0 <= dte_earnings <= 45 and not is_leaps) else 0.0
+
+    total = max(5.0, min(100.0, round(dir_pts + iv_pts + liq_pts + runway_pts + earnings_penalty, 1)))
+
+    breakdown = {
+        "directional_foundation": dir_pts,
+        "iv_rank_efficiency": iv_pts,
+        "liquidity_quality": liq_pts,
+        "overhead_runway": runway_pts,
+        "earnings_penalty": earnings_penalty,
+        "total": total
+    }
+    if return_breakdown:
+        return total, breakdown
+    return total
+
+
 def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_type: str, reclaim_days: int, regime: str, earnings_date=None) -> dict:
     """
     Constructs an asymmetric trade setup adhering strictly to Options Alpha Radar rules:
@@ -473,6 +582,8 @@ def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_typ
         "max_hold": contract_info.get("max_hold_sessions", 8),
         "routing_guidance": contract_info.get("routing_guidance", f"LIMIT @ ${contract_info.get('est_debit', 5.0):.2f} Mid"),
         "regime": regime,
+        "market_structure": snapshot.get("market_structure", {"regime": "NEUTRAL", "badge": "⚪ NEUTRAL"}),
+        "structure_badge": snapshot.get("market_structure", {}).get("badge", "⚪ NEUTRAL"),
         "execution_state": "PENDING_EOD" if reclaim_days == 0 else "CONFIRMED",
         "execution_badge": "🟡 PENDING CLOSE (Wait EOD)" if reclaim_days == 0 else "🟢 CONFIRMED CLOSE"
     }

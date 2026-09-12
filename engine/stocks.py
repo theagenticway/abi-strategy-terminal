@@ -54,11 +54,16 @@ def compute_alpha_composite_score(
     rr_ratio=2.5,
     top_quartile_sectors=None,
     return_breakdown=False,
+    market_structure=None,
+    macro_confluence=None,
+    mom_spread=None,
     **kwargs
 ):
     """
     Computes dynamic Alpha Composite Score (0 - 100 points):
-    Alpha Composite Score = Freshness (30%) + RVOL (25%) + EMA50 Proximity (20%) + Sector RS (15%) + R:R (10%)
+    Core Model = Freshness (30%) + RVOL (25%) + EMA50 Proximity (20%) + Sector RS (15%) + R:R (10%)
+    Strengthened Model: Incorporates Dow Theory Market Structure (HH/HL confirmation vs LH/LL bear trap penalty),
+    Macro 4-Index Confluence, and Sector Momentum Acceleration.
 
     1. Freshness of Reclaim (30 pts max):
        - Day 0 (reclaimed today): 30 pts — immediate breakout velocity
@@ -88,6 +93,21 @@ def compute_alpha_composite_score(
        - R:R >= 3.0: 10 pts
        - R:R >= 2.5: 8 pts
        - R:R < 2.5: 5 pts
+
+    6. Market Structure Modifier (Optional enhancement when available):
+       - Bullish HH/HL: +10 pts
+       - Consolidation Base: +5 pts
+       - Bearish LH/LL: -15 pts (severe penalty against bear trap bounces)
+       - Confirmed Higher Low: +3 pts
+       - Break of Structure (BOS): +2 pts
+       - Tight Resistance Shelf (<2.5% runway): -5 pts
+
+    7. Macro 4-Index Confluence (Optional enhancement when available):
+       - 4/4 Confluence (SPY, QQQ, RSP, IWM all > EMA50): +5 pts
+       - <= 1/4 Confluence: -5 pts
+
+    8. Sector Acceleration (Optional enhancement when available):
+       - 5d Mom > 20d Mom (accelerating inflows): +3 pts
     """
     if isinstance(reclaim_days, dict):
         d = reclaim_days
@@ -102,6 +122,12 @@ def compute_alpha_composite_score(
             rr_val = (float(d["tp1"]) - float(d["price"])) / max(0.01, float(d["risk_per_share"]))
         else:
             rr_val = rr_ratio
+        if market_structure is None:
+            market_structure = d.get("market_structure")
+        if macro_confluence is None:
+            macro_confluence = d.get("macro_confluence")
+        if mom_spread is None:
+            mom_spread = d.get("mom_spread")
     else:
         rec_days = reclaim_days
         rvol_val = rvol
@@ -193,13 +219,73 @@ def compute_alpha_composite_score(
     else:
         rr_pts = 5.0
 
-    total = round(freshness_pts + rvol_pts + prox_pts + sector_pts + rr_pts, 1)
+    base_score = freshness_pts + rvol_pts + prox_pts + sector_pts + rr_pts
+
+    # 6. Market Structure Strengthening (HH/HL vs LH/LL)
+    struct_pts = 0.0
+    if market_structure is not None and isinstance(market_structure, dict):
+        regime = market_structure.get("regime", "NEUTRAL")
+        higher_low = market_structure.get("higher_low", False)
+        bos = market_structure.get("break_of_structure", False)
+        runway = market_structure.get("overhead_resistance_runway", 15.0)
+
+        if regime == "BULLISH_HH_HL":
+            struct_pts += 10.0
+        elif regime == "CONSOLIDATION_BASE":
+            struct_pts += 5.0
+        elif regime == "BEARISH_LH_LL":
+            struct_pts -= 15.0
+
+        if higher_low and regime != "BEARISH_LH_LL":
+            struct_pts += 3.0
+        if bos:
+            struct_pts += 2.0
+        if runway < 2.5:
+            struct_pts -= 5.0
+        elif runway >= 6.0:
+            struct_pts += 2.0
+
+    # 7. Macro 4-Index Confluence
+    macro_pts = 0.0
+    if macro_confluence is not None:
+        try:
+            c_score = int(macro_confluence.get("score", 2)) if isinstance(macro_confluence, dict) else int(macro_confluence)
+        except (ValueError, TypeError):
+            c_score = 2
+        if c_score == 4:
+            macro_pts += 5.0
+        elif c_score == 3:
+            macro_pts += 2.0
+        elif c_score <= 1:
+            macro_pts -= 5.0
+
+    # 8. Sector Acceleration
+    accel_pts = 0.0
+    if mom_spread is not None:
+        try:
+            m_val = float(mom_spread)
+            if m_val > 0:
+                accel_pts += 3.0
+            elif m_val < -2.0:
+                accel_pts -= 2.0
+        except (ValueError, TypeError):
+            pass
+
+    # When no enhanced context is provided, preserve exact 100-pt base score
+    if market_structure is None and macro_confluence is None and mom_spread is None:
+        total = round(base_score, 1)
+    else:
+        total = max(5.0, min(100.0, round(base_score + struct_pts + macro_pts + accel_pts, 1)))
+
     breakdown = {
         "freshness": freshness_pts,
         "rvol": rvol_pts,
         "proximity": prox_pts,
         "sector_rs": sector_pts,
         "rr": rr_pts,
+        "market_structure": struct_pts,
+        "macro_confluence": macro_pts,
+        "sector_accel": accel_pts,
         "total": total
     }
     if return_breakdown:
@@ -236,6 +322,7 @@ def structure_stock_trade(ticker: str, sector: str, snapshot: dict, retrace_type
     order_ticket = f"BUY {shares} SHARES @ ${price:.2f} LIMIT · STOP @ ${stop_price:.2f} · TP1: ${tp1:.2f} / TP2: ${tp2:.2f}"
     execution_guidance = "Scale 50% at TP1 (+2.5 R:R) · Move Stop to Breakeven · Trail Remainder on 50 EMA"
 
+    ms_data = snapshot.get("market_structure")
     alpha_score, alpha_breakdown = compute_alpha_composite_score(
         reclaim_days=reclaim_days,
         rvol=snapshot.get("rvol", 1.0),
@@ -243,6 +330,9 @@ def structure_stock_trade(ticker: str, sector: str, snapshot: dict, retrace_type
         ema50=ema50,
         sector=sector,
         rr_ratio=round((tp1 - price) / max(0.01, risk_per_share), 2),
+        market_structure=ms_data,
+        macro_confluence=snapshot.get("macro_confluence"),
+        mom_spread=snapshot.get("mom_spread"),
         return_breakdown=True
     )
 
@@ -271,7 +361,9 @@ def structure_stock_trade(ticker: str, sector: str, snapshot: dict, retrace_type
         "weekly_stage": snapshot.get("weekly_stage", "STAGE 2 (Advancing)"),
         "structure": "Tactical Stock Swing (Common Shares)",
         "alpha_score": alpha_score,
-        "alpha_score_breakdown": alpha_breakdown
+        "alpha_score_breakdown": alpha_breakdown,
+        "market_structure": ms_data or {"regime": "NEUTRAL", "badge": "⚪ NEUTRAL"},
+        "structure_badge": (ms_data.get("badge") if ms_data else "⚪ NEUTRAL")
     }
 
 

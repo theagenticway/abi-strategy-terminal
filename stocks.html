@@ -971,6 +971,7 @@
                     </td>
                     <td class="py-2.5 px-2.5 text-[11px] font-mono">
                         <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200 SMA)</span>
+                        ${item.structure_badge ? `<div class="mt-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${item.structure_badge.includes('HH/HL') ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40' : (item.structure_badge.includes('BASE') ? 'bg-amber-950/80 text-amber-300 border border-amber-500/40' : 'bg-slate-800 text-slate-400')}">${item.structure_badge}</span></div>` : ''}
                     </td>
                     <td class="py-2.5 px-2.5 space-y-1">
                         <div><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${rankBadge}">★ ${rankTitle}</span></div>
