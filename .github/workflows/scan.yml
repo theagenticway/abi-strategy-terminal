@@ -2,12 +2,12 @@ name: ABI Strategy Scanner & Telemetry Engine
 
 on:
   schedule:
-    # 05:42 MST (12:42 UTC) Mon-Fri: Pre-market refresh (off-peak minute)
-    - cron: '42 12 * * 1-5'
-    # Hourly during active US market trading (13:22 to 20:22 UTC Mon-Fri)
-    - cron: '22 13,14,15,16,17,18,19,20 * * 1-5'
-    # 14:05 MST / 17:05 EDT (21:05 UTC) Mon-Fri: Official Post-Market Close & Prune
-    - cron: '5 21 * * 1-5'
+    # 11:00 AM ET (15:00 UTC) Mon-Fri
+    - cron: '0 15 * * 1-5'
+    # 12:30 PM ET (16:30 UTC) Mon-Fri
+    - cron: '30 16 * * 1-5'
+    # 2:00 PM ET (18:00 UTC) Mon-Fri
+    - cron: '0 18 * * 1-5'
   workflow_dispatch:
     inputs:
       backfill_days:
