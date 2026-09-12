@@ -357,3 +357,83 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
         "raw_ema50": ema50,
         "raw_sma150": sma150
     }
+
+
+def compute_active_health_tier(
+    status: str,
+    stop_price: float,
+    entry_price: float,
+    current_alpha_score: float,
+    days_active: int,
+    strategy_prong: str = "BALANCED",
+    prev_consecutive_low: int = 0,
+    sector_weakness: bool = False
+) -> dict:
+    """
+    Continuous Position Health & Active Lifecycle Classifier.
+    Tiers:
+    - TIER_A_HOUSE_MONEY: De-risked (TP1 hit, scaled, or stop >= entry). Protected from eviction.
+    - TIER_B_ON_TRACK: Score >= 60.0, healthy momentum and structure.
+    - TIER_C_STAGNANT: Score 40.0-59.9 or approaching holding duration limit.
+    - TIER_D_EVICTION_CANDIDATE: Persistent deterioration (Score < 40.0 or sector weakness for >= 3 consecutive days, days_active >= 5).
+    """
+    is_de_risked = (status in ["TP1_HIT", "TP1_SCALED"]) or (
+        stop_price is not None and entry_price is not None and stop_price >= entry_price
+    )
+    if is_de_risked:
+        return {
+            "tier": "TIER_A_HOUSE_MONEY",
+            "badge": "🔵 TIER A (HOUSE MONEY)",
+            "consecutive_low_score_days": 0,
+            "eviction_eligible": False
+        }
+
+    score_val = float(current_alpha_score) if current_alpha_score is not None else 65.0
+    is_low = bool(score_val < 40.0 or sector_weakness)
+    consecutive_low = (int(prev_consecutive_low or 0) + 1) if is_low else 0
+    days_act = int(days_active or 1)
+
+    if consecutive_low >= 3 and days_act >= 5:
+        return {
+            "tier": "TIER_D_EVICTION_CANDIDATE",
+            "badge": "🔴 TIER D (EVICTION CANDIDATE)",
+            "consecutive_low_score_days": consecutive_low,
+            "eviction_eligible": True
+        }
+
+    prong_upper = (strategy_prong or "BALANCED").upper()
+    is_stagnant_time = (days_act >= 7 if "HIGH" in prong_upper else days_act >= 10)
+    if is_stagnant_time or score_val < 60.0:
+        return {
+            "tier": "TIER_C_STAGNANT",
+            "badge": "🟡 TIER C (STAGNANT)",
+            "consecutive_low_score_days": consecutive_low,
+            "eviction_eligible": False
+        }
+
+    return {
+        "tier": "TIER_B_ON_TRACK",
+        "badge": "🟢 TIER B (ON-TRACK)",
+        "consecutive_low_score_days": consecutive_low,
+        "eviction_eligible": False
+    }
+
+
+REGIME_TIER_CAPACITIES = {
+    4: {"HIGH_RISK": 5, "BALANCED": 5, "CORE": 5, "regime": "RISK-ON (BROAD EXPANSION)"},
+    3: {"HIGH_RISK": 3, "BALANCED": 5, "CORE": 5, "regime": "CAUTIOUS RISK-ON"},
+    2: {"HIGH_RISK": 1, "BALANCED": 3, "CORE": 4, "regime": "MIXED / SECTOR ROTATION"},
+    1: {"HIGH_RISK": 0, "BALANCED": 1, "CORE": 2, "regime": "DEFENSIVE / CHOP"},
+    0: {"HIGH_RISK": 0, "BALANCED": 0, "CORE": 0, "regime": "SYSTEMIC LIQUIDATION"}
+}
+
+def get_regime_tier_capacities(confluence_score: int = 4) -> dict:
+    """
+    Computes dynamic risk-tier capacity caps (0 to 5 per tier)
+    governed by the 4-Index Benchmark Confluence Score (0 to 4 above 50 EMA).
+    """
+    try:
+        score = max(0, min(4, int(confluence_score if confluence_score is not None else 4)))
+    except (ValueError, TypeError):
+        score = 4
+    return REGIME_TIER_CAPACITIES.get(score, REGIME_TIER_CAPACITIES[4])

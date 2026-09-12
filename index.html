@@ -1153,9 +1153,9 @@
                 <div class="text-[11px] text-slate-500">recommendations</div>
             </div>
             <div class="terminal-panel p-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">ACTIVE OPEN</div>
-                <div class="text-2xl font-black text-amber-400 mt-0.5"><span id="perf-open">5</span></div>
-                <div class="text-[11px] text-slate-500">live positions</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase">ACTIVE / DECOUPLED</div>
+                <div class="text-2xl font-black text-amber-400 mt-0.5"><span id="perf-open">5</span> <span class="text-xs font-normal text-slate-400 font-mono">/ 18 max</span></div>
+                <div class="text-[10px] text-slate-400 font-mono" id="perf-decoupled-books">Sprint: --/12 · Anchor: --/6</div>
             </div>
             <div class="terminal-panel p-3">
                 <div class="text-[10px] font-bold text-slate-400 uppercase">AVG WINNER / LOSER</div>
@@ -1607,6 +1607,12 @@
             document.getElementById('perf-profitfactor').textContent = (sum.profit_factor !== undefined ? sum.profit_factor : 0.0) + 'x';
             document.getElementById('perf-total').textContent = (sum.total_recommendations !== undefined ? sum.total_recommendations : allTradesLog.length);
             document.getElementById('perf-open').textContent = (sum.active_open !== undefined ? sum.active_open : 0);
+            const sprintCount = sum.sprint_open !== undefined ? sum.sprint_open : (allTradesLog.filter(t => (t.status === 'OPEN' || t.status === 'TP1_HIT') && !t.structure?.includes('LEAPS')).length);
+            const anchorCount = sum.anchor_open !== undefined ? sum.anchor_open : (allTradesLog.filter(t => (t.status === 'OPEN' || t.status === 'TP1_HIT') && t.structure?.includes('LEAPS')).length);
+            const decoupledEl = document.getElementById('perf-decoupled-books');
+            if (decoupledEl) {
+                decoupledEl.textContent = `Sprint: ${sprintCount}/12 · Anchor: ${anchorCount}/6`;
+            }
             document.getElementById('perf-avgwin').textContent = (sum.avg_winner_pct > 0 ? '+' : '') + (sum.avg_winner_pct !== undefined ? sum.avg_winner_pct : 0.0) + '%';
             document.getElementById('perf-avgloss').textContent = (sum.avg_loser_pct !== undefined ? sum.avg_loser_pct : 0.0) + '%';
             document.getElementById('perf-holding').textContent = (sum.avg_holding_days !== undefined ? sum.avg_holding_days : 0.0) + 'd';
@@ -1695,6 +1701,10 @@
                     statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">★ TP2 HIT</span>';
                 } else if (t.status === 'STOPPED_OUT') {
                     statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30">✕ STOPPED</span>';
+                } else if (t.status === 'CLOSED_EVICTED') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950/60 text-purple-400 border border-purple-500/40">● EVICTED</span>';
+                } else if (t.status === 'CLOSED_BREAKEVEN') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950/60 text-blue-400 border border-blue-500/40">● BREAKEVEN</span>';
                 }
 
                 let driverBadge = '';
@@ -1709,8 +1719,22 @@
                     driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/70 text-rose-400 border border-rose-500/40">⚡ EARNINGS GAP</span>';
                 } else if (driver === 'STAGNATION EXIT') {
                     driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">● STAGNATION</span>';
-                } else if (t.status === 'OPEN') {
-                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-950/70 text-sky-400 border border-sky-500/30">● ACTIVE POSITION</span>';
+                } else if (driver === 'RELATIVE_STRENGTH_EVICTION') {
+                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950/70 text-purple-400 border border-purple-500/40">⚡ RS EVICTION</span>';
+                } else if (driver === 'BREAKEVEN EXIT') {
+                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950/70 text-blue-400 border border-blue-500/40">● BREAKEVEN</span>';
+                } else if (t.status === 'OPEN' || t.status === 'TP1_HIT') {
+                    if (t.active_health_tier === 'TIER_A_HOUSE_MONEY') {
+                        driverBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950/80 text-blue-300 border border-blue-500/40">🔵 HOUSE MONEY${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span>`;
+                    } else if (t.active_health_tier === 'TIER_D_EVICTION_CANDIDATE') {
+                        driverBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/80 text-rose-300 border border-rose-500/40 animate-pulse">🔴 EVICTION CANDIDATE${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span>`;
+                    } else if (t.active_health_tier === 'TIER_C_STAGNANT') {
+                        driverBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-500/40">🟡 STAGNANT${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span>`;
+                    } else if (t.active_health_tier === 'TIER_B_ON_TRACK' || t.current_alpha_score) {
+                        driverBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">🟢 ON-TRACK${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span>`;
+                    } else {
+                        driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-950/70 text-sky-400 border border-sky-500/30">● ACTIVE POSITION</span>';
+                    }
                 } else {
                     driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">★ TARGET HIT</span>';
                 }

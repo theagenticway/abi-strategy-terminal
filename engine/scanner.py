@@ -1,4 +1,17 @@
 import patterns
+MAX_OPTIONS_SLOTS = 18
+MAX_OPTIONS_SPRINT_SLOTS = 12   # Tactical Spreads (45-60 DTE)
+MAX_OPTIONS_ANCHOR_SLOTS = 6    # Strategic LEAPS (Jan 2028)
+REPLACEMENT_HURDLE_DELTA = 25.0 # Alpha score advantage required to trigger eviction
+MIN_EVICTION_AGING_DAYS = 5     # Minimum sessions held before eviction eligibility
+try:
+    from engine.indicators import compute_active_health_tier, compute_technical_snapshot, get_regime_tier_capacities
+    from engine.stocks import compute_alpha_composite_score
+    from engine.patterns import compute_options_alpha_score
+except ImportError:
+    from indicators import compute_active_health_tier, compute_technical_snapshot, get_regime_tier_capacities
+    from stocks import compute_alpha_composite_score
+    from patterns import compute_options_alpha_score
 
 def calculate_benchmark_matrix(raw_data, sample_date_str=None):
     """
@@ -1353,7 +1366,7 @@ def determine_invalidation_driver(ticker: str, sector: str, days_active: int, sp
         "note": f"Company-specific breakdown; failed EMA50 retest {sec_str}"
     }
 
-def audit_and_update_trades(raw_data, qualified_candidates, today_str):
+def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_options_slots=None, max_sprint_slots=None, max_anchor_slots=None, confluence_score=None):
     """
     Automated Trade Lifecycle, Performance Auditor & Post-Mortem Loss Attribution Engine.
     Tracks all historical recommendations, audits active open positions against live market bars,
@@ -1481,6 +1494,65 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
                     t["invalidation_driver"] = "ACTIVE" if t["status"] == "OPEN" else "TP1 REACHED"
                     t["driver_badge"] = "amber" if t["status"] == "OPEN" else "emerald"
 
+                # Continuous Daily Re-Scoring & Active Health Tier Telemetry for open/trailing trades
+                if t["status"] in ["OPEN", "TP1_HIT"]:
+                    opt_score = float(t.get("current_alpha_score", t.get("options_alpha_score", t.get("alpha_score", 70.0))))
+                    opt_breakdown = t.get("score_breakdown", {})
+                    try:
+                        spy_returns = spy_df["Close"].pct_change().dropna() if (spy_df is not None and len(spy_df) >= 2 and "Close" in spy_df.columns) else None
+                        snapshot = compute_technical_snapshot(valid_df, spy_returns=spy_returns)
+                        if snapshot is not None:
+                            dir_alpha, dir_breakdown = compute_alpha_composite_score(
+                                reclaim_days=snapshot.get("reclaim_days", 1),
+                                rvol=snapshot.get("rvol", 1.0),
+                                price=close_p,
+                                ema50=snapshot.get("ema50", close_p),
+                                sector=t.get("sector"),
+                                market_structure=snapshot.get("market_structure", "BULLISH_HH_HL"),
+                                beta=snapshot.get("beta", 1.0),
+                                adr_pct=snapshot.get("adr_pct", 2.0),
+                                rsi=snapshot.get("rsi", 50.0),
+                                macd_hist=snapshot.get("macd_hist", 0.0),
+                                macd_hook_ok=snapshot.get("macd_hook_ok", True),
+                                strategy_prong=t.get("strategy_prong", "BALANCED"),
+                                return_breakdown=True
+                            )
+                            opt_score, opt_breakdown = compute_options_alpha_score(
+                                directional_alpha=dir_alpha,
+                                iv_rank=snapshot.get("iv_rank", 50.0),
+                                long_oi=t.get("long_oi", 1000),
+                                short_oi=t.get("short_oi", 800),
+                                bid_ask_spread_pct=t.get("bid_ask_spread_pct", 0.04),
+                                overhead_runway_pct=snapshot.get("overhead_runway_pct", 999.0),
+                                days_to_earnings=t.get("days_to_earnings", 90),
+                                is_leaps=("LEAPS" in t.get("structure", "")),
+                                strategy_prong=t.get("strategy_prong", "BALANCED"),
+                                rsi=snapshot.get("rsi", 50.0),
+                                macd_hook_ok=snapshot.get("macd_hook_ok", True),
+                                return_breakdown=True
+                            )
+                    except Exception:
+                        pass
+
+                    t["current_alpha_score"] = round(float(opt_score), 1)
+                    t["score_breakdown"] = opt_breakdown
+
+                    prev_consec = t.get("consecutive_low_score_days", 0)
+                    health = compute_active_health_tier(
+                        status=t["status"],
+                        stop_price=t.get("stop_price"),
+                        entry_price=t.get("entry_price"),
+                        current_alpha_score=opt_score,
+                        days_active=days_act,
+                        strategy_prong=t.get("strategy_prong", "BALANCED"),
+                        prev_consecutive_low=prev_consec,
+                        sector_weakness=False
+                    )
+                    t["active_health_tier"] = health["tier"]
+                    t["health_badge"] = health["badge"]
+                    t["consecutive_low_score_days"] = health["consecutive_low_score_days"]
+                    t["eviction_eligible"] = health["eviction_eligible"]
+
     # 2. Append Newly Qualified Recommendations (Spreads + LEAPS)
     # Enforces Module 1: Max 3 per Sub-Industry, Max 3 per Sector, Max 7 Portfolio Heat Cap
     open_trades = [t for t in trades if t.get("status") in ["OPEN", "TP1_HIT"]]
@@ -1492,10 +1564,12 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
             cand_sec = c.get("sector", "General")
             cand_sub = c.get("subsector", "General")
             
-            # Dynamic Sector Cap (30%-35% = max 6 per sector in 18-slot portfolio)
-            MAX_OPTIONS_SLOTS = 18
-            max_sec = max(3, int(MAX_OPTIONS_SLOTS * 0.35))
-            max_sub = max(2, int(MAX_OPTIONS_SLOTS * 0.20))
+            # Dynamic Sector & Book Caps
+            max_slots = max_options_slots or MAX_OPTIONS_SLOTS
+            max_sprint = max_sprint_slots or MAX_OPTIONS_SPRINT_SLOTS
+            max_anchor = max_anchor_slots or MAX_OPTIONS_ANCHOR_SLOTS
+            max_sec = max(3, int(max_slots * 0.35))
+            max_sub = max(2, int(max_slots * 0.20))
 
             sub_count = len([t for t in open_trades if t.get("subsector") == cand_sub])
             sec_count = len([t for t in open_trades if t.get("sector") == cand_sec])
@@ -1523,9 +1597,73 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
             if sec_count >= max_sec:
                 c["correlation_status"] = f"THROTTLED: Sector Max {max_sec} ({cand_sec})"
                 continue
-            if total_open >= MAX_OPTIONS_SLOTS:
-                c["correlation_status"] = f"THROTTLED: Portfolio Heat Max {MAX_OPTIONS_SLOTS}"
+
+            # Regime-Gated Tier Capacity Enforcement
+            macro_conf = confluence_score
+            if macro_conf is None:
+                try:
+                    bm = calculate_benchmark_matrix(raw_data)
+                    macro_conf = bm.get("composite_score", 4)
+                except Exception:
+                    macro_conf = 4
+            tier_caps = get_regime_tier_capacities(macro_conf)
+            cand_prong = c.get("strategy_prong", "BALANCED")
+            prong_open_count = len([t for t in open_trades if t.get("strategy_prong") == cand_prong])
+            tier_max = tier_caps.get(cand_prong, 5)
+            if prong_open_count >= tier_max:
+                c["correlation_status"] = f"THROTTLED: Regime-Gated Tier Cap {tier_max} ({cand_prong} under {tier_caps['regime']})"
                 continue
+            # Decoupled Book Management & Relative-Strength Eviction
+            is_leaps = ("LEAPS" in c.get("structure", ""))
+            cand_book = "ANCHOR" if is_leaps else "SPRINT"
+            sprint_open = [t for t in open_trades if "LEAPS" not in t.get("structure", "")]
+            anchor_open = [t for t in open_trades if "LEAPS" in t.get("structure", "")]
+            
+            book_full = (len(sprint_open) >= max_sprint if cand_book == "SPRINT" else len(anchor_open) >= max_anchor)
+            portfolio_full = (total_open >= max_slots)
+
+            if book_full or portfolio_full:
+                target_book_trades = sprint_open if cand_book == "SPRINT" else anchor_open
+                eviction_pool = [
+                    t for t in target_book_trades 
+                    if t.get("eviction_eligible") is True and t.get("days_active", 0) >= MIN_EVICTION_AGING_DAYS
+                ]
+                if eviction_pool:
+                    lowest_incumbent = min(
+                        eviction_pool, 
+                        key=lambda x: float(x.get("current_alpha_score", x.get("options_alpha_score", x.get("alpha_score", 50.0))))
+                    )
+                    incumbent_score = float(lowest_incumbent.get("current_alpha_score", lowest_incumbent.get("options_alpha_score", lowest_incumbent.get("alpha_score", 50.0))))
+                    cand_score = float(c.get("options_alpha_score", c.get("alpha_score", 75.0)))
+                    score_delta = round(cand_score - incumbent_score, 1)
+
+                    if score_delta >= REPLACEMENT_HURDLE_DELTA:
+                        lowest_incumbent["status"] = "CLOSED_EVICTED"
+                        lowest_incumbent["exit_date"] = today_str
+                        curr_p = float(lowest_incumbent.get("current_price", lowest_incumbent["entry_price"]))
+                        lowest_incumbent["exit_price"] = curr_p
+                        ent_p = float(lowest_incumbent["entry_price"])
+                        realized_pnl = round(((curr_p - ent_p) / ent_p) * 100, 2)
+                        lowest_incumbent["pnl_pct"] = realized_pnl
+                        lowest_incumbent["invalidation_driver"] = "RELATIVE_STRENGTH_EVICTION"
+                        lowest_incumbent["driver_badge"] = "purple"
+                        lowest_incumbent["exit_reason"] = f"Relative Strength Eviction (Score: {incumbent_score:.1f} vs Incoming {c['ticker']}: {cand_score:.1f}, Δ: +{score_delta:+.1f} pts)"
+                        
+                        open_trades.remove(lowest_incumbent)
+                        if lowest_incumbent["ticker"] in active_open_tickers:
+                            active_open_tickers.remove(lowest_incumbent["ticker"])
+                        if cand_book == "SPRINT":
+                            sprint_open.remove(lowest_incumbent)
+                        else:
+                            anchor_open.remove(lowest_incumbent)
+                        total_open = len(open_trades)
+                        print(f"[!] Relative Strength Eviction: Replaced {lowest_incumbent['ticker']} (Score {incumbent_score:.1f}) with {c['ticker']} (Score {cand_score:.1f}, Δ+{score_delta:.1f} pts)")
+                    else:
+                        c["correlation_status"] = f"THROTTLED: Book Full ({cand_book}) - Replacement Hurdle Not Met (Δ+{score_delta:.1f} < 25.0 pts)"
+                        continue
+                else:
+                    c["correlation_status"] = f"THROTTLED: Book Full ({cand_book}) - No Eviction Candidates Available"
+                    continue
                 
             c["correlation_status"] = "APPROVED (Within Risk Limits)"
             entry_p = c["price"]
@@ -1548,6 +1686,12 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
                 "target_allocation": c.get("target_allocation", 1000.0),
                 "allocation_desc": c.get("allocation_desc", "$1,000 (Full 100%)"),
                 "macro_throttled": c.get("macro_throttled", False),
+                "current_alpha_score": round(float(c.get("options_alpha_score", c.get("alpha_score", 75.0))), 1),
+                "score_breakdown": c.get("score_breakdown", {}),
+                "active_health_tier": "TIER_B_ON_TRACK",
+                "health_badge": "🟢 TIER B (ON-TRACK)",
+                "consecutive_low_score_days": 0,
+                "eviction_eligible": False,
                 "status": "OPEN",
                 "current_price": entry_p,
                 "max_price": entry_p,
@@ -1567,8 +1711,14 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
 
     # 3. Compute Cumulative Strategy Performance
     closed = [t for t in trades if t["status"] not in ["OPEN", "TP1_HIT"]]
-    winners = [t for t in closed if t["status"] in ["TP1_EXPIRED_WIN", "TP2_HIT", "CLOSED_BREAKEVEN"] or t["pnl_pct"] > 0]
-    losers = [t for t in closed if t["status"] == "STOPPED_OUT" or t["pnl_pct"] < 0]
+
+    # Strict Breakeven Accounting: Isolate 0.00% breakevens from true winners
+    breakevens = [t for t in closed if t.get("status") == "CLOSED_BREAKEVEN" or abs(float(t.get("pnl_pct", 0.0) or 0.0)) <= 0.10]
+    winners = [t for t in closed if t not in breakevens and (t.get("status") in ["TP1_EXPIRED_WIN", "TP2_HIT"] or float(t.get("pnl_pct", 0.0) or 0.0) > 0.10)]
+    losers = [t for t in closed if t not in breakevens and (t.get("status") == "STOPPED_OUT" or float(t.get("pnl_pct", 0.0) or 0.0) < -0.10)]
+
+    decisive_trades = len(winners) + len(losers)
+    decisive_win_rate = round((len(winners) / max(1, decisive_trades)) * 100, 1) if decisive_trades > 0 else 0.0
 
     win_rate = round((len(winners) / max(1, len(closed))) * 100, 1)
     avg_winner = round(sum(t["pnl_pct"] for t in winners) / max(1, len(winners)), 2) if winners else 0.0
@@ -1581,8 +1731,13 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
     summary = {
         "total_recommendations": len(trades),
         "active_open": len([t for t in trades if t["status"] in ["OPEN", "TP1_HIT"]]),
+        "sprint_open": len([t for t in trades if t["status"] in ["OPEN", "TP1_HIT"] and "LEAPS" not in t.get("structure", "")]),
+        "anchor_open": len([t for t in trades if t["status"] in ["OPEN", "TP1_HIT"] and "LEAPS" in t.get("structure", "")]),
         "closed_trades": len(closed),
+        "breakeven_trades": len(breakevens),
+        "evicted_trades": len([t for t in closed if t.get("status") == "CLOSED_EVICTED"]),
         "win_rate_pct": win_rate,
+        "decisive_win_rate_pct": decisive_win_rate,
         "profit_factor": profit_factor,
         "avg_winner_pct": avg_winner,
         "avg_loser_pct": avg_loser,
@@ -1647,14 +1802,23 @@ def save_payloads(payload: dict, raw_data=None):
     try:
         current_bars = {}
         for t_rec in payload.get("tickers", []):
+            tick = t_rec.get("ticker")
             p = t_rec.get("price")
-            if p is not None and not np.isnan(p) and p > 0:
-                current_bars[t_rec["ticker"]] = {
-                    "High": p * 1.01,
-                    "Low": p * 0.99,
-                    "Open": p,
+            if tick and p is not None and not np.isnan(p) and p > 0:
+                current_bars[tick] = {
+                    "High": t_rec.get("High", p * 1.01),
+                    "Low": t_rec.get("Low", p * 0.99),
+                    "Open": t_rec.get("Open", p),
                     "Close": p,
-                    "EMA50": t_rec.get("ema50", p)
+                    "EMA50": t_rec.get("ema50", p),
+                    "rsi": t_rec.get("rsi", 50.0),
+                    "macd_hist": t_rec.get("macd_hist", 0.0),
+                    "macd_crawling_up": t_rec.get("macd_crawling_up", True),
+                    "rvol": t_rec.get("rvol", 1.0),
+                    "beta": t_rec.get("beta", 1.0),
+                    "adr_pct": t_rec.get("adr_pct", 2.0),
+                    "market_structure": t_rec.get("market_structure", "BULLISH_HH_HL"),
+                    "reclaim_days": t_rec.get("reclaim_days", 1)
                 }
         spy_df = extract_ticker_df(raw_data, "SPY")
         spy_ret = float(spy_df["Close"].pct_change().iloc[-1]) if (spy_df is not None and len(spy_df) >= 2) else 0.0

@@ -9,6 +9,10 @@ and persistent stock audit ledger tracking.
 import os
 import json
 import numpy as np
+try:
+    from engine.indicators import compute_active_health_tier, get_regime_tier_capacities
+except ImportError:
+    from indicators import compute_active_health_tier, get_regime_tier_capacities
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 STOCK_LOG_PATH = os.path.join(DATA_DIR, "stock_trades_log.json")
@@ -18,6 +22,10 @@ DEFAULT_PORTFOLIO_CAPITAL = 100000.0
 DEFAULT_RISK_PCT = 0.0045      # 0.45% = $450 on $100K (risks $350-$500 per idea)
 DEFAULT_MAX_ALLOC_PCT = 0.06   # 6.0% max capital ceiling per position ($6,000 on $100K, $30K on $500K)
 MAX_STOCK_PORTFOLIO_SLOTS = 18 # 16 to 21 active positions capacity
+MAX_STOCK_SPRINT_SLOTS = 12    # Tactical Swings (High-Risk & Balanced)
+MAX_STOCK_ANCHOR_SLOTS = 6     # Core Secular Compounders
+REPLACEMENT_HURDLE_DELTA = 25.0 # Required alpha score advantage to trigger eviction
+MIN_EVICTION_AGING_DAYS = 5     # Minimum sessions held before eviction eligibility
 
 
 def calculate_stock_position_size(
@@ -259,6 +267,15 @@ def compute_alpha_composite_score(
     except (ValueError, TypeError):
         rec_days_int = 0
 
+    # If price is below EMA50 floor, the reclaim structure is invalid/broken
+    try:
+        p_num = float(price_val) if price_val is not None else 100.0
+        e_num = float(ema50_val) if ema50_val is not None else 100.0
+        if p_num < e_num:
+            rec_days_int = 999
+    except Exception:
+        pass
+
     if strategy_prong == "HIGH_RISK":
         if rec_days_int <= 1: reclaim_pts = 20.0
         elif rec_days_int == 2: reclaim_pts = 12.0
@@ -343,9 +360,13 @@ def compute_alpha_composite_score(
 
     # 6. Dow Theory Market Structure (15 pts max)
     struct_pts = 10.0
-    if market_structure is not None and isinstance(market_structure, dict):
-        regime = market_structure.get("regime", "NEUTRAL")
-        runway = market_structure.get("overhead_resistance_runway", 15.0)
+    if market_structure is not None:
+        if isinstance(market_structure, dict):
+            regime = market_structure.get("regime", "NEUTRAL")
+            runway = market_structure.get("overhead_resistance_runway", 15.0)
+        else:
+            regime = str(market_structure).strip().upper()
+            runway = 15.0
         if regime == "BULLISH_HH_HL":
             struct_pts = 15.0 if runway >= 5.0 else 12.0
         elif regime == "CONSOLIDATION_BASE":
@@ -791,6 +812,58 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
                 else:
                     t["pnl_pct"] = round(((close_p - entry_p) / entry_p) * 100, 2)
 
+            # Continuous Daily Re-Scoring & Active Health Tier Telemetry
+            if t["status"] in ["OPEN", "TP1_SCALED"]:
+                reclaim_d = bar.get("reclaim_days", 1)
+                rvol_v = float(bar.get("rvol", 1.0))
+                ema50_v = float(bar.get("EMA50", close_p))
+                m_struct = bar.get("market_structure", "BULLISH_HH_HL")
+                beta_v = float(bar.get("beta", 1.0))
+                adr_v = float(bar.get("adr_pct", 2.0))
+                rsi_v = float(bar.get("rsi", 50.0))
+                macd_h = float(bar.get("macd_hist", 0.0))
+                macd_hk = bool(bar.get("macd_crawling_up", bar.get("macd_hook_ok", True)))
+                sec_weak = bool(bar.get("sector_weakness", False))
+
+                try:
+                    cur_score, breakdown = compute_alpha_composite_score(
+                        reclaim_days=reclaim_d,
+                        rvol=rvol_v,
+                        price=close_p,
+                        ema50=ema50_v,
+                        sector=t.get("sector"),
+                        market_structure=m_struct,
+                        beta=beta_v,
+                        adr_pct=adr_v,
+                        rsi=rsi_v,
+                        macd_hist=macd_h,
+                        macd_hook_ok=macd_hk,
+                        strategy_prong=prong,
+                        return_breakdown=True
+                    )
+                except Exception:
+                    cur_score = float(t.get("current_alpha_score", t.get("alpha_score", 65.0)))
+                    breakdown = t.get("score_breakdown", {})
+
+                t["current_alpha_score"] = round(float(cur_score), 1)
+                t["score_breakdown"] = breakdown
+
+                prev_consec = t.get("consecutive_low_score_days", 0)
+                health = compute_active_health_tier(
+                    status=t["status"],
+                    stop_price=t.get("stop_price"),
+                    entry_price=t.get("entry_price"),
+                    current_alpha_score=cur_score,
+                    days_active=t.get("days_active", 1),
+                    strategy_prong=prong,
+                    prev_consecutive_low=prev_consec,
+                    sector_weakness=sec_weak
+                )
+                t["active_health_tier"] = health["tier"]
+                t["health_badge"] = health["badge"]
+                t["consecutive_low_score_days"] = health["consecutive_low_score_days"]
+                t["eviction_eligible"] = health["eviction_eligible"]
+
     return stock_trades
 
 
@@ -800,7 +873,8 @@ def update_stock_trades_log(
     today_str: str,
     spy_ret: float = None,
     log_path: str = None,
-    max_active_positions: int = MAX_STOCK_PORTFOLIO_SLOTS
+    max_active_positions: int = MAX_STOCK_PORTFOLIO_SLOTS,
+    confluence_score: int = 4
 ) -> dict:
     """
     Maintains persistent state in data/stock_trades_log.json:
@@ -823,14 +897,73 @@ def update_stock_trades_log(
     open_tickers = set(t["ticker"] for t in trades if t["status"] in ["OPEN", "TP1_SCALED"])
 
     trades = audit_stock_positions(trades, current_market_bars, today_str, spy_ret)
-    active_open_count = len([t for t in trades if t["status"] in ["OPEN", "TP1_SCALED"]])
+    open_trades = [t for t in trades if t["status"] in ["OPEN", "TP1_SCALED"]]
+    active_open_count = len(open_trades)
 
     for s_rec in new_recommendations:
         ticker = s_rec["ticker"]
         trade_id = f"STOCK_{today_str}_{ticker}"
         if trade_id not in existing_ids and ticker not in open_tickers:
-            if active_open_count >= max_active_positions:
-                break
+            is_core = (s_rec.get("strategy_prong") == "CORE" or "CORE" in s_rec.get("prong_badge", ""))
+            cand_book = "ANCHOR" if is_core else "SPRINT"
+            sprint_open = [t for t in open_trades if t.get("strategy_prong") != "CORE"]
+            anchor_open = [t for t in open_trades if t.get("strategy_prong") == "CORE"]
+            total_open = len(open_trades)
+
+            # Regime-Gated Tier Capacity Enforcement
+            tier_caps = get_regime_tier_capacities(confluence_score)
+            cand_prong = s_rec.get("strategy_prong", "BALANCED")
+            prong_open = [t for t in open_trades if t.get("strategy_prong") == cand_prong]
+            tier_max = tier_caps.get(cand_prong, 5)
+            if len(prong_open) >= tier_max:
+                continue
+
+            max_sprint = kwargs.get("max_sprint_slots", MAX_STOCK_SPRINT_SLOTS) if "kwargs" in locals() else MAX_STOCK_SPRINT_SLOTS
+            max_anchor = kwargs.get("max_anchor_slots", MAX_STOCK_ANCHOR_SLOTS) if "kwargs" in locals() else MAX_STOCK_ANCHOR_SLOTS
+            book_full = (len(sprint_open) >= max_sprint if cand_book == "SPRINT" else len(anchor_open) >= max_anchor)
+            portfolio_full = (total_open >= max_active_positions)
+
+            if book_full or portfolio_full:
+                target_book_trades = sprint_open if cand_book == "SPRINT" else anchor_open
+                eviction_pool = [
+                    t for t in target_book_trades 
+                    if t.get("eviction_eligible") is True and t.get("days_active", 0) >= MIN_EVICTION_AGING_DAYS
+                ]
+                if eviction_pool:
+                    lowest_incumbent = min(
+                        eviction_pool, 
+                        key=lambda x: float(x.get("current_alpha_score", x.get("alpha_score", 50.0)))
+                    )
+                    incumbent_score = float(lowest_incumbent.get("current_alpha_score", lowest_incumbent.get("alpha_score", 50.0)))
+                    cand_score = float(s_rec.get("alpha_score", 75.0))
+                    score_delta = round(cand_score - incumbent_score, 1)
+
+                    if score_delta >= REPLACEMENT_HURDLE_DELTA:
+                        lowest_incumbent["status"] = "CLOSED_EVICTED"
+                        lowest_incumbent["exit_date"] = today_str
+                        curr_p = float(lowest_incumbent.get("current_price", lowest_incumbent["entry_price"]))
+                        lowest_incumbent["exit_price"] = curr_p
+                        ent_p = float(lowest_incumbent["entry_price"])
+                        realized_pnl = round(((curr_p - ent_p) / ent_p) * 100, 2)
+                        lowest_incumbent["pnl_pct"] = realized_pnl
+                        lowest_incumbent["invalidation_driver"] = "RELATIVE_STRENGTH_EVICTION"
+                        lowest_incumbent["driver_badge"] = "purple"
+                        lowest_incumbent["exit_reason"] = f"Relative Strength Eviction (Score: {incumbent_score:.1f} vs Incoming {s_rec['ticker']}: {cand_score:.1f}, Δ: +{score_delta:+.1f} pts)"
+                        
+                        open_trades.remove(lowest_incumbent)
+                        if lowest_incumbent["ticker"] in open_tickers:
+                            open_tickers.remove(lowest_incumbent["ticker"])
+                        if cand_book == "SPRINT":
+                            sprint_open.remove(lowest_incumbent)
+                        else:
+                            anchor_open.remove(lowest_incumbent)
+                        total_open = len(open_trades)
+                        active_open_count = total_open
+                        print(f"[!] Relative Strength Eviction: Replaced {lowest_incumbent['ticker']} (Score {incumbent_score:.1f}) with {s_rec['ticker']} (Score {cand_score:.1f}, Δ+{score_delta:.1f} pts)")
+                    else:
+                        continue
+                else:
+                    continue
             new_trade_entry = {
                 "id": trade_id,
                 "asset_class": s_rec.get("asset_class", "EQUITY"),
@@ -848,6 +981,12 @@ def update_stock_trades_log(
                 "shares": s_rec.get("shares", 50),
                 "capital_deployed": s_rec.get("capital_deployed", 4500.0),
                 "actual_risk_dollars": s_rec.get("actual_risk_dollars", 450.0),
+                "current_alpha_score": round(float(s_rec.get("alpha_score", 75.0)), 1),
+                "score_breakdown": s_rec.get("score_breakdown", {}),
+                "active_health_tier": "TIER_B_ON_TRACK",
+                "health_badge": "🟢 TIER B (ON-TRACK)",
+                "consecutive_low_score_days": 0,
+                "eviction_eligible": False,
                 "status": "OPEN",
                 "current_price": s_rec["price"],
                 "max_price": s_rec["price"],
@@ -867,9 +1006,12 @@ def update_stock_trades_log(
             open_tickers.add(ticker)
             active_open_count += 1
 
-    closed_trades = [t for t in trades if t["status"] in ["STOPPED_OUT", "TP2_HIT", "CLOSED_TRAILING_PROFIT", "CLOSED_BREAKEVEN", "STAGNATION_EXIT"]]
-    winners = [t for t in closed_trades if (t.get("pnl_pct") or 0) > 0]
-    losers = [t for t in closed_trades if (t.get("pnl_pct") or 0) <= 0]
+    closed_trades = [t for t in trades if t["status"] in ["STOPPED_OUT", "TP2_HIT", "CLOSED_TRAILING_PROFIT", "CLOSED_BREAKEVEN", "STAGNATION_EXIT", "CLOSED_EVICTED"]]
+    
+    # Strict Breakeven Accounting
+    breakevens = [t for t in closed_trades if t.get("status") == "CLOSED_BREAKEVEN" or abs(float(t.get("pnl_pct", 0.0) or 0.0)) <= 0.10]
+    winners = [t for t in closed_trades if t not in breakevens and float(t.get("pnl_pct", 0.0) or 0.0) > 0.10]
+    losers = [t for t in closed_trades if t not in breakevens and float(t.get("pnl_pct", 0.0) or 0.0) < -0.10]
 
     gross_gains = sum([(t.get("capital_deployed", 1000) * ((t.get("pnl_pct") or 0) / 100)) for t in winners])
     gross_losses = abs(sum([(t.get("capital_deployed", 1000) * ((t.get("pnl_pct") or 0) / 100)) for t in losers]))
@@ -883,8 +1025,13 @@ def update_stock_trades_log(
     summary = {
         "total_recommendations": len(trades),
         "active_open": len([t for t in trades if t["status"] in ["OPEN", "TP1_SCALED"]]),
+        "sprint_open": len([t for t in trades if t["status"] in ["OPEN", "TP1_SCALED"] and t.get("strategy_prong") != "CORE"]),
+        "anchor_open": len([t for t in trades if t["status"] in ["OPEN", "TP1_SCALED"] and t.get("strategy_prong") == "CORE"]),
         "closed_trades": len(closed_trades),
+        "breakeven_trades": len(breakevens),
+        "evicted_trades": len([t for t in closed_trades if t.get("status") == "CLOSED_EVICTED"]),
         "win_rate_pct": win_rate,
+        "decisive_win_rate_pct": round((len(winners) / max(1, len(winners) + len(losers))) * 100, 1) if (len(winners) + len(losers)) > 0 else 0.0,
         "profit_factor": profit_factor,
         "gross_realized_gain": round(gross_gains - gross_losses, 2),
         "avg_winner_pct": avg_win,

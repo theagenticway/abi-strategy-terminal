@@ -417,9 +417,9 @@
                 <div class="text-[9px] text-slate-500">All Equity Alerts</div>
             </div>
             <div class="terminal-panel p-3 text-center">
-                <div class="text-[10px] text-slate-400 font-bold uppercase">Active Open</div>
-                <div class="text-lg font-black text-sky-400 font-mono mt-0.5" id="eq-perf-open">5</div>
-                <div class="text-[9px] text-slate-500">Holding Floor</div>
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Active / Decoupled</div>
+                <div class="text-lg font-black text-sky-400 font-mono mt-0.5"><span id="eq-perf-open">5</span> <span class="text-xs font-normal text-slate-400">/ 18</span></div>
+                <div class="text-[9px] text-slate-400 font-mono" id="eq-decoupled-books">Sprint: --/12 · Anchor: --/6</div>
             </div>
             <div class="terminal-panel p-3 text-center">
                 <div class="text-[10px] text-slate-400 font-bold uppercase">Closed Trades</div>
@@ -1105,6 +1105,12 @@
             // Metrics KPI Ribbon
             document.getElementById('eq-perf-total').textContent = summary.total_recommendations || trades.length || 0;
             document.getElementById('eq-perf-open').textContent = summary.active_open !== undefined ? summary.active_open : trades.filter(t => t.status === 'OPEN').length;
+            const sprintCount = summary.sprint_open !== undefined ? summary.sprint_open : (trades.filter(t => (t.status === 'OPEN' || t.status === 'TP1_SCALED') && t.strategy_prong !== 'CORE').length);
+            const anchorCount = summary.anchor_open !== undefined ? summary.anchor_open : (trades.filter(t => (t.status === 'OPEN' || t.status === 'TP1_SCALED') && t.strategy_prong === 'CORE').length);
+            const eqDecoupledEl = document.getElementById('eq-decoupled-books');
+            if (eqDecoupledEl) {
+                eqDecoupledEl.textContent = `Sprint: ${sprintCount}/12 · Anchor: ${anchorCount}/6`;
+            }
             document.getElementById('eq-perf-closed').textContent = summary.closed_trades !== undefined ? summary.closed_trades : trades.filter(t => t.status !== 'OPEN').length;
             document.getElementById('eq-perf-winrate').textContent = `${parseFloat(summary.win_rate_pct || 0).toFixed(1)}%`;
             document.getElementById('eq-perf-pf').textContent = parseFloat(summary.profit_factor || 0) > 0 ? `${parseFloat(summary.profit_factor).toFixed(2)}x` : '--';
@@ -1178,9 +1184,26 @@
 
                 let statusBadge = '';
                 if (t.status === 'OPEN') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-950/60 text-sky-400 border border-sky-500/30">ACTIVE OPEN</span>';
-                else if (t.status === 'TP1_HIT') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">TP1 HIT (+2.5 R)</span>';
+                else if (t.status === 'TP1_HIT' || t.status === 'TP1_SCALED') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">TP1 SCALED (+2.5 R)</span>';
+                else if (t.status === 'TP2_HIT' || t.status === 'CLOSED_TRAILING_PROFIT') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">★ TARGET HIT</span>';
+                else if (t.status === 'CLOSED_EVICTED') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-950/60 text-purple-400 border border-purple-500/40">● EVICTED</span>';
+                else if (t.status === 'CLOSED_BREAKEVEN') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-950/60 text-blue-400 border border-blue-500/40">● BREAKEVEN</span>';
+                else if (t.status === 'STAGNATION_EXIT') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-300 border border-slate-700">● STAGNATION</span>';
                 else if (t.status === 'STOPPED_OUT') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30">STOPPED OUT</span>';
                 else statusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-300">${t.status}</span>`;
+
+                let healthBadge = '';
+                if (t.status === 'OPEN' || t.status === 'TP1_SCALED') {
+                    if (t.active_health_tier === 'TIER_A_HOUSE_MONEY') {
+                        healthBadge = `<div class="mt-0.5"><span class="px-1.5 py-0.2 rounded text-[8px] font-black bg-blue-950/90 text-blue-300 border border-blue-500/40">🔵 HOUSE MONEY${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span></div>`;
+                    } else if (t.active_health_tier === 'TIER_D_EVICTION_CANDIDATE') {
+                        healthBadge = `<div class="mt-0.5"><span class="px-1.5 py-0.2 rounded text-[8px] font-black bg-rose-950/90 text-rose-300 border border-rose-500/40 animate-pulse">🔴 EVICTION READY${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span></div>`;
+                    } else if (t.active_health_tier === 'TIER_C_STAGNANT') {
+                        healthBadge = `<div class="mt-0.5"><span class="px-1.5 py-0.2 rounded text-[8px] font-black bg-amber-950/90 text-amber-300 border border-amber-500/40">🟡 STAGNANT${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span></div>`;
+                    } else if (t.active_health_tier === 'TIER_B_ON_TRACK' || t.current_alpha_score) {
+                        healthBadge = `<div class="mt-0.5"><span class="px-1.5 py-0.2 rounded text-[8px] font-black bg-emerald-950/90 text-emerald-300 border border-emerald-500/40">🟢 ON-TRACK${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span></div>`;
+                    }
+                }
 
                 const pnl = parseFloat(t.pnl_pct || 0);
                 const pnlClass = pnl > 0 ? 'text-emerald-400 font-bold' : (pnl < 0 ? 'text-rose-400 font-bold' : 'text-slate-300 font-bold');
@@ -1192,6 +1215,7 @@
                     <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">
                         <div>${t.ticker}</div>
                         ${t.strategy_prong ? `<div class="mt-0.5"><span class="px-1 py-0.2 rounded text-[8px] font-black ${t.strategy_prong === 'HIGH_RISK' ? 'bg-amber-950/80 text-amber-300 border border-amber-500/30' : 'bg-sky-950/80 text-sky-300 border border-sky-500/30'}">${t.strategy_prong === 'HIGH_RISK' ? '🚀 SPRINT' : '⚖️ SWING'}</span></div>` : ''}
+                        ${healthBadge}
                         ${t.structure_badge ? `<div class="mt-0.5"><span class="px-1 py-0.2 rounded text-[8px] font-black ${t.structure_badge.includes('HH/HL') ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/30' : 'bg-amber-950/80 text-amber-300 border border-amber-500/30'}">${t.structure_badge}</span></div>` : ''}
                     </td>
                     <td class="py-2.5 px-2.5 text-slate-300">
