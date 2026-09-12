@@ -494,13 +494,19 @@ def process_universe(raw_data=None, sample_date_str=None):
         rsi_floor_ok = bool(rsi_val >= 45.0)
         macd_ok = bool(snapshot.get("macd_hook_ok", snapshot.get("macd_crawling_up", True)))
 
+        # Dow Theory Market Structure Gate for Bullish Options & Equities:
+        # Rejects BEARISH_LH_LL (Lower Highs & Lower Lows) to prevent buying into dead-cat bounces / bear traps
+        ms_regime = snapshot.get("market_structure", {}).get("regime", "NEUTRAL")
+        dow_structure_ok = (ms_regime != "BEARISH_LH_LL")
+
         is_qualified = (
             snapshot["price"] >= snapshot["ema50"] and
             reclaim_days <= 3 and
             retrace_type in ["EMA50", "DB", "OTE"] and
             overhead_ok and
             rsi_floor_ok and
-            macd_ok
+            macd_ok and
+            dow_structure_ok
         )
 
         ret_val = snapshot.get("d1_return", 0.0)
