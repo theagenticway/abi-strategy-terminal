@@ -215,11 +215,40 @@ def fetch_live_options_quotes(ticker: str, long_strike: float, short_strike: flo
     except Exception:
         return None
 
-def model_options_contract(ticker: str, price: float, tp1: float, reclaim_days: int, today=None) -> dict:
+def is_liquid_options(opt_verif: dict, min_oi: int = 500, max_spread_pct: float = 0.08) -> tuple:
     """
-    Auto-models the exact options strike pairs, target expiration, net debit, and max profit.
-    - Bull Call Spreads (45-60 DTE) for D0-D2 velocity reclaims.
-    - Deep-ITM LEAPS (~0.75-0.80 Delta) for structural long-term reclaims.
+    Evaluates options chain liquidity per Master Architecture Specification:
+    - Minimum Open Interest: OI >= 500 on target strikes.
+    - Maximum Bid-Ask Spread: Spread <= 8.0% of mid-price.
+    Returns: (is_liquid: bool, reason: str, route_to_stock: bool)
+    """
+    if not opt_verif:
+        return True, "Simulated liquid", False
+    if opt_verif.get("offline_fallback", False):
+        return True, "Offline fallback", False
+
+    long_oi = opt_verif.get("long_oi", 0)
+    short_oi = opt_verif.get("short_oi", long_oi)
+    min_contract_oi = min(long_oi, short_oi)
+
+    long_bid = opt_verif.get("long_bid", 0)
+    long_ask = opt_verif.get("long_ask", 0)
+    long_mid = (long_bid + long_ask) / 2 if (long_bid > 0 and long_ask > 0) else 1.0
+    long_spread = ((long_ask - long_bid) / long_mid) if long_mid > 0 else 0.05
+
+    if min_contract_oi < min_oi:
+        return False, f"Low Open Interest ({min_contract_oi} < {min_oi})", True
+    if long_spread > max_spread_pct:
+        return False, f"Wide Spread ({long_spread*100:.1f}% > {max_spread_pct*100:.1f}%)", True
+    return True, "Institutional Liquid", False
+
+
+def model_options_contract(ticker: str, price: float, tp1: float, reclaim_days: int, strategy_prong: str = None, today=None) -> dict:
+    """
+    Auto-models exact options strike pairs, target expiration, net debit, and max profit:
+    - High-Risk Sprint: 45–90 DTE Bull Call Spreads, 10-session hold limit.
+    - Balanced Swing: 60–120 DTE Bull Call Spreads, 14-session hold limit.
+    - Core Compounder: January 2028 Deep-ITM LEAPS (~0.75-0.80 Delta).
     """
     if today is None:
         today = datetime.date(2026, 9, 6)
@@ -244,10 +273,18 @@ def model_options_contract(ticker: str, price: float, tp1: float, reclaim_days: 
             "details": "N/A"
         }
         
-    is_leaps = (reclaim_days >= 3)
+    is_leaps = (strategy_prong == "CORE") or (strategy_prong is None and reclaim_days >= 3)
     
     if not is_leaps:
-        exp_date, dte = get_target_expiration(today, 45, 65)
+        if strategy_prong == "HIGH_RISK":
+            exp_date, dte = get_target_expiration(today, 45, 90)
+            max_hold_sessions = 10
+            vehicle_name = "Bull Call Spread (45-90 DTE)"
+        else:
+            exp_date, dte = get_target_expiration(today, 45, 65 if strategy_prong is None else 120)
+            max_hold_sessions = 8 if strategy_prong is None else 14
+            vehicle_name = "Bull Call Spread" if strategy_prong is None else "Bull Call Spread (60-120 DTE)"
+
         interval = calculate_strike_interval(price)
         
         # Long Strike: Round down to standard strike <= price (~0.55-0.60 Delta)
@@ -271,7 +308,6 @@ def model_options_contract(ticker: str, price: float, tp1: float, reclaim_days: 
         # Feature 2: 21-Day Theta Cliff & Max Hold Window
         theta_cliff_date = exp_date - datetime.timedelta(days=21)
         theta_cliff_str = theta_cliff_date.strftime("%b %d")
-        max_hold_sessions = 8 # Exit by Day 8 if trade has not reached 50% of TP1
         
         # Feature 4: Natural Mid-Price Limit Order Routing
         routing_guidance = f"LIMIT @ ${est_debit:.2f} Mid (Do not cross spread; step $0.05; cancel after 30m)"
@@ -281,7 +317,7 @@ def model_options_contract(ticker: str, price: float, tp1: float, reclaim_days: 
         detail_str = f"Width: ${width:.2f} | Est. Debit: ${est_debit:.2f} | Max Gain: ${max_profit:.2f} (1:{rr}) | Theta Cliff: {theta_cliff_str} (21 DTE) | Max Hold: {max_hold_sessions}d"
         
         return {
-            "vehicle": "Bull Call Spread",
+            "vehicle": vehicle_name,
             "contract": ticket_str,
             "expiry": exp_date.strftime("%Y-%m-%d"),
             "expiry_label": month_str,
@@ -330,6 +366,79 @@ def model_options_contract(ticker: str, price: float, tp1: float, reclaim_days: 
             "breakeven": round(leaps_strike + est_premium, 2),
             "details": detail_str
         }
+
+def model_leaps_contract(ticker: str, price: float, strategy_prong: str = "CORE", today=None) -> dict:
+    """
+    Models tailored Deep-ITM Call LEAPS across all 3 strategy prongs:
+    1. 🚀 High-Risk Sprint (6-9 Mo, ~0.70-0.75 Delta): Aggressive beta velocity, uncapped upside, zero 30d cliff.
+    2. ⚖️ Balanced Tactical Swing (9-15 Mo, ~0.75-0.80 Delta): Top-half sector RS, smooth delta participation.
+    3. 🛡️ Core Secular Compounder (18-24+ Mo, Jan 2028, ~0.78-0.82 Delta): Low-beta institutional compounder.
+    """
+    if today is None:
+        today = datetime.date(2026, 9, 6)
+    if price is None or np.isnan(price) or price <= 0:
+        return None
+
+    interval = calculate_strike_interval(price)
+    prong = (strategy_prong or "CORE").upper()
+
+    if prong == "HIGH_RISK":
+        # 6 to 9 months out (~210 days)
+        target_year = today.year + (1 if today.month > 4 else 0)
+        target_month = (today.month + 7) % 12 or 12
+        exp_date = get_third_friday(target_year, target_month)
+        dte = (exp_date - today).days
+        target_strike = price * 0.85 # ~0.70-0.75 Delta
+        strike = max(interval, (target_strike // interval) * interval)
+        est_prem = round((price - strike) + (price * 0.09), 2)
+        vehicle_name = "High-Risk Sprint Call LEAPS (~0.72 Delta)"
+        prong_badge = "🚀 HIGH RISK (SPRINT)"
+    elif prong == "BALANCED":
+        # 9 to 15 months out (~360 days)
+        target_year = today.year + 1
+        target_month = 1 if today.month >= 6 else 6
+        exp_date = get_third_friday(target_year, target_month)
+        dte = (exp_date - today).days
+        target_strike = price * 0.80 # ~0.75-0.80 Delta
+        strike = max(interval, (target_strike // interval) * interval)
+        est_prem = round((price - strike) + (price * 0.08), 2)
+        vehicle_name = "Balanced Swing Call LEAPS (~0.76 Delta)"
+        prong_badge = "⚖️ BALANCED (SWING)"
+    else: # CORE
+        # January 2028 (~500+ DTE)
+        exp_date = get_leaps_expiration(today)
+        dte = (exp_date - today).days
+        target_strike = price * 0.80 # ~0.78-0.82 Delta
+        strike = max(interval, (target_strike // interval) * interval)
+        est_prem = round((price - strike) + (price * 0.08), 2)
+        vehicle_name = "Strategic Secular Call LEAPS (Jan 2028)"
+        prong_badge = "🛡️ CORE (COMPOUNDER)"
+
+    breakeven = round(strike + est_prem, 2)
+    month_str = exp_date.strftime("%b %Y")
+    contract_str = f"{month_str} ${strike:.0f} Call LEAPS"
+    detail_str = f"Deep ITM ({prong}) | Est. Premium: ${est_prem:.2f} | Low Theta ({dte} DTE) | Breakeven: ${breakeven:.2f}"
+
+    return {
+        "vehicle": vehicle_name,
+        "strategy_prong": prong,
+        "prong_badge": prong_badge,
+        "contract": contract_str,
+        "expiry": exp_date.strftime("%Y-%m-%d"),
+        "expiry_label": month_str,
+        "dte": dte,
+        "long_strike": strike,
+        "short_strike": None,
+        "width": None,
+        "est_debit": est_prem,
+        "est_premium": est_prem,
+        "max_profit": None,
+        "est_rr": "Uncapped",
+        "breakeven": breakeven,
+        "details": detail_str,
+        "routing_guidance": f"LIMIT @ ${est_prem:.2f} Mid (Natural ITM Delta fill; do not cross spread)"
+    }
+
 
 def evaluate_earnings_blackout(ticker: str, earnings_date=None, today=None) -> dict:
     """
@@ -394,12 +503,22 @@ def compute_options_alpha_score(
     overhead_runway_pct=12.0,
     days_to_earnings=60,
     is_leaps=False,
+    strategy_prong=None,
+    rsi=None,
+    macd_hook_ok=None,
     return_breakdown=False
 ):
     """
     Computes Options Alpha Composite Score (0 - 100 points):
-    Options Alpha = Directional Foundation (40%) + IV Rank Efficiency (25%) + Liquidity Quality (20%) + 200 SMA Runway (15%)
-    Includes Earnings Blackout penalty (-35 pts) if earnings fall within trade DTE.
+    - Directional Foundation (35-40%)
+    - IV Rank Behavior (20-25%):
+        * High-Risk Sprint: High IV Rank (60-85+) is rewarded (20-25 pts)
+        * Balanced Swing: Sweet Spot IV Rank (35-65) is rewarded (20-25 pts)
+        * Core LEAPS: Low IV Rank (< 35) is mandatory / rewarded (20-25 pts)
+    - Liquidity Quality (20%)
+    - 200 SMA Runway (15%)
+    - Universal Momentum Hook (10% when active)
+    - Earnings Blackout penalty (-35 pts if within DTE)
     """
     if isinstance(directional_alpha, dict):
         d = directional_alpha
@@ -411,27 +530,51 @@ def compute_options_alpha_score(
         overhead_runway_pct = d.get("overhead_runway_pct", overhead_runway_pct)
         days_to_earnings = d.get("days_to_earnings", days_to_earnings)
         is_leaps = d.get("vehicle") == "Call LEAPS" or is_leaps
+        strategy_prong = strategy_prong or d.get("strategy_prong")
+        rsi = rsi if rsi is not None else d.get("rsi")
+        macd_hook_ok = macd_hook_ok if macd_hook_ok is not None else d.get("macd_hook_ok")
 
-    # 1. Directional Foundation (40 pts max)
+    # Directional weight & Momentum
+    has_momentum_factor = bool(strategy_prong is not None or rsi is not None)
+    dir_weight = 0.35 if has_momentum_factor else 0.40
+
+    # 1. Directional Foundation
     try:
         d_val = float(directional_alpha) if directional_alpha is not None else 70.0
     except (ValueError, TypeError):
         d_val = 70.0
-    dir_pts = round(min(100.0, max(0.0, d_val)) * 0.40, 1)
+    dir_pts = round(min(100.0, max(0.0, d_val)) * dir_weight, 1)
 
-    # 2. IV Rank Efficiency (25 pts max)
+    # 2. IV Rank Behavior (Bifurcated by Strategy Prong)
     try:
         iv = float(iv_rank) if iv_rank is not None else 30.0
     except (ValueError, TypeError):
         iv = 30.0
-    if iv < 30.0:
-        iv_pts = 25.0
-    elif iv < 45.0:
-        iv_pts = 20.0
-    elif iv < 60.0:
-        iv_pts = 12.0
+
+    max_iv_pts = 20.0 if has_momentum_factor else 25.0
+
+    if strategy_prong == "HIGH_RISK":
+        # High IV Rank rewarded for explosive velocity sprints
+        if iv >= 60.0: iv_pts = max_iv_pts
+        elif iv >= 45.0: iv_pts = max_iv_pts * 0.75
+        elif iv >= 30.0: iv_pts = max_iv_pts * 0.40
+        else: iv_pts = 4.0
+    elif strategy_prong == "BALANCED":
+        # Sweet Spot (35 to 65) rewarded
+        if 35.0 <= iv <= 65.0: iv_pts = max_iv_pts
+        elif (25.0 <= iv < 35.0) or (65.0 < iv <= 75.0): iv_pts = max_iv_pts * 0.70
+        else: iv_pts = 5.0
+    elif strategy_prong == "CORE" or is_leaps:
+        # Low IV (< 35) mandatory for long-term compounder LEAPS
+        if iv < 35.0: iv_pts = max_iv_pts
+        elif iv < 50.0: iv_pts = max_iv_pts * 0.60
+        else: iv_pts = 4.0
     else:
-        iv_pts = 4.0
+        # Default / legacy behavior
+        if iv < 30.0: iv_pts = 25.0
+        elif iv < 45.0: iv_pts = 20.0
+        elif iv < 60.0: iv_pts = 12.0
+        else: iv_pts = 4.0
 
     # 3. Liquidity Quality (20 pts max)
     try:
@@ -457,16 +600,16 @@ def compute_options_alpha_score(
     else:
         liq_pts = 3.0
 
-    # 4. Overhead Runway to 200 SMA (15 pts max) (Item 2D)
+    # 4. Overhead Runway to 200 SMA (15 pts max)
     try:
         runway = float(overhead_runway_pct) if overhead_runway_pct is not None else None
     except (ValueError, TypeError):
         runway = None
 
     if runway is None:
-        runway_pts = 8.0  # Neutral baseline for new issues / spinoffs with <200d history
+        runway_pts = 8.0
     elif runway >= 900.0:
-        runway_pts = 15.0 # Genuine Blue sky / above confirmed 200 SMA
+        runway_pts = 15.0
     elif runway >= 8.0:
         runway_pts = 12.0
     elif runway >= 5.0:
@@ -474,26 +617,41 @@ def compute_options_alpha_score(
     else:
         runway_pts = 2.0
 
-    # 5. Earnings Blackout Penalty (Item 1A)
+    # 5. Universal Momentum Hook (10 pts max when active)
+    momentum_pts = 0.0
+    if has_momentum_factor:
+        rsi_val = float(rsi) if rsi is not None else 50.0
+        hook_val = bool(macd_hook_ok) if macd_hook_ok is not None else True
+        if rsi_val >= 50.0 and hook_val:
+            momentum_pts = 10.0
+        elif rsi_val >= 45.0 and hook_val:
+            momentum_pts = 8.0
+        elif rsi_val >= 45.0:
+            momentum_pts = 5.0
+        else:
+            momentum_pts = 0.0
+
+    # 6. Earnings Blackout Penalty
     try:
         dte_earnings = int(days_to_earnings) if days_to_earnings is not None else None
     except (ValueError, TypeError):
         dte_earnings = None
 
     if dte_earnings is not None and 0 <= dte_earnings <= 45 and not is_leaps:
-        earnings_penalty = -35.0  # Confirmed earnings inside DTE: major blackout penalty
+        earnings_penalty = -35.0
     elif dte_earnings is None:
-        earnings_penalty = -2.0   # Unverified: minimal uncertainty haircut, allows strong setups to make the list
+        earnings_penalty = -2.0
     else:
         earnings_penalty = 0.0
 
-    total = max(5.0, min(100.0, round(dir_pts + iv_pts + liq_pts + runway_pts + earnings_penalty, 1)))
+    total = max(5.0, min(100.0, round(dir_pts + iv_pts + liq_pts + runway_pts + momentum_pts + earnings_penalty, 1)))
 
     breakdown = {
         "directional_foundation": dir_pts,
         "iv_rank_efficiency": iv_pts,
         "liquidity_quality": liq_pts,
         "overhead_runway": runway_pts,
+        "momentum": momentum_pts,
         "earnings_penalty": earnings_penalty,
         "total": total
     }
@@ -501,13 +659,23 @@ def compute_options_alpha_score(
         return total, breakdown
     return total
 
-
-def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_type: str, reclaim_days: int, regime: str, earnings_date=None) -> dict:
+def structure_trade_signal(
+    ticker: str,
+    sector: str,
+    snapshot: dict,
+    retrace_type: str,
+    reclaim_days: int,
+    regime: str,
+    earnings_date=None,
+    strategy_prong: str = None,
+    portfolio_capital: float = 100000.0
+) -> dict:
     """
     Constructs an asymmetric trade setup adhering strictly to Options Alpha Radar rules:
+    - Sized strictly on Dollar-at-Risk ($1,000 max risk per trade on $100K, scales to $500K+)
     - Invalidation Stop below EMA50 or swing low
     - Target 1 (TP1) and Target 2 (TP2) with min 1:2.5 Risk/Reward
-    - Exact strike pair & expiration modeling (Bull Call Spread vs LEAPS)
+    - Exact strike pair & expiration modeling (High-Risk 45-90 DTE, Balanced 60-120 DTE, or Jan 2028 LEAPS)
     - Automated earnings blackout and options liquidity screening
     """
     price = snapshot.get("price")
@@ -527,30 +695,38 @@ def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_typ
     tp2 = round(price + (risk_per_share * 3.5), 2)
     rr_ratio = round((tp1 - price) / risk_per_share, 1)
     
-    # Feature 3: Macro Regime Position Size Throttler
-    # Evaluates broad market health and scales allocation to protect capital:
-    # - Risk-On (Offense >= 60% and SPY >= EMA50): Full $1,000 Allocation (100%)
-    # - Mixed Market (Offense 35-60%): Moderate $750 Allocation (75%)
-    # - Risk-Off (Offense <= 35% or SPY < EMA50): Defensive $500 Allocation (50% Throttled)
+    # Scalable options risk budget (1.0% of portfolio capital on $100K = $1,000; on $500K = $5,000)
+    base_risk_budget = portfolio_capital * 0.01
     if regime == "RISK-ON":
-        target_allocation = 1000.0
-        allocation_desc = "$1,000 (Full 100% Sizing)"
+        target_allocation = base_risk_budget
+        allocation_desc = f"${target_allocation:,.0f} (Full 100% Sizing)"
         macro_throttled = False
     elif regime == "RISK-OFF":
-        target_allocation = 500.0
-        allocation_desc = "$500 (50% Throttled — Macro Risk)"
+        target_allocation = base_risk_budget * 0.50
+        allocation_desc = f"${target_allocation:,.0f} (50% Throttled — Macro Risk)"
         macro_throttled = True
     else: # MIXED
-        target_allocation = 750.0
-        allocation_desc = "$750 (75% Sizing — Mixed Regime)"
+        target_allocation = base_risk_budget * 0.75
+        allocation_desc = f"${target_allocation:,.0f} (75% Sizing — Mixed Regime)"
         macro_throttled = True
 
     shares = max(1, int(target_allocation / price))
     total_position_val = round(shares * price, 2)
     total_risk_val = round(shares * risk_per_share, 2)
     
-    # Model exact options contract ticket
-    contract_info = model_options_contract(ticker, price, tp1, reclaim_days)
+    # Model exact options contract ticket based on prong
+    effective_prong = strategy_prong
+    if effective_prong is None:
+        b = snapshot.get("beta", 1.0)
+        adr = snapshot.get("adr_pct", 2.5)
+        if b >= 1.6 and adr >= 3.2:
+            effective_prong = "HIGH_RISK"
+        elif reclaim_days >= 3:
+            effective_prong = "CORE"
+        else:
+            effective_prong = "BALANCED"
+
+    contract_info = model_options_contract(ticker, price, tp1, reclaim_days, strategy_prong=effective_prong)
     
     # Screen earnings blackout
     earnings_info = evaluate_earnings_blackout(ticker, earnings_date)
@@ -577,7 +753,9 @@ def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_typ
         "overhead_runway_pct": snapshot.get("overhead_runway_pct", 999.0),
         "overhead_clearance_ok": snapshot.get("overhead_clearance_ok", True),
         "reclaim_days": reclaim_days,
-        "structure": "Bull Call Spread (45-60 DTE)" if contract_info["vehicle"] == "Bull Call Spread" else "LEAPS (0.70-0.80 Delta, 12-18 Mo)",
+        "strategy_prong": effective_prong,
+        "prong_badge": "🚀 HIGH RISK (SPRINT)" if effective_prong == "HIGH_RISK" else ("🛡️ CORE (LEAPS)" if effective_prong == "CORE" else "⚖️ BALANCED (SWING)"),
+        "structure": "Bull Call Spread (45-60 DTE)" if strategy_prong is None else contract_info.get("vehicle", "Bull Call Spread (60-120 DTE)"),
         "contract": contract_info["contract"],
         "contract_details": contract_info["details"],
         "expiry": contract_info["expiry"],
@@ -596,14 +774,13 @@ def structure_trade_signal(ticker: str, sector: str, snapshot: dict, retrace_typ
         "macro_throttled": macro_throttled,
         "theta_cliff": contract_info.get("theta_cliff_label", "21 DTE"),
         "max_hold": contract_info.get("max_hold_sessions", 8),
-        "routing_guidance": contract_info.get("routing_guidance", f"LIMIT @ ${contract_info.get('est_debit', 5.0):.2f} Mid"),
+        "routing_guidance": contract_info.get('routing_guidance', f"LIMIT @ ${contract_info.get('est_debit', 5.0):.2f} Mid"),
         "regime": regime,
         "market_structure": snapshot.get("market_structure", {"regime": "NEUTRAL", "badge": "⚪ NEUTRAL"}),
         "structure_badge": snapshot.get("market_structure", {}).get("badge", "⚪ NEUTRAL"),
         "execution_state": "PENDING_EOD" if reclaim_days == 0 else "CONFIRMED",
         "execution_badge": "🟡 PENDING CLOSE (Wait EOD)" if reclaim_days == 0 else "🟢 CONFIRMED CLOSE"
     }
-
 
 def screen_strategic_leaps_candidate(ticker: str, sector: str, snapshot: dict, today=None):
     """

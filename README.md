@@ -1,6 +1,6 @@
 # ABI Strategy Terminal & Quantitative Execution Engine
 
-Institutional-grade quantitative market telemetry, multi-index benchmark confluence engine, dual-portal execution architecture (**Options Terminal** and **Dedicated Stocks Terminal**), dynamic multi-factor Alpha scoring, macro-adaptive portfolio allocator, and automated multi-asset trade auditor.
+Institutional-grade quantitative market telemetry, multi-index benchmark confluence engine, dual-portal execution architecture (**Options Terminal** and **Dedicated Stocks Terminal**), scalable multi-horizon portfolio allocator ($100K baseline scaling dynamically to $500K+), 3-pronged strategic execution framework, and automated multi-asset trade lifecycle auditor.
 
 Engineered to replace fragmented TradingView alerts, third-party webhooks, and manual spreadsheets with an autonomous, zero-cost quantitative pipeline hosted entirely on **GitHub Actions** and **GitHub Pages**.
 
@@ -9,239 +9,188 @@ For the complete, granular data dictionary, yfinance field mapping, and mathemat
 
 ---
 
-## 🏛️ Architecture & System Blueprint
+## 🏛️ Capital Architecture & The Twin-Engine Model
+
+The engine operates two fully decoupled, independent portfolios to prevent cross-asset competition, avoid liquidity bottlenecks, and allow high-conviction mega-cap leaders and high-beta momentum stocks to be traded without capital distortion:
 
 ```text
-                     [Live Market Data Ingestion]
-        493+ S&P 500 / NASDAQ-100 Constituents + 25 Sector ETFs
-            + 4 Benchmark Indices (SPY, QQQ, RSP, IWM)
-                     (yfinance batch OHLCV)
-                                │
-                                ▼
-         ┌──────────────────────────────────────────────┐
-         │   MULTI-INDEX BENCHMARK CONFLUENCE MATRIX    │
-         │  • SPY, QQQ, RSP, IWM Distance vs. 50 EMA    │
-         │  • 5-day EMA Slopes & Confluence Score (0–4) │
-         │  • Dynamic Regime: Expansion vs. Rotation    │
-         │    vs. Thin Masking vs. Systemic Breakdown   │
-         └──────────────────────┬───────────────────────┘
-                                │
-                                ▼
-         ┌──────────────────────────────────────────────┐
-         │     EXECUTIVE MARKET BRIEFING ENGINE         │
-         │  • 4-Tier Action Verdict: Buy / Caution /    │
-         │    Hold / Hedge                              │
-         │  • Dynamic Macro & Sector Inflow/Outflow     │
-         │  • Concrete Capital Execution Mandates       │
-         └──────────────────────┬───────────────────────┘
-                                │
-                                ▼
-         ┌──────────────────────────────────────────────┐
-         │        QUANTITATIVE SCREENING FUNNEL         │
-         │  • EMAs (10, 21, 50, 200) & SMAs (150, 200) │
-         │  • Relative Volume: RVOL ≥ 1.0x Institutional│
-         │  • Dow Theory Market Structure (HH/HL)       │
-         │  • 1-Year Implied Volatility Rank (IV Rank)  │
-         │  • Multi-Timeframe 4H Candle Confluence      │
-         │  • 45-Day Corporate Earnings Blackout Filter │
-         └──────────────────────┬───────────────────────┘
-                                │
-        ┌───────────────────────┴───────────────────────┐
-        ▼                                               ▼
-┌──────────────────────────────┐        ┌──────────────────────────────┐
-│   OPTIONS RADAR (index.html) │        │   STOCKS TERMINAL (stocks)   │
-│     (engine/patterns.py)     │        │      (engine/stocks.py)      │
-├──────────────────────────────┤        ├──────────────────────────────┤
-│ • Bull Call Spreads (45-60d) │        │ • Tactical Equity Swings     │
-│ • Core Call LEAPS (Jan 2028) │        │ • Core Common Accumulation   │
-│ • Downside Hedges (Bear Puts)│        │ • Dollar-at-Risk Sizing (1%) │
-│ • Options Alpha Radar Score  │        │ • Stock Alpha Composite Score│
-│ • Waterfall Liquidity Queue  │        │ • 2-Tranche Scale & Trail    │
-│   (OI ≥ 250, Spread ≤ 15%)   │        │ • 20% Single-Stock Cap       │
-│ • Unverified Earnings Badge  │        │ • Sector Diversity Guardrail │
-│ • Audits: trades_log.json    │        │ • Audits: stock_trades_log   │
-└──────────────────────────────┘        └──────────────────────────────┘
-                                │
-                                ▼
-         ┌──────────────────────────────────────────────┐
-         │   STAGE 1 MACRO-ADAPTIVE PORTFOLIO ALLOCATOR │
-         │  • Total Capital Sizing ($10k to $100k+)     │
-         │  • Core vs. Satellite Asset Ratios           │
-         │  • Dynamic Dry Powder Floor (15% to 50%+)    │
-         │  • 33% Session Tranche Pacing Limit          │
-         │  • Integer Contract & Share Sizing           │
-         │  • Browser-Persistent LocalStorage Tracking  │
-         │  • JSON Export & Import (Backup / Restore)   │
-         │  • Portfolio Capacity Reached Guardrail      │
-         └──────────────────────┬───────────────────────┘
-                                │
-                                ▼
-         ┌──────────────────────────────────────────────┐
-         │       AUTOMATED PERFORMANCE AUDIT LEDGER     │
-         │  • Strategy Alpha Comparison Ribbon (Tab 3)  │
-         │  • Side-by-Side: Options Book vs. Equity Book│
-         │  • Automated Breakeven Trailing (+2.5 R:R)   │
-         │  • 50 EMA Trend Trailing for Common Stocks   │
-         │  • Root-Cause Loss Attribution Engine        │
-         └──────────────────────────────────────────────┘
+                          ┌────────────────────────────────────────────────────────┐
+                          │         ABI QUANTITATIVE EXECUTION ENGINE              │
+                          │        Starting Capital: $200,000 ($100K x 2)          │
+                          │            (Scalable to $500K – $1.0M+)                │
+                          └──────────────────────────┬─────────────────────────────┘
+                                                     │
+                     ┌───────────────────────────────┴───────────────────────────────┐
+                     ▼                                                               ▼
+  ┌──────────────────────────────────────┐                       ┌──────────────────────────────────────┐
+  │      OPTIONS PORTFOLIO ($100,000)    │                       │       STOCK PORTFOLIO ($100,000)     │
+  ├──────────────────────────────────────┤                       ├──────────────────────────────────────┤
+  │ • Capacity: 16 – 21 Active Positions │                       │ • Capacity: 16 – 21 Active Positions │
+  │ • Capital / Slot: ~$4,500 – $6,000   │                       │ • Capital / Slot: ~$4,500 – $6,000   │
+  │ • Dollar-at-Risk: $1,000 max (1.0%)  │                       │ • Dollar-at-Risk: $350 – $500 (0.45%)│
+  │ • Vehicles: Spreads & Multi-Yr LEAPS │                       │ • Vehicles: Common Shares (Cash)     │
+  │ • Stagnation Stops: Day 10 / Day 14  │                       │ • Stagnation Stops: Day 10 / Day 14  │
+  └──────────────────────────────────────┘                       └──────────────────────────────────────┘
 ```
 
----
+### A. Position Capacity & Heat Management
+* **Legacy Bottleneck Solved**: The legacy terminal enforced a flat ceiling of 7 concurrent open trades. A single slow-moving stock holding for 30+ sessions throttled the entire system.
+* **Expanded Capacity**: Active holding capacity is expanded to **16 to 21 concurrent positions per portfolio** (32 to 42 active holdings across the entire terminal).
+* **Dedicated Execution Pools**: The Stock Engine and Options Engine scan the 500-constituent universe independently. An equity recommendation does not consume an options slot, and high-dollar mega-caps (e.g., NVDA, MSFT, META, LLY) can be traded via LEAPS or shares without starving other positions.
+* **Scalable Capital**: Starting baseline is **$100,000 per book** ($200,000 terminal total), with position sizing and capital allocation formulas designed to scale seamlessly up to **$500,000 or higher**.
 
-## ⚡ Core Quantitative Intelligence Engines
-
-### 1. 🏛️ Executive Market Briefing & 4-Tier Action Verdict
-Synthesizes all ingested quantitative telemetry into an executive daily briefing at the top of the terminal with **zero hardcoding**:
-
-* **4-Tier Action Verdict Matrix**:
-  * 🟢 **AGGRESSIVE BUY (Risk-On Expansion)**: 4 of 4 benchmark indices $> 50$ EMA, Breadth $\ge 0.55$. Full 33% daily tranche deployment across high-velocity Bull Spreads, Shares, and Core LEAPS. Baseline 15% cash reserve.
-  * 🟡 **CAUTIOUS BUY (Selective Cyclical Rotation)**: QQQ $< 50$ EMA, but SPY or RSP $> 50$ EMA. Tech under distribution, cyclicals holding. Long deployment permitted **only** in leading non-tech sectors with RVOL $\ge 1.0\times$. 25% cash reserve.
-  * 🟠 **HOLD / PRESERVE (Chop & Retest)**: Broad market breadth $< 0.35$ or narrow mega-cap masking. Zero new long commitments. Trail stops on open winners; 35% cash buffer.
-  * 🔴 **DEFENSIVE / HEDGE (Systemic Breakdown)**: SPY & RSP $< 50$ EMA. 100% freeze on long calls and long stock; deploy tactical Bear Put Spreads or sit in 50%–70% cash.
-* **3-Tier Algorithmic Synthesis**:
-  * **Macro Regime Narrative**: Synthesizes the 4 indices, distance vs. 50 EMA, slope, and advance/decline breadth ratio.
-  * **Sector Flow Divergence**: Compares top 3 vs. bottom 3 sectors on the 25-ETF Ladder (e.g., rotation out of Solar/Airlines into Gold/Energy).
-  * **Capital Execution Mandates**: Concrete bullet points specifying permitted sectors, restricted sectors, and cash preservation targets.
-
-### 2. 🌐 Multi-Index Benchmark Confluence Matrix (`SPY`, `QQQ`, `RSP`, `IWM`)
-Eliminates **Index Masking (Mega-Cap Distortion)** where a handful of mega-caps prop up `QQQ` while the broader market breaks down:
-* **`SPY` (S&P 500)**: Macro institutional benchmark across all 11 GICS sectors.
-* **`QQQ` (Nasdaq 100)**: High-beta tech, AI, and growth momentum.
-* **`RSP` (S&P 500 Equal-Weight)**: **The True Breadth Truth-Teller** (each stock weighted at 0.2%). The spread between SPY and RSP reveals whether rallies are broad or fragile illusions.
-* **`IWM` (Russell 2000 Small-Caps)**: Domestic economic liquidity and speculative credit appetite barometer.
-* **Composite Confluence Score (0 to 4)**: Calculates moving average distance and slope dynamically to classify market health into `BROAD_EXPANSION`, `SECTOR_ROTATION`, `THIN_MASKING`, or `SYSTEMIC_LIQUIDATION`.
-
-### 3. 🎯 Dedicated Dual-Portal Architecture: Options vs. Stocks
-The execution engine is cleanly decoupled into two dedicated, specialized trading terminals:
-* **Options Alpha Radar (`index.html`)**: Exclusively focused on asymmetric options structures (30–60 DTE Bull Call Spreads, Jan 2028 Deep-ITM Call LEAPS, and Downside Bear Put Spread Hedges) with contract Greeks, Open Interest depth, limit debit order tickets, and implied volatility analysis.
-* **Dedicated Cash Equities Terminal (`stocks.html`)**: Complete standalone stock portal with **zero options terminology or Greeks**. Features fixed fractional share sizing, technical stop placement, Two-Tranche scale and trail execution, and dedicated stock performance tracking.
-* **Seamless Cross-Navigation**: Top-bar navigation chips dynamically route between portals (`[● 🎯 Options Alpha Radar]` $\leftrightarrow$ `[● 📈 Dedicated Stocks Terminal]`) with URL parameter synchronization.
-
-### 4. 📊 Multi-Factor Dynamic Alpha Scoring Engines
-Replaces static sorting with comprehensive 100-point multi-factor quantitative ranking models:
-
-#### A. Stock Alpha Composite Score (`engine/stocks.py`)
-Dynamically ranks cash equity candidates across 5 core institutional factors:
-1. **Retrace & Reclaim Momentum (25 pts)**: Day 0 reclaims (25 pts), Day 1 follow-through (22 pts), Day 2 (18 pts), Day 3 (12 pts).
-2. **Dow Theory Market Structure (20 pts)**: Validates higher-high / higher-low structure (`🟢 HH/HL (CONFIRMED)` = 20 pts, `🟢 HH/HL (EMERGING)` = 18 pts, `🟡 BASE` = 12 pts, `🔴 LH/LL BEARISH` = $-15$ pt penalty).
-3. **Macro & Sector Confluence (20 pts)**: 4/4 Index Confluence + positive sector momentum spread (`mom_spread` $\ge 0$) awards up to 20 pts; negative spread receives a $-10$ pt penalty.
-4. **Institutional RVOL Participation (20 pts)**: Volume surges $\ge 2.0\times$ award 20 pts; $\ge 1.5\times$ award 16 pts; $\ge 1.2\times$ award 12 pts; $\ge 1.0\times$ award 8 pts.
-5. **Risk-to-Reward Geometry (15 pts)**: $\text{R:R} \ge 3.5:1$ awards 15 pts; $\ge 3.0:1$ awards 12 pts; $\ge 2.5:1$ awards 8 pts.
-
-#### B. Options Alpha Radar Score (`engine/patterns.py`)
-Ranks options candidates by contract edge, liquidity, and asymmetric payoff:
-1. **Directional Alpha Foundation (40 pts)**: Scaled from underlying directional setup quality.
-2. **IV Rank Efficiency (25 pts)**: Awards maximum points for underpriced implied volatility ($\text{IV Rank} < 20\%$ = 25 pts; $<35\%$ = 20 pts).
-3. **Institutional Options Liquidity (20 pts)**: High Open Interest and tight bid-ask spreads ($\text{OI} \ge 1000$ and spread $\le 5\%$ = 20 pts).
-4. **Overhead 200 SMA Runway (15 pts)**: Blue Sky above 200 SMA awards 15 pts; $<200$d history receives neutral 8 pts.
-5. **Earnings Blackout Penalty**: Confirmed earnings within 45 DTE trigger a $-35$ pt blackout penalty.
-
-### 5. 🛡️ Institutional Risk & Integrity Guardrails
-
-* **Sector Diversity Concentration Cap**: The top candidate selector enforces a strict limit of **maximum 2 tickers per sector** in the top 5, preventing portfolio over-concentration in correlated industry groups.
-* **Transparent Unverified Earnings Handling (Item 1A)**: If a corporate earnings date is unverified by API providers, the setup is labeled with an amber `⚠️ UNVERIFIED EARNINGS` badge and assessed a minimal $-2$ pt uncertainty haircut rather than an aggressive $-35$ pt blackout penalty. This allows high-scoring candidates to remain visible while alerting the trader to verify the date before execution.
-* **Robust Off-Hours Options Liquidity Verification (Item 1B)**: Prevents false rejections when scanning after market close (when market makers pull quotes and spreads artificially blow out $>20\%$). The engine automatically evaluates **settled Open Interest ($\ge 200$) and daily volume ($\ge 5$)** during off-hours to certify institutional contract depth.
-* **Spinoff & Recent IPO Data Integrity (Item 2D)**: Tickers with $<200$ trading days are explicitly flagged with `has_200sma = False`, labeled as `N/A (<200d History)`, and receive a neutral 8-point baseline rather than falsely claiming 15-point blue-sky clearance.
-* **Leading-Edge Dow Theory Market Structure (Item 2E)**: In addition to 5-bar fractal swing pivots, the engine inspects real-time $T_0/T_{-1}$ breakout velocity to distinguish between `🟢 HH/HL (CONFIRMED)` and `🟢 HH/HL (EMERGING)`.
-* **20% Capital Allocation Ceiling Safeguard**: Sizing on Dollar-at-Risk prevents account blowups from ultra-tight stops by capping single-position capital at **20% of total portfolio equity**.
-* **Two-Tranche Scale & Trail Exit Engine**: Tranche 1 (50% shares) scales out at **TP1 (+2.5 R:R)**; Tranche 2 moves the technical stop to **Breakeven** and trails along the **rising 50-day EMA**.
-
-### 6. 💰 Stage 1 Macro-Adaptive Portfolio Allocator & Cash Buffering
-Transforms the terminal from an isolated screener into an active portfolio construction system:
-* **Pillar 1: Total Portfolio Capital**: Configurable account sizing ($10k, $25k, $50k, $100k, and custom numeric input).
-* **Pillar 2: Allocation Architecture**:
-  * *Balanced Core/Satellite* (60% Core / 40% Tactical).
-  * *Tactical Momentum* (80% Tactical / 20% Core).
-  * *Secular Compounding* (80% Core / 20% Tactical).
-  * *Macro-Adaptive Auto-Tilt* (Risk-On: 35/65, Mixed: 50/50, Risk-Off: 80/20).
-* **Pillar 3: Dynamic Dry Powder (Cash Buffer)**:
-  * *Automated Macro Buffer*: 15% (Risk-On), 25% (Mixed), 50%–70% (Risk-Off).
-  * *Manual Overrides*: Fixed 20%, Fixed 30%, Fully Deployed (0%).
-* **Pillar 4: Tranche Pacing & Capital Protection**:
-  * Real open risk deduction: $\text{Free Liquid Cash} = \max(0, \text{Total Capital} - \text{Committed Risk} - \text{Cash Floor})$.
-  * Single-session ceiling: $\text{Today's Tranche} = \min(\text{Free Liquid Cash}, \text{Total Capital} \times 0.33)$.
-* **Integer Sizing & Small-Account Fallback**: Enforces integer contract and share floors, rolling unallocated budget into cash reserves.
-* **Portfolio Capacity Reached Guardrail**: Throttles today's deployable tranche to `$0` and renders a warning banner when open risk + cash floor reach 100%.
-
-### 7. 🗄️ LocalStorage Portfolio State & JSON Portability Engine
-* **Interactive UI Toggles**: Click `[+ Mark as Taken]` on any recommendation card to log it directly into your portfolio.
-* **Table 3 Ledger Tracking**: Tag and monitor trades directly from the historical performance ledger using the `[★ My Portfolio]` filter.
-* **Interactive Portfolio JSON Export / Backup**: Generates a clean, timestamped JSON export of your active commitments, account settings, and allocation preferences (`abi_portfolio_backup_YYYY-MM-DD.json`).
-* **Portfolio JSON Import with Schema Validation**: Restores or synchronizes portfolio state across devices with support for **Merge** (union existing and imported trades) or **Replace** modes.
+### B. Dollar-at-Risk Position Sizing
+Every recommendation is sized strictly on **Dollar-at-Risk (Capital Protection First)**:
+* **Options Book ($100K Baseline)**: Max risk per trade is hard-capped at **$1,000 (1.0% account equity)**.
+  * *Vertical Spreads*: Buy 4–5 contracts @ $2.00–$2.50 net debit ($800–$1,000 max risk).
+  * *Call LEAPS*: 1 contract on secular leaders ($3,500–$5,000 capital deployed), protected by an invalidation stop at the 50 EMA / 200 SMA.
+  * *Scaling*: On a $500K account, risk scales proportionally to $5,000 per trade (1.0%).
+* **Stock Book ($100K Baseline)**: Max risk per trade is sized to **$350–$500 (0.35%–0.50% account equity)**.
+  * Sized via:
+    $$\text{Shares} = \min\left(\left\lfloor \frac{\text{Max Risk Dollars}}{\text{Entry Price} - \text{Stop Price}} \right\rfloor, \left\lfloor \frac{\text{Max Capital Ceiling (6\%)}}{\text{Entry Price}} \right\rfloor\right)$$
+  * Sizing shares to a 7% technical stop risks only ~$350–$420 on a $5,000–$6,000 position, providing high-beta equities ample breathing room while bounding drawdown.
+  * *Scaling*: On a $500K account, risk scales to $2,250 (0.45%) and the 6% capital ceiling scales to $30,000.
 
 ---
 
-## 🖥️ Terminal Interface & Core Modules
+## 🎯 The 3-Pronged Strategic Allocation Framework
 
-### Options Terminal (`index.html`)
-* **Executive Market Briefing**: Real-time Action Verdict, 4-index chips (`SPY`, `QQQ`, `RSP`, `IWM`), macro narrative, sector flow divergence, and execution mandates.
-* **Directional Mode Switcher**: `[● LONG (Bull Call Spreads)]` | `[🔴 HEDGE (Bear Put Spreads)]`.
-* **Stage 1 Allocator Bar**: 4-pillar capital sizing, architecture modes, dynamic dry powder buffer, tranche pacing, and capacity alerts.
-* **Table 1: Directional Options Swings**: Bull Call Spreads or Bear Put Spreads with strike depth, verified Open Interest (`OI: 720/480 · Vol: 115`), limit debit tickets, options alpha scores, and earnings status.
-* **Table 2: Strategic Call LEAPS**: Multi-quarter compounders with Jan 2028 Deep-ITM options, Stage 2 trend badges, and IV Rank efficiency.
-* **Tab 2: Macroeconomic Board**: 2D Momentum Quadrant, 25-ETF Ladder vs. 50 EMA, Sector Strength Score, and Sub-Industry Conviction Matrix.
-* **Tab 3: Performance & Audit Log**: Side-by-side Strategy Alpha Comparison Ribbon, Options Ledger (`trades_log.json`), Stock Ledger (`stock_trades_log.json`), and Root-Cause Loss Attribution.
+The strategy engine divides all recommendations across three distinct holding horizons, each with tailored volatility metrics, holding targets, and stagnation rules:
 
-### Dedicated Stocks Terminal (`stocks.html`)
-* **Executive Market Briefing**: 4-tier Action Verdict, macro narrative, and sector capital flows tailored for cash equity allocation.
-* **Stage 1 Allocator Bar (Equities)**: Sized specifically for cash share tranches and dollar-at-risk budgets.
-* **Table 1: Tactical Stock Swings**: Stock price, technical stop, TP1 (+2.5 R:R), TP2 (+3.5 R:R), share sizing, capital deployed, Dow Theory market structure badge (`🟢 HH/HL (CONFIRMED)`), and exact limit order tickets.
-* **Table 2: Strategic Core Common Stock Accumulation**: Secular Stage 2 compounders with 200 SMA macro invalidation stops, low beta drag ($\le 2.2$), and quarterly rebalancing guidelines.
-* **Table 3: Common Stock Performance Ledger**: Dedicated ledger tracking equity paper trades, 50% scale-outs at TP1, breakeven stop trails, and 50 EMA trend trailing.
-* **Portfolio Backup / Import Modal**: Full JSON export and import for equity holdings.
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                       3-PRONGED MULTI-HORIZON FRAMEWORK                                          │
+├─────────────────────────┬───────────────────────────────────┬────────────────────────────────────────────────────┤
+│ STRATEGY PRONG          │ EQUITIES SPECIFICATION            │ DERIVATIVES SPECIFICATION (INCL. LEAPS)            │
+├─────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────┤
+│ 🚀 HIGH RISK (VELOCITY) │ • Holding Horizon: 10–14 sessions │ • Vehicles: 45–90 DTE Spreads OR 6–9 Mo ITM LEAPS │
+│    "Momentum Sprint"    │ • Target: Beta >= 1.8, ADR >= 3.5%│ • Volatility: High IV Rank (60–85+) Rewarded       │
+│    Capacity: 7-8 Slots  │ • Entry: D0-D1 Reclaim, RVOL>=1.8x│ • LEAPS: ~0.70-0.75 Delta, Uncapped High-Beta Run  │
+│                         │ • Stagnation: Day 10 if < +1.0R   │ • Exit: 70% Max Profit or Day 10 Stagnation Stop   │
+├─────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────┤
+│ ⚖️ BALANCED (TACTICAL)   │ • Holding Horizon: 15–25 sessions │ • Vehicles: 60–120 DTE Spreads OR 9–15 Mo LEAPS    │
+│    "Core Swing"         │ • Target: Beta 1.0-1.5, ADR 2-3.2%│ • Volatility: Sweet Spot IV Rank (35–65) Rewarded  │
+│    Capacity: 7 Slots    │ • Entry: D0-D2 Reclaim, RVOL>=1.2x│ • LEAPS: ~0.75-0.80 Delta, High Sector RS Leaders  │
+│                         │ • Stagnation: Day 14 if < 50% TP1 │ • Exit: TP1 (+2.5 R:R), Day 14 Stagnation Stop     │
+├─────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────┤
+│ 🛡️ LOW RISK (CORE)       │ • Holding Horizon: 40–120+ sess.  │ • Vehicle: Jan 2028 Call LEAPS (~0.78-0.82 Delta)  │
+│    "Compounder"         │ • Target: Beta <= 1.0, Pos. FCF   │ • Volatility: Low IV Rank (< 35) Mandatory         │
+│    Capacity: 4-5 Slots  │ • Trend: Stage 2 Stack (50>150>200│ • Holding: 18–24+ Months (~500+ DTE)               │
+│                         │ • Stagnation: None (Trend Stop)   │ • Exit: 3% below 200 SMA Macro Invalidation Stop   │
+└─────────────────────────┴───────────────────────────────────┴────────────────────────────────────────────────────┘
+```
 
----
-
-## 📊 Endpoints & Data Schema
-
-| Resource | Path | Description |
-| :--- | :--- | :--- |
-| **Options Terminal** | `https://<user>.github.io/<repo>/` | Master options trading terminal (`index.html`) |
-| **Stocks Terminal** | `https://<user>.github.io/<repo>/stocks.html` | Dedicated cash equities trading terminal (`stocks.html`) |
-| **Latest Telemetry API** | `https://<user>.github.io/<repo>/data/latest.json` | Master payload (options, stocks, macro, benchmark matrix) |
-| **Options Audit Ledger** | `https://<user>.github.io/<repo>/data/trades_log.json` | Persistent stateful options paper-trade ledger & metrics |
-| **Equities Audit Ledger** | `https://<user>.github.io/<repo>/data/stock_trades_log.json` | Persistent stateful equity paper-trade ledger & metrics |
-| **Historical Breadth Index** | `https://<user>.github.io/<repo>/data/summary.json` | Rolling daily macro breadth and regime history |
-| **Daily Snapshots** | `https://<user>.github.io/<repo>/data/history/YYYY-MM-DD.json` | Granular historical daily telemetry archives |
-| **Architecture Guide** | `DATA_METRICS_AND_SCORING_ARCHITECTURE.md` | Exhaustive data dictionary, formula breakdown & left-to-right matrix |
-
----
-
-## ⚙️ Automated GitHub Actions Workflow
-
-Configured in `.github/workflows/scan.yml` running on Ubuntu runners with `contents: write` permissions:
-
-* **05:45 MST (12:45 UTC) Mon–Fri**: Pre-market refresh ahead of market open.
-* **Hourly (13:30 – 20:30 UTC Mon–Fri)**: Real-time scan during US market hours (06:30 AM – 01:30 PM MST) logging live price reclaims.
-* **14:00 MST / 17:00 EDT (21:00 UTC) Mon–Fri**: Official market close, finalized volume ingestion, retention pruning, and audit ledger update.
-* **1-Year Retention Auto-Flush**: Automatically purges historical daily archives older than 365 days, capping repository footprint at ~15MB–20MB.
-* **Circuit Breaker**: Prevents overwriting valid telemetry if an upstream data feed provider glitch returns 0 tickers.
+### Are LEAPS Included in All Three Strategies?
+**YES.** LEAPS are tailored and available across all three strategy prongs:
+1. **🚀 High-Risk Sprint LEAPS**: 6 to 9 months to expiration (~210 DTE), aggressive ~0.70–0.75 Delta strikes. Designed for explosive high-beta stocks ($\beta \ge 1.8$) to participate in rapid momentum runs with **uncapped upside** while avoiding the severe 30-day theta cliff.
+2. **⚖️ Balanced Tactical LEAPS**: 9 to 15 months to expiration (~360 DTE), Deep-ITM ~0.75–0.80 Delta strikes on top-half sector relative strength leaders. Combines high directional sensitivity with minimal theta drag over a 15–25+ session holding horizon.
+3. **🛡️ Core Secular LEAPS**: January 2028 multi-year contracts (18–24+ months, ~500+ DTE), Deep-ITM ~0.78–0.82 Delta strikes on institutional mega-cap compounders with low IV Rank ($< 35\%$). Governed strictly by the 200-day moving average macro stop with zero time-based stagnation pressure.
 
 ---
 
-## 🧪 Comprehensive Testing & Verification Suite
+## ⚡ Universal Momentum Gating: RSI & MACD Hook
 
-A rigorous automated testing suite of **77 automated tests** (57 Python unit/functional tests + 20 Node.js end-to-end DOM simulation tests) is located in `/tests`:
+Every candidate recommendation across both the Stock Terminal and Options Terminal must satisfy two non-negotiable universal momentum criteria before qualification:
+
+```text
+       ┌─────────────────────────────────────────────────────────────┐
+       │             UNIVERSAL MOMENTUM GATEKEEPERS                  │
+       ├──────────────────────────────┬──────────────────────────────┤
+       │ 1. RSI(14) ≥ 45.0 Floor      │ 2. MACD Histogram Hook       │
+       │    • Strict Disqualification │    • Hist_t > Hist_t-1       │
+       │    • Weeds out dead pullbacks│    • Confirms momentum curl  │
+       └──────────────────────────────┴──────────────────────────────┘
+```
+
+1. **RSI(14) Floor ($\ge 45.0$)**: Eliminates exhausted pullbacks where selling pressure remains dominant. A stock below 45 RSI is disqualified regardless of 50 EMA proximity.
+2. **MACD Histogram Hook ($\text{Hist}_t > \text{Hist}_{t-1}$)**: Verifies that momentum deceleration has ended and buying pressure is accelerating upward on the 50 EMA bounce.
+3. **Qualification Display**: The terminal interface displays explicit visual badges for each qualification criterion (`RSI: 54.2 ≥45 🟢`, `MACD: ↗ Hook`, `β: 1.85`, `ADR: 3.8%`, `RVOL: 2.1x`) so traders can immediately verify why each setup qualified.
+
+---
+
+## 📊 Dual 100-Point Scoring Engines
+
+### A. Cash Equities Alpha Composite Score (0 to 100)
+Calculated in `engine/stocks.py` (`compute_alpha_composite_score`):
+
+$$\text{Stock Alpha Score} = S_{\text{Reclaim}} (20) + S_{\text{RVOL}} (20) + S_{\text{Sector RS}} (15) + S_{\text{Beta/Elasticity}} (15) + S_{\text{Momentum}} (15) + S_{\text{Structure}} (15)$$
+
+| Component | Weight | 🚀 High-Risk Sprint | ⚖️ Balanced Swing | 🛡️ Core Compounder |
+| :--- | :---: | :--- | :--- | :--- |
+| **1. Reclaim Velocity & Freshness** | **20 pts** | Day 0–1 Reclaim (20 pts) | Day 0–2 Reclaim (20 pts) | Stage 2 Stack (20 pts) |
+| **2. Institutional RVOL** | **20 pts** | $\text{RVOL} \ge 2.0\times$ (20 pts) | $\text{RVOL} \ge 1.3\times$ (20 pts) | Steady Volume (15 pts) |
+| **3. Sector Relative Strength (RS)** | **15 pts** | **Top-Quartile ETF & $\text{mom\_spread} > 0$** | **Top-Half ETF & $\text{mom\_spread} > 0$** | **Defensive/Secular Sector** |
+| **4. Beta & Price Elasticity** | **15 pts** | **$\beta \ge 1.8$ & $\text{ADR} \ge 3.5\%$ (15 pts)** | **$\beta \in [1.0, 1.5]$ & $\text{ADR } 2.0 - 3.2\%$** | **$\beta \le 1.0$ (Low Drag, 15 pts)** |
+| **5. Universal Momentum (RSI + MACD)**| **15 pts** | $\text{RSI} \ge 50$ + MACD Hist Hook | $\text{RSI} \ge 45$ + MACD Hist Hook | $\text{RSI} \ge 45$ + Bullish Stack |
+| **6. Dow Theory Market Structure** | **15 pts** | Confirmed HH/HL (15 pts) | Emerging Base / HH (15 pts) | Multi-Month Base (15 pts) |
+
+### B. Derivatives Options Alpha Radar Score (0 to 100)
+Calculated in `engine/patterns.py` (`compute_options_alpha_score`):
+
+$$\text{Options Alpha Score} = (\text{Directional Alpha} \times 0.35) + S_{\text{IV}} (20) + S_{\text{Liquidity}} (20) + S_{\text{Runway}} (15) + S_{\text{Momentum}} (10) + P_{\text{Earnings}}$$
+
+| Component | Weight | High-Risk Sprint (45–90 DTE) | Balanced Swing (60–120 DTE) | Core LEAPS (Jan 2028) |
+| :--- | :---: | :--- | :--- | :--- |
+| **1. Directional Foundation** | **35 pts** | $0.35 \times \text{Stock Alpha}$ | $0.35 \times \text{Stock Alpha}$ | $0.35 \times \text{Stock Alpha}$ |
+| **2. IV Rank Behavior** | **20 pts** | **High IV (60–85+) = 20 pts** | **Sweet Spot (35–65) = 20 pts**| **Low IV (< 35) = 20 pts** |
+| **3. Contract Liquidity** | **20 pts** | $\text{OI} \ge 1000$, $\text{Spread} \le 5\%$ | $\text{OI} \ge 500$, $\text{Spread} \le 8\%$ | $\text{OI} \ge 250$, $\text{Spread} \le 10\%$|
+| **4. 200 SMA Clearance Runway**| **15 pts** | Runway $\ge 8\%$ or Blue Sky | Runway $\ge 5\%$ or Blue Sky | Above 200 SMA Mandatory |
+| **5. Universal MACD/RSI Hook** | **10 pts** | MACD Hist Hook + $\text{RSI} \ge 45$| MACD Hist Hook + $\text{RSI} \ge 45$| Stage 2 Trend Stack |
+| **6. Earnings Blackout** | **Penalty** | $-35$ pts if inside trade DTE | $-35$ pts if inside trade DTE | $-35$ pts if inside 60 days |
+
+---
+
+## 🛡️ Risk & Execution Guardrails
+
+1. **Dynamic Sector Capital Allocation (30%–35% Cap)**: Rather than an arbitrary rigid cap of 3 per sector, each 16–21 slot book permits up to **30%–35% total capital per sector** (~5 to 6 positions in the #1 relative strength sector). This fully captures institutional sector momentum while preventing hyper-concentration.
+2. **The "Liquid Route" Auto-Switch (Options vs. Stock)**: If an options candidate meets all technical criteria (50 EMA, RSI, MACD, RVOL) but fails options chain liquidity ($\text{OI} < 500$ or spread $> 8\%$), the engine automatically routes the order ticket to the **Stock Portfolio as Common Shares** with a `🔄 AUTO-ROUTED FROM OPTIONS` badge.
+3. **The 70% Max-Profit Harvest Rule**: Vertical spreads that achieve $\ge 70\%$ of maximum potential spread width or reach TP1 trigger an automated early harvest, locking in profits and freeing up portfolio slots days ahead of expiration.
+4. **Stagnation Exits (Recycling Portfolio Heat)**:
+   * *High-Risk*: Position exits at Day 10 if profit $< +1.0\text{R}$.
+   * *Balanced*: Position exits or stop tightens to breakeven at Day 14 if gain $< 50\%$ of distance to TP1.
+   * *Core*: Governed strictly by trend stack integrity and the 200 SMA macro stop.
+5. **Anti-Chop Re-Entry Cooldown**: When a position is stopped out, the ticker enters a mandatory **4-to-5 trading day re-entry blackout**, protecting the portfolio from range-bound whipsaw markets.
+
+---
+
+## 🖥️ Terminal Interface & Display Controls
+
+### 3-Prong Strategic Allocation Filter Bars
+Both portals feature interactive strategy prong filter buttons directly above the primary recommendation tables:
+* **Options Terminal (`index.html`)**: `[ALL SETUPS]`, `[🚀 HIGH RISK (45–90d SPRINT)]`, `[⚖️ BALANCED (60–120d SWING)]`. Table 2 displays `[🛡️ CORE SECULAR COMPOUNDER]` Jan 2028 Call LEAPS.
+* **Stocks Terminal (`stocks.html`)**: `[ALL SWINGS]`, `[🚀 HIGH RISK (10d SPRINT)]`, `[⚖️ BALANCED (15–25d SWING)]`. Table 2 displays `[🛡️ STRATEGIC CORE ACCUMULATION]` Common Shares.
+
+### Real-Time Qualification Badges
+Every row in both terminals renders granular indicator telemetry:
+* **Prong Badge**: `🚀 HIGH RISK (SPRINT)`, `⚖️ BALANCED (SWING)`, or `🛡️ CORE (COMPOUNDER)`.
+* **Oscillators**: `RSI: 54.2 (≥45 Floor 🟢)` and `MACD: ↗ Hook (Hist+ 🟢)`.
+* **Elasticity**: `β: 1.85` and `ADR: 3.8%`.
+* **Volume**: `RVOL: 2.1x Institutional`.
+* **Velocity**: `D0 Reclaimed Today` / `D1 Confirmed`.
+* **Runway**: `CLEAR (Above 200MA)` or exact `% Runway` to overhead resistance.
+* **Options Liquidity**: `OI: 850/620 · Vol: 110` with live mid-price debits.
+
+---
+
+## 🧪 Automated Testing & Verification Suite
+
+A comprehensive automated testing suite of **73 automated tests** (53 Python unit/functional tests + 20 Node.js DOM simulation tests) verifies mathematical, architectural, and visual integrity:
 
 ```bash
-# 1. Run all Python test suites
-python3 tests/test_suite.py
-python3 tests/test_stock_engine.py
-python3 tests/test_stage1_allocator.py
-python3 tests/test_advanced_features.py
-python3 tests/test_functional_pipeline.py
+# 1. Run all Python unit & functional test suites
+cd terminal/abi-strategy-terminal
+python3 -m unittest discover -s tests -p "test_*.py"
 
 # 2. Run Node.js end-to-end simulation suites
 node tests/test_allocator_node.js
 node tests/test_stocks_page_node.js
 ```
 
-### Verified Test Coverage:
-1. **Mathematical & Indicator Integrity**: Validates `EMA 10/21/50/200`, `SMA 150/200`, `RSI(14)`, `MACD(12,26,9)`, `ADR%`, 60-day rolling `Beta` vs. `SPY`, 20-day `RVOL`, 1-year `IV Rank`, and 30-week `Weekly Stage` slope.
-2. **Benchmark Confluence & Market Commentary**: Validates 4-index confluence matrix across all 16 permutation states ($2^4$) and checks dynamic narrative generation across all four action verdict regimes.
-3. **Options Liquidity & Waterfall Queue**: Validates `verify_and_fetch_live_options()` across calls, puts, and LEAPS ($\ge 250\text{ OI}$, $\le 15\%$ spread width), off-hours spread blowout handling, and automatic next-in-line skipping on illiquid strikes.
-4. **Earnings Blackout & Data Integrity**: Validates confirmed earnings blackout penalty ($-35$ pts) and transparent unverified earnings handling ($-2$ pt haircut with `⚠️ UNVERIFIED EARNINGS` badge).
-5. **Market Structure & Dow Theory**: Validates 5-bar fractal swing pivots, emerging vs. confirmed HH/HL, and bearish LH/LL trap penalties.
-6. **Equity Strategy Engine (`engine/stocks.py`)**: Validates fixed fractional dollar-at-risk share sizing, 20% capital ceiling safeguard, Two-Tranche Scale & Trail exits (50% TP1 / 50% 50 EMA trail), gap-down slippage modeling, and JSON persistence.
-7. **Portfolio Allocator & LocalStorage State**: Validates capital sizing across tiers ($10k to $100k), dynamic dry powder adjustments, 33% session tranche pacing, integer contract rounding, small-account budget protection, position toggling, and the capacity ceiling guardrail.
-8. **Dual-Portal UI & Portability**: Validates independent `stocks.html` and `index.html` navigation, absence of leftover widgets, JSON Export schema validation, and JSON Import merge/replace behavior.
+### Verified Test Matrix:
+* **Scalable Capital Sizing**: Verifies $100K baseline scaling dynamically to $500K+ with dollar-at-risk share limits.
+* **3-Prong Generators**: Verifies High-Risk Sprint (10d), Balanced Swing (15–25d), and Core Compounder (40–120d).
+* **Stagnation Exits**: Verifies Day 10 ($<1.0\text{R}$) and Day 14 ($<50\%$ TP1) capital recycling stops.
+* **Bifurcated IV Scoring**: Verifies High-Risk rewards high IV (60–85+), Balanced rewards sweet spot (35–65), and Core rewards low IV ($<35$).
+* **Liquid Route Auto-Switch**: Verifies automatic re-routing of illiquid options to the common stock book.
+* **Universal Momentum Hooks**: Verifies RSI $\ge 45$ floor and MACD histogram slope gating.
+* **Capacity & Dynamic Sector Allocation**: Verifies 16–21 slot capacity per ledger and dynamic 30%–35% sector caps.

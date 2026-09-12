@@ -256,7 +256,10 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
     # Slopes & Momentum
     ema50_slope = round((float(ema50.iloc[-1]) - float(ema50.iloc[-5])) / float(ema50.iloc[-5]) * 100, 2) if len(ema50) >= 5 and float(ema50.iloc[-5]) > 0 else 0.0
     macd_crawling_up = bool(macd_hist.iloc[-1] > macd_hist.iloc[-2]) if len(macd_hist) >= 2 else False
-    rsi_above_50 = bool(float(rsi.iloc[-1]) >= 50.0)
+    macd_hook_ok = macd_crawling_up
+    rsi_val = round(float(rsi.iloc[-1]), 2)
+    rsi_above_50 = bool(rsi_val >= 50.0)
+    rsi_floor_ok = bool(rsi_val >= 45.0)
     
     # Overhead Clearance to 200 MA (Item 2D guardrail)
     if has_200sma:
@@ -327,10 +330,12 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
         "ema10_dist_pct": ema10_dist_pct,
         "ema21_dist_pct": ema21_dist_pct,
         "ema50_slope": ema50_slope,
-        "rsi": round(float(rsi.iloc[-1]), 2),
+        "rsi": rsi_val,
         "rsi_above_50": rsi_above_50,
+        "rsi_floor_ok": rsi_floor_ok,
         "macd_hist": round(float(macd_hist.iloc[-1]), 4),
         "macd_crawling_up": macd_crawling_up,
+        "macd_hook_ok": macd_hook_ok,
         "has_200sma": has_200sma,
         "overhead_runway_pct": (round(overhead_runway_pct, 2) if overhead_runway_pct is not None else None),
         "overhead_runway_label": overhead_runway_label,

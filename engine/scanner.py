@@ -490,11 +490,17 @@ def process_universe(raw_data=None, sample_date_str=None):
         runway_val = 0.0 if is_above_200 else (snapshot.get("overhead_runway_pct") or 0.0)
         overhead_ok = bool(not has_200 or is_above_200 or (runway_val and runway_val >= 5.0))
 
+        rsi_val = float(snapshot.get("rsi", 50.0))
+        rsi_floor_ok = bool(rsi_val >= 45.0)
+        macd_ok = bool(snapshot.get("macd_hook_ok", snapshot.get("macd_crawling_up", True)))
+
         is_qualified = (
             snapshot["price"] >= snapshot["ema50"] and
             reclaim_days <= 3 and
             retrace_type in ["EMA50", "DB", "OTE"] and
-            overhead_ok
+            overhead_ok and
+            rsi_floor_ok and
+            macd_ok
         )
 
         ret_val = snapshot.get("d1_return", 0.0)
@@ -564,6 +570,10 @@ def process_universe(raw_data=None, sample_date_str=None):
             trade_setup["mtf_status"] = mtf_check["status"]
             trade_setup["mtf_badge"] = mtf_check["badge"]
             trade_setup["rvol"] = snapshot.get("rvol", 1.0)
+            trade_setup["rsi"] = snapshot.get("rsi", 52.0)
+            trade_setup["macd_hook_ok"] = snapshot.get("macd_hook_ok", True)
+            trade_setup["beta"] = snapshot.get("beta", 1.0)
+            trade_setup["adr_pct"] = snapshot.get("adr_pct", 2.5)
             trade_setup["iv_rank"] = snapshot.get("iv_rank", 25.0)
             trade_setup["iv_status"] = snapshot.get("iv_status", "LOW (Cheap Vol · Debit Favorable)")
             trade_setup["weekly_stage"] = snapshot.get("weekly_stage", "STAGE 2 (Advancing)")
@@ -589,6 +599,10 @@ def process_universe(raw_data=None, sample_date_str=None):
         leaps_setup = screen_strategic_leaps_candidate(ticker, sector, snapshot)
         if leaps_setup is not None:
             leaps_setup["rvol"] = snapshot.get("rvol", 1.0)
+            leaps_setup["rsi"] = snapshot.get("rsi", 52.0)
+            leaps_setup["macd_hook_ok"] = snapshot.get("macd_hook_ok", True)
+            leaps_setup["beta"] = snapshot.get("beta", 1.0)
+            leaps_setup["adr_pct"] = snapshot.get("adr_pct", 2.5)
             leaps_setup["iv_rank"] = snapshot.get("iv_rank", 20.0)
             leaps_setup["iv_status"] = snapshot.get("iv_status", "LOW (Cheap Vol · Debit Favorable)")
             leaps_setup["weekly_stage"] = snapshot.get("weekly_stage", "STAGE 2 (Advancing)")
@@ -1188,6 +1202,9 @@ def process_universe(raw_data=None, sample_date_str=None):
             overhead_runway_pct=c_cand.get("overhead_runway_pct", 999.0),
             days_to_earnings=c_cand.get("days_to_earnings", 60),
             is_leaps=False,
+            strategy_prong=c_cand.get("strategy_prong", "BALANCED"),
+            rsi=c_cand.get("rsi", 52.0),
+            macd_hook_ok=c_cand.get("macd_hook_ok", True),
             return_breakdown=True
         )
         c_cand["options_alpha_score"] = opt_s
@@ -1206,6 +1223,9 @@ def process_universe(raw_data=None, sample_date_str=None):
             overhead_runway_pct=l_cand.get("overhead_runway_pct", 999.0),
             days_to_earnings=l_cand.get("days_to_earnings", 60),
             is_leaps=True,
+            strategy_prong="CORE",
+            rsi=l_cand.get("rsi", 52.0),
+            macd_hook_ok=l_cand.get("macd_hook_ok", True),
             return_breakdown=True
         )
         l_cand["options_alpha_score"] = l_s
@@ -1466,18 +1486,39 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str):
             cand_sec = c.get("sector", "General")
             cand_sub = c.get("subsector", "General")
             
+            # Dynamic Sector Cap (30%-35% = max 6 per sector in 18-slot portfolio)
+            MAX_OPTIONS_SLOTS = 18
+            max_sec = max(3, int(MAX_OPTIONS_SLOTS * 0.35))
+            max_sub = max(2, int(MAX_OPTIONS_SLOTS * 0.20))
+
             sub_count = len([t for t in open_trades if t.get("subsector") == cand_sub])
             sec_count = len([t for t in open_trades if t.get("sector") == cand_sec])
             total_open = len(open_trades)
+
+            # Anti-Chop Re-Entry Cooldown check (<5 sessions post stop-out)
+            is_cooldown = False
+            for prev in trades:
+                if prev.get("ticker") == ticker and prev.get("status") == "STOPPED_OUT" and prev.get("exit_date"):
+                    try:
+                        exit_dt = datetime.datetime.strptime(prev["exit_date"], "%Y-%m-%d").date()
+                        cur_dt = datetime.datetime.strptime(today_str, "%Y-%m-%d").date()
+                        if 0 <= (cur_dt - exit_dt).days <= 4:
+                            is_cooldown = True
+                            break
+                    except Exception:
+                        pass
+            if is_cooldown:
+                c["correlation_status"] = f"THROTTLED: Anti-Chop Cooldown (<5d: {ticker})"
+                continue
             
-            if sub_count >= 3:
-                c["correlation_status"] = f"THROTTLED: Sub-Sector Max 3 ({cand_sub})"
+            if sub_count >= max_sub:
+                c["correlation_status"] = f"THROTTLED: Sub-Sector Max {max_sub} ({cand_sub})"
                 continue
-            if sec_count >= 3:
-                c["correlation_status"] = f"THROTTLED: Sector Max 3 ({cand_sec})"
+            if sec_count >= max_sec:
+                c["correlation_status"] = f"THROTTLED: Sector Max {max_sec} ({cand_sec})"
                 continue
-            if total_open >= 7:
-                c["correlation_status"] = "THROTTLED: Portfolio Heat Max 7"
+            if total_open >= MAX_OPTIONS_SLOTS:
+                c["correlation_status"] = f"THROTTLED: Portfolio Heat Max {MAX_OPTIONS_SLOTS}"
                 continue
                 
             c["correlation_status"] = "APPROVED (Within Risk Limits)"

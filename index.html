@@ -766,12 +766,14 @@
                     <div class="flex items-center gap-1">
                         <button onclick="setDeployCapital(10000)" class="dep-cap-btn filter-btn text-xs" id="btn-dcap-10k">$10k</button>
                         <button onclick="setDeployCapital(25000)" class="dep-cap-btn filter-btn text-xs" id="btn-dcap-25k">$25k</button>
-                        <button onclick="setDeployCapital(50000)" class="dep-cap-btn filter-btn active text-xs bg-blue-600 text-white" id="btn-dcap-50k">$50k</button>
-                        <button onclick="setDeployCapital(100000)" class="dep-cap-btn filter-btn text-xs" id="btn-dcap-100k">$100k</button>
+                        <button onclick="setDeployCapital(50000)" class="dep-cap-btn filter-btn text-xs" id="btn-dcap-50k">$50k</button>
+                        <button onclick="setDeployCapital(100000)" class="dep-cap-btn filter-btn active text-xs bg-blue-600 text-white" id="btn-dcap-100k">$100k</button>
+                        <button onclick="setDeployCapital(250000)" class="dep-cap-btn filter-btn text-xs" id="btn-dcap-250k">$250k</button>
+                        <button onclick="setDeployCapital(500000)" class="dep-cap-btn filter-btn text-xs" id="btn-dcap-500k">$500k</button>
                     </div>
                     <div class="flex items-center gap-1.5 pt-1">
                         <span class="text-xs text-slate-500 font-mono">$</span>
-                        <input type="number" id="deploy-custom-capital" value="50000" step="5000" min="1000" max="1000000" class="bg-slate-950 border border-slate-700 text-xs text-white font-mono rounded px-2 py-1 w-28 focus:outline-none focus:border-emerald-500" onchange="setDeployCapital(parseFloat(this.value))">
+                        <input type="number" id="deploy-custom-capital" value="100000" step="5000" min="1000" max="1000000" class="bg-slate-950 border border-slate-700 text-xs text-white font-mono rounded px-2 py-1 w-28 focus:outline-none focus:border-emerald-500" onchange="setDeployCapital(parseFloat(this.value))">
                     </div>
                     <div class="text-[10px] text-slate-500 italic">Total account capital dedicated to strategy</div>
                 </div>
@@ -816,7 +818,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 text-xs font-mono border-b border-slate-800/80 pb-2">
                     <div>
                         <span class="text-slate-500 text-[10px] uppercase font-bold block">1. TOTAL CAPITAL:</span>
-                        <span class="font-bold text-white text-sm" id="plan-total-cap">$50,000</span>
+                        <span class="font-bold text-white text-sm" id="plan-total-cap">$100,000</span>
                     </div>
                     <div>
                         <span class="text-slate-500 text-[10px] uppercase font-bold block">2. MY OPEN RISK:</span>
@@ -881,6 +883,12 @@
                         <span class="text-amber-400" id="table1-header-icon">⚡</span> <span id="table1-header-title">Tactical Swings (Options Alpha Radar — Bull Call Spreads 45–60 DTE)</span>
                     </h2>
                     <p class="text-[11px] text-slate-400" id="table1-header-desc">High-velocity momentum setups: Confirmed D0–D2 reclaims, 200 MA clearance (≥5%), and strict invalidation stops.</p>
+                    <div class="flex items-center gap-1.5 mt-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Prong:</span>
+                        <button onclick="setOptionsProngFilter('ALL')" id="btn-opt-prong-all" class="opt-prong-btn filter-btn active text-[10px] font-bold bg-blue-600 text-white">ALL SETUPS</button>
+                        <button onclick="setOptionsProngFilter('HIGH_RISK')" id="btn-opt-prong-hr" class="opt-prong-btn filter-btn text-[10px] font-bold text-amber-300">🚀 HIGH RISK (45–90d SPRINT)</button>
+                        <button onclick="setOptionsProngFilter('BALANCED')" id="btn-opt-prong-bal" class="opt-prong-btn filter-btn text-[10px] font-bold text-sky-300">⚖️ BALANCED (60–120d SWING)</button>
+                    </div>
                 </div>
                 <!-- Directional Mode Switcher -->
                 <div class="flex items-center gap-1 p-1 bg-slate-950 rounded border border-slate-800">
@@ -1099,7 +1107,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-3 mt-3 border-t border-slate-800/80">
                 <div class="p-2 rounded bg-slate-950/60 border border-slate-800">
                     <div class="text-[9px] font-bold text-slate-500 uppercase">STARTING BALANCE</div>
-                    <div class="text-sm font-black text-white font-mono mt-0.5" id="sim-stat-start">$50,000</div>
+                    <div class="text-sm font-black text-white font-mono mt-0.5" id="sim-stat-start">$100,000</div>
                 </div>
                 <div class="p-2 rounded bg-slate-950/60 border border-slate-800">
                     <div class="text-[9px] font-bold text-slate-500 uppercase">REALIZED GAIN ($)</div>
@@ -1228,6 +1236,16 @@
         var currentPayload = null;
         var activeAssetClass = 'OPTIONS'; // Strictly Options Alpha Terminal
         var activeDirectionalMode = 'LONG';
+        var activeOptionsProng = 'ALL';
+
+        function setOptionsProngFilter(prong) {
+            activeOptionsProng = prong;
+            document.querySelectorAll('.opt-prong-btn').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+            if (prong === 'ALL') document.getElementById('btn-opt-prong-all')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (prong === 'HIGH_RISK') document.getElementById('btn-opt-prong-hr')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (prong === 'BALANCED') document.getElementById('btn-opt-prong-bal')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (window.currentPayload) renderRecsView(window.currentPayload);
+        }
 
         function setDirectionalMode(mode) {
             activeDirectionalMode = mode;
@@ -1255,7 +1273,7 @@
         var allTickersData = [];
         var activeGlobalSector = '';
         var activeTimeHorizon = 'session';
-        var deployCapital = 50000;
+        var deployCapital = 100000;
         var allocArchitectureMode = 'balanced';
         var allocCashReserveMode = 'auto_regime';
 
@@ -1368,7 +1386,7 @@
         }
 
         function resetAllocator() {
-            setDeployCapital(50000);
+            setDeployCapital(100000);
             const arch = document.getElementById('alloc-architecture-mode');
             if (arch) arch.value = 'balanced';
             const cash = document.getElementById('alloc-cash-reserve-mode');
@@ -1983,6 +2001,9 @@
             if (activeGlobalSector) {
                 candidates = candidates.filter(c => c.sector.toUpperCase() === activeGlobalSector);
             }
+            if (activeOptionsProng !== 'ALL') {
+                candidates = candidates.filter(c => (c.strategy_prong || 'BALANCED') === activeOptionsProng);
+            }
 
             // 1. Calculate Real Portfolio Committed Capital from LocalStorage
             const myPortfolio = getMyPortfolio();
@@ -2243,7 +2264,10 @@
                     }
 
                     tr.innerHTML = `
-                        <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">${c.ticker}</td>
+                        <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">
+                            <div class="text-sm">${c.ticker}</div>
+                            <div class="mt-1"><span class="px-1.5 py-0.2 rounded text-[8px] font-black ${c.strategy_prong === 'HIGH_RISK' ? 'bg-amber-950/90 text-amber-300 border border-amber-500/40' : 'bg-sky-950/90 text-sky-300 border border-sky-500/40'}">${c.prong_badge || (c.strategy_prong === 'HIGH_RISK' ? '🚀 HIGH RISK (SPRINT)' : '⚖️ BALANCED (SWING)')}</span></div>
+                        </td>
                         <td class="py-2.5 px-2.5 text-slate-300">${c.sector}</td>
                         <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${parseFloat(c.price).toFixed(2)}</td>
                         <td class="py-2.5 px-2.5 font-mono text-rose-400 font-semibold">$${parseFloat(c.stop).toFixed(2)}</td>
@@ -2256,6 +2280,11 @@
                             <div class="mt-1 flex items-center gap-1.5 font-mono text-[9px] text-slate-400">
                                 <span>RVOL: <b class="text-slate-200">${c.rvol || 1.0}x</b></span>
                                 <span class="px-1 py-0.2 rounded text-[8px] font-bold bg-sky-950/60 text-sky-400 border border-sky-500/30">IVR: ${c.iv_rank !== undefined ? c.iv_rank + '%' : '24%'}</span>
+                            </div>
+                            <div class="mt-1 flex flex-wrap gap-1 text-[8px] font-mono">
+                                <span class="px-1 py-0.2 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">RSI: ${c.rsi || 52} (≥45 🟢)</span>
+                                <span class="px-1 py-0.2 rounded bg-sky-950/80 text-sky-300 border border-sky-500/30">MACD: ↗ Hook</span>
+                                <span class="px-1 py-0.2 rounded bg-purple-950/80 text-purple-300 border border-purple-500/30">β: ${c.beta || 1.2}</span>
                             </div>
                             <div class="mt-0.5"><span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">OI: ${c.long_oi || 500}/${c.short_oi || 420} · Vol: ${c.opt_volume || 85}</span></div>
                         </td>

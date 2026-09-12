@@ -249,12 +249,14 @@
                     <div class="flex items-center gap-1">
                         <button onclick="setEquityCapital(10000)" class="eq-cap-btn filter-btn text-xs" id="btn-eqcap-10k">$10k</button>
                         <button onclick="setEquityCapital(25000)" class="eq-cap-btn filter-btn text-xs" id="btn-eqcap-25k">$25k</button>
-                        <button onclick="setEquityCapital(50000)" class="eq-cap-btn filter-btn active text-xs bg-blue-600 text-white" id="btn-eqcap-50k">$50k</button>
-                        <button onclick="setEquityCapital(100000)" class="eq-cap-btn filter-btn text-xs" id="btn-eqcap-100k">$100k</button>
+                        <button onclick="setEquityCapital(50000)" class="eq-cap-btn filter-btn text-xs" id="btn-eqcap-50k">$50k</button>
+                        <button onclick="setEquityCapital(100000)" class="eq-cap-btn filter-btn active text-xs bg-blue-600 text-white" id="btn-eqcap-100k">$100k</button>
+                        <button onclick="setEquityCapital(250000)" class="eq-cap-btn filter-btn text-xs" id="btn-eqcap-250k">$250k</button>
+                        <button onclick="setEquityCapital(500000)" class="eq-cap-btn filter-btn text-xs" id="btn-eqcap-500k">$500k</button>
                     </div>
                     <div class="flex items-center gap-1.5 pt-1">
                         <span class="text-xs text-slate-500 font-mono">$</span>
-                        <input type="number" id="equity-custom-capital" value="50000" step="5000" min="1000" max="1000000" class="bg-slate-950 border border-slate-700 text-xs text-white font-mono rounded px-2 py-1 w-28 focus:outline-none focus:border-blue-500" onchange="setEquityCapital(parseFloat(this.value))">
+                        <input type="number" id="equity-custom-capital" value="100000" step="5000" min="1000" max="1000000" class="bg-slate-950 border border-slate-700 text-xs text-white font-mono rounded px-2 py-1 w-28 focus:outline-none focus:border-blue-500" onchange="setEquityCapital(parseFloat(this.value))">
                     </div>
                     <div class="text-[10px] text-slate-500 italic">Total cash equity allocated to strategy</div>
                 </div>
@@ -286,8 +288,8 @@
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">4. Risk Model (Fractional)</label>
                     <div class="p-2 rounded bg-slate-950 border border-slate-800 text-xs text-slate-300">
-                        <div class="font-bold text-blue-400">Fixed 1.5% Risk of Equity / Trade</div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">Risk per trade = $750 · 20% max capital cap ($10,000)</div>
+                        <div class="font-bold text-blue-400">Dynamic 0.45% Dollar-at-Risk ($100k - $500k+)</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">Risk per trade: $450 (on $100k) · 6.0% max capital ceiling ($6,000) · 16–21 Slots</div>
                     </div>
                 </div>
             </div>
@@ -296,7 +298,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-4 mt-3 border-t border-slate-800/80">
                 <div class="p-2.5 rounded bg-slate-950/70 border border-slate-800">
                     <span class="text-[10px] font-extrabold text-slate-400 block uppercase">Total Account</span>
-                    <span class="text-sm font-mono font-bold text-white" id="eq-disp-total-cap">$50,000</span>
+                    <span class="text-sm font-mono font-bold text-white" id="eq-disp-total-cap">$100,000</span>
                 </div>
                 <div class="p-2.5 rounded bg-slate-950/70 border border-slate-800">
                     <span class="text-[10px] font-extrabold text-slate-400 block uppercase">In My Portfolio</span>
@@ -324,6 +326,12 @@
                     <h2 class="text-sm font-black text-white flex items-center gap-2 uppercase tracking-wide">
                         <span class="text-emerald-400">⚡</span> Tactical Equity Swings (50 EMA Reclaims — 1:2.5+ R/R)
                     </h2>
+                    <div class="flex items-center gap-1.5 mt-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Prong:</span>
+                        <button onclick="setStockProngFilter('ALL')" id="btn-stk-prong-all" class="stk-prong-btn filter-btn active text-[10px] font-bold bg-blue-600 text-white">ALL SWINGS</button>
+                        <button onclick="setStockProngFilter('HIGH_RISK')" id="btn-stk-prong-hr" class="stk-prong-btn filter-btn text-[10px] font-bold text-amber-300">🚀 HIGH RISK (10d SPRINT)</button>
+                        <button onclick="setStockProngFilter('BALANCED')" id="btn-stk-prong-bal" class="stk-prong-btn filter-btn text-[10px] font-bold text-sky-300">⚖️ BALANCED (15–25d SWING)</button>
+                    </div>
                     <p class="text-[11px] text-slate-400 mt-0.5">
                         High-velocity common stock setups: Confirmed D0–D2 reclaims, 200 SMA clearance, strict 50 EMA invalidation stops, and two-tranche scale & trail exits.
                     </p>
@@ -585,10 +593,20 @@
         // State variables
         var currentPayload = null;
         var stockTradesData = { summary: {}, trades: [] };
-        var activeStockView = 'recs'; // 'recs' or 'perf'
+        var activeStockView = 'recs';
+        var activeStockProng = 'ALL';
+
+        function setStockProngFilter(prong) {
+            activeStockProng = prong;
+            document.querySelectorAll('.stk-prong-btn').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+            if (prong === 'ALL') document.getElementById('btn-stk-prong-all')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (prong === 'HIGH_RISK') document.getElementById('btn-stk-prong-hr')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (prong === 'BALANCED') document.getElementById('btn-stk-prong-bal')?.classList.add('active', 'bg-blue-600', 'text-white');
+            renderStockSwings();
+        } // 'recs' or 'perf'
         var activeGlobalSector = '';
         var activeStockPerfFilter = 'ALL';
-        var equityDeployCapital = 50000;
+        var equityDeployCapital = 100000;
         var eqSimCapital = 50000;
 
         // Portfolio LocalStorage
@@ -636,7 +654,7 @@
         }
 
         function resetEquityAllocator() {
-            setEquityCapital(50000);
+            setEquityCapital(100000);
             document.getElementById('eq-alloc-architecture').value = 'balanced';
             document.getElementById('eq-dry-powder-mode').value = 'regime_adaptive';
             updateEquityAllocationPlan();
@@ -903,6 +921,9 @@
             if (activeGlobalSector) {
                 recs = recs.filter(r => (r.sector || '').toUpperCase().includes(activeGlobalSector) || (r.subsector || '').toUpperCase().includes(activeGlobalSector) || r.ticker.toUpperCase() === activeGlobalSector);
             }
+            if (activeStockProng !== 'ALL') {
+                recs = recs.filter(r => (r.strategy_prong || 'BALANCED') === activeStockProng);
+            }
 
             const countEl = document.getElementById('eq-swings-count');
             if (countEl) countEl.textContent = `${recs.length} Swings Qualified`;
@@ -913,8 +934,8 @@
             }
 
             const port = getMyEquityPortfolio();
-            const riskPerTradeDollars = equityDeployCapital * 0.015; // 1.5% fixed risk
-            const maxCapPerStock = equityDeployCapital * 0.20; // 20% max cap
+            const riskPerTradeDollars = equityDeployCapital * 0.0045; // 0.45% dollar-at-risk per idea ($450 on $100k, $2,250 on $500k)
+            const maxCapPerStock = equityDeployCapital * 0.06; // 6.0% max capital ceiling ($6,000 on $100k, $30,000 on $500k)
 
             recs.forEach((item, idx) => {
                 const tradeId = `STOCK_${item.ticker}_SWING`;
@@ -947,8 +968,9 @@
                 tr.className = 'hover:bg-slate-800/40 transition';
                 tr.innerHTML = `
                     <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">
-                        <div>${item.ticker}</div>
+                        <div class="text-sm">${item.ticker}</div>
                         <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-950/80 text-emerald-400 border border-emerald-500/40">BUY SHARES</span>
+                        <div class="mt-1"><span class="px-1.5 py-0.2 rounded text-[8px] font-black ${item.strategy_prong === 'HIGH_RISK' ? 'bg-amber-950/90 text-amber-300 border border-amber-500/40' : 'bg-sky-950/90 text-sky-300 border border-sky-500/40'}">${item.prong_badge || (item.strategy_prong === 'HIGH_RISK' ? '🚀 HIGH RISK (SPRINT)' : '⚖️ BALANCED (SWING)')}</span></div>
                     </td>
                     <td class="py-2.5 px-2.5 text-slate-300">
                         <div class="font-semibold text-slate-200">${item.sector}</div>
@@ -965,9 +987,13 @@
                     </td>
                     <td class="py-2.5 px-2.5 font-semibold text-amber-300">${item.rr_ratio || '1:2.5'}</td>
                     <td class="py-2.5 px-2.5">
-                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">D${item.reclaim_days || 2} CONFIRMED</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">D${item.reclaim_days || 1} RECLAIM</span>
                         <div class="text-[10px] text-slate-300 mt-0.5">RVOL: <b class="text-white">${item.rvol || 1.0}x</b></div>
-                        <div class="text-[9px] text-slate-500">${item.weekly_stage || 'STAGE 2 (Advancing)'}</div>
+                        <div class="mt-1 flex flex-wrap gap-1 text-[8px] font-mono">
+                            <span class="px-1 py-0.2 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">RSI: ${item.rsi || 52} (≥45 🟢)</span>
+                            <span class="px-1 py-0.2 rounded bg-sky-950/80 text-sky-300 border border-sky-500/30">MACD: ↗ Hook</span>
+                            <span class="px-1 py-0.2 rounded bg-purple-950/80 text-purple-300 border border-purple-500/30">β: ${item.beta || 1.2}</span>
+                        </div>
                     </td>
                     <td class="py-2.5 px-2.5 text-[11px] font-mono">
                         <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${item.has_200sma === false ? 'bg-slate-800 text-slate-400 border border-slate-700' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30'}">${item.overhead_runway_label || (item.overhead_runway_pct !== null && item.overhead_runway_pct !== undefined ? (item.overhead_runway_pct >= 900 ? 'CLEAR (Above 200 SMA)' : item.overhead_runway_pct + '% Runway') : 'N/A (<200d History)')}</span>
