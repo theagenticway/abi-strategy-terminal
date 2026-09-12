@@ -332,24 +332,28 @@ def model_options_contract(ticker: str, price: float, tp1: float, reclaim_days: 
         }
 
 def evaluate_earnings_blackout(ticker: str, earnings_date=None, today=None) -> dict:
-    """Screens upcoming corporate earnings to enforce the 45-day Options Alpha Radar blackout rule."""
+    """
+    Screens upcoming corporate earnings to enforce the 45-day Options Alpha Radar blackout rule.
+    Item 1A: If earnings date is unverified from API, flag transparently as UNVERIFIED EARNINGS,
+    but allow high-scoring stocks to make the list with visual badge.
+    """
     if today is None:
         today = datetime.date(2026, 9, 6)
         
     if earnings_date is None:
-        # If unknown, assign default safe window outside 45 DTE
         return {
             "safe": True,
-            "status": "SAFE (62d)",
-            "days_to_earnings": 62,
-            "badge": "emerald"
+            "status": "UNVERIFIED EARNINGS",
+            "days_to_earnings": None,
+            "badge": "amber",
+            "is_unverified": True
         }
         
     if isinstance(earnings_date, str):
         try:
             earnings_date = datetime.datetime.strptime(earnings_date, "%Y-%m-%d").date()
         except Exception:
-            return {"safe": True, "status": "SAFE (Passed)", "days_to_earnings": 999, "badge": "emerald"}
+            return {"safe": True, "status": "UNVERIFIED EARNINGS", "days_to_earnings": None, "badge": "amber", "is_unverified": True}
     elif isinstance(earnings_date, datetime.datetime):
         earnings_date = earnings_date.date()
         
@@ -360,21 +364,24 @@ def evaluate_earnings_blackout(ticker: str, earnings_date=None, today=None) -> d
             "safe": False,
             "status": f"BLACKOUT ({days_to}d)",
             "days_to_earnings": days_to,
-            "badge": "amber"
+            "badge": "amber",
+            "is_unverified": False
         }
     elif days_to < 0:
         return {
             "safe": True,
             "status": "SAFE (Passed)",
             "days_to_earnings": days_to,
-            "badge": "emerald"
+            "badge": "emerald",
+            "is_unverified": False
         }
     else:
         return {
             "safe": True,
             "status": f"SAFE ({days_to}d)",
             "days_to_earnings": days_to,
-            "badge": "emerald"
+            "badge": "emerald",
+            "is_unverified": False
         }
 
 
@@ -450,13 +457,16 @@ def compute_options_alpha_score(
     else:
         liq_pts = 3.0
 
-    # 4. Overhead Runway to 200 SMA (15 pts max)
+    # 4. Overhead Runway to 200 SMA (15 pts max) (Item 2D)
     try:
-        runway = float(overhead_runway_pct) if overhead_runway_pct is not None else 10.0
+        runway = float(overhead_runway_pct) if overhead_runway_pct is not None else None
     except (ValueError, TypeError):
-        runway = 10.0
-    if runway >= 900.0:
-        runway_pts = 15.0 # Blue sky / above 200 SMA
+        runway = None
+
+    if runway is None:
+        runway_pts = 8.0  # Neutral baseline for new issues / spinoffs with <200d history
+    elif runway >= 900.0:
+        runway_pts = 15.0 # Genuine Blue sky / above confirmed 200 SMA
     elif runway >= 8.0:
         runway_pts = 12.0
     elif runway >= 5.0:
@@ -464,12 +474,18 @@ def compute_options_alpha_score(
     else:
         runway_pts = 2.0
 
-    # 5. Earnings Blackout Penalty
+    # 5. Earnings Blackout Penalty (Item 1A)
     try:
-        dte_earnings = int(days_to_earnings) if days_to_earnings is not None else 60
+        dte_earnings = int(days_to_earnings) if days_to_earnings is not None else None
     except (ValueError, TypeError):
-        dte_earnings = 60
-    earnings_penalty = -35.0 if (0 <= dte_earnings <= 45 and not is_leaps) else 0.0
+        dte_earnings = None
+
+    if dte_earnings is not None and 0 <= dte_earnings <= 45 and not is_leaps:
+        earnings_penalty = -35.0  # Confirmed earnings inside DTE: major blackout penalty
+    elif dte_earnings is None:
+        earnings_penalty = -2.0   # Unverified: minimal uncertainty haircut, allows strong setups to make the list
+    else:
+        earnings_penalty = 0.0
 
     total = max(5.0, min(100.0, round(dir_pts + iv_pts + liq_pts + runway_pts + earnings_penalty, 1)))
 
@@ -610,7 +626,7 @@ def screen_strategic_leaps_candidate(ticker: str, sector: str, snapshot: dict, t
     if price is None or ema50 is None or np.isnan(price) or price <= 0:
         return None
     sma150 = snapshot.get("sma150", ema50)
-    sma200 = snapshot.get("sma200", ema50)
+    sma200 = snapshot.get("sma200") or ema50
     beta = snapshot.get("beta", 1.0)
     adr = snapshot.get("adr_pct", 2.5)
 
@@ -874,11 +890,15 @@ def verify_and_fetch_live_options(ticker: str, option_type: str = "CALL", long_s
         short_spread = ((short_ask - short_bid) / short_mid) if short_mid > 0 else 0.05
         max_spread = max(long_spread, short_spread)
 
-        # Off-hours check: If market is closed, bid/ask may be zero. If so, fall back on OI and lastPrice
-        is_off_hours = (long_bid == 0 and long_ask == 0 and short_bid == 0 and short_ask == 0)
-        if is_off_hours:
-            passed = bool(min_oi >= 150 or total_vol >= 5)
-            reason = None if passed else f"Low Open Interest ({min_oi} < 150)"
+        # Item 1B: Robust Off-Hours / Post-Market Close Detection
+        # Outside regular hours, market makers pull quotes, causing spreads to artificially blow out (>25%).
+        # If OI is strong (>= 250), rely on settled Open Interest and Volume rather than rejecting valid setups.
+        is_wide_off_hours_spread = bool(max_spread > 0.20 and min_oi >= 250)
+        is_zero_quotes = bool(long_bid == 0 or long_ask == 0 or short_bid == 0 or short_ask == 0)
+
+        if is_zero_quotes or is_wide_off_hours_spread:
+            passed = bool(min_oi >= 200 or total_vol >= 5)
+            reason = None if passed else f"Low Off-Hours Open Interest ({min_oi} < 200)"
         else:
             passed = bool((min_oi >= 250 or total_vol >= 10) and max_spread <= 0.15)
             reason = None if passed else f"Low OI ({min_oi} < 250) or Spread ({max_spread*100:.1f}% > 15%)"

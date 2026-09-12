@@ -380,5 +380,89 @@ class TestStockStrategyEngine(unittest.TestCase):
         self.assertEqual(b_trap["earnings_penalty"], -35.0)
 
 
+    def test_unverified_earnings_and_blackout_behavior(self):
+        """
+        Item 1A Test:
+        - When earnings date is missing/unverified, transparently flag as UNVERIFIED EARNINGS
+        - Ensure high-scoring candidates still make the list (only -2 pt haircut, no -35 pt blackout penalty)
+        - Confirmed earnings in 0-45 DTE still receive strict -35 pt blackout penalty
+        """
+        from patterns import evaluate_earnings_blackout, compute_options_alpha_score
+
+        # 1. Missing earnings date -> UNVERIFIED EARNINGS with amber badge
+        res_unverif = evaluate_earnings_blackout("SOME_TICKER", None)
+        self.assertTrue(res_unverif["safe"], "Must not be disqualified")
+        self.assertEqual(res_unverif["status"], "UNVERIFIED EARNINGS")
+        self.assertEqual(res_unverif["badge"], "amber")
+        self.assertTrue(res_unverif["is_unverified"])
+
+        # 2. Score calculation with unverified earnings vs confirmed blackout
+        score_unverif, b_unverif = compute_options_alpha_score(
+            directional_alpha=85.0, iv_rank=20.0, long_oi=800, short_oi=600,
+            bid_ask_spread_pct=0.05, overhead_runway_pct=999.0, days_to_earnings=None,
+            return_breakdown=True
+        )
+        self.assertGreater(score_unverif, 85.0, "High-scoring setup must still make the list with unverified earnings")
+        self.assertEqual(b_unverif["earnings_penalty"], -2.0)
+
+        # 3. Confirmed blackout inside 45 DTE -> strict -35 penalty
+        score_blackout, b_blackout = compute_options_alpha_score(
+            directional_alpha=85.0, iv_rank=20.0, long_oi=800, short_oi=600,
+            bid_ask_spread_pct=0.05, overhead_runway_pct=999.0, days_to_earnings=20,
+            return_breakdown=True
+        )
+        self.assertEqual(b_blackout["earnings_penalty"], -35.0)
+        self.assertLess(score_blackout, score_unverif)
+
+    def test_history_under_200_bars_handling(self):
+        """
+        Item 2D Test:
+        - Tickers with < 200 bars must NOT falsely fall back to EMA50 and receive full 15 pt blue-sky clearance
+        - Must be labeled as N/A (<200d History) with neutral 8-pt baseline
+        """
+        import pandas as pd
+        import numpy as np
+        from indicators import compute_technical_snapshot
+        from patterns import compute_options_alpha_score
+
+        # Create short 80-bar DataFrame (recent IPO / spinoff)
+        dates = pd.date_range("2026-05-01", periods=80, freq="B")
+        close = pd.Series(np.linspace(50, 70, 80), index=dates)
+        df_short = pd.DataFrame({
+            "Open": close * 0.99,
+            "High": close * 1.01,
+            "Low": close * 0.98,
+            "Close": close,
+            "Volume": 1000000
+        }, index=dates)
+
+        snap = compute_technical_snapshot(df_short)
+        self.assertFalse(snap["has_200sma"], "Must flag has_200sma = False for <200d")
+        self.assertIsNone(snap["overhead_runway_pct"])
+        self.assertEqual(snap["overhead_runway_label"], "N/A (<200d History)")
+
+        # Scoring receives neutral 8-pt baseline rather than 15-pt blue-sky
+        score, b = compute_options_alpha_score(overhead_runway_pct=snap["overhead_runway_pct"], return_breakdown=True)
+        self.assertEqual(b["overhead_runway"], 8.0)
+
+    def test_emerging_vs_confirmed_market_structure(self):
+        """
+        Item 2E Test:
+        - Evaluates leading-edge Day 0 / Day 1 breakout velocity
+        - Classifies as emerging or confirmed HH/HL
+        """
+        import pandas as pd
+        from indicators import analyze_market_structure
+
+        # Emerging breakout series
+        uptrend = pd.Series([100, 105, 102, 108, 105, 112, 109, 115, 111, 118, 114, 115, 116, 122, 126])
+        h = uptrend * 1.01
+        l = uptrend * 0.99
+        res = analyze_market_structure(h, l, uptrend)
+        self.assertEqual(res["regime"], "BULLISH_HH_HL")
+        self.assertIn("HH/HL", res["badge"])
+        self.assertIn(res["status"], ["CONFIRMED", "EMERGING"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -152,21 +152,39 @@ def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, 
     else:
         overhead_runway = 999.0
 
+    # Leading-edge analysis for Day 0 / Day 1 breakout velocity (Item 2E)
+    recent_high = float(np.max(h[-2:])) if n >= 2 else current_price
+    is_emerging_hh = bool(recent_high > sh2 * 1.002)
+    is_emerging_hl = bool(cur_support_floor > sl2 * 0.998)
+
     if has_higher_high and has_higher_low:
         regime = "BULLISH_HH_HL"
-        badge = "🟢 HH/HL BULLISH"
+        if break_of_structure or (n >= 4 and h[-1] >= h[-2]):
+            badge = "🟢 HH/HL (CONFIRMED)"
+            status = "CONFIRMED"
+        else:
+            badge = "🟢 HH/HL (EMERGING)"
+            status = "EMERGING"
         structure_score = 25.0
     elif has_higher_low and not has_higher_high:
         regime = "CONSOLIDATION_BASE"
-        badge = "🟡 BASE BUILDING"
-        structure_score = 18.0
+        if is_emerging_hh:
+            badge = "🟡 BASE (EMERGING HH)"
+            status = "EMERGING_HH"
+            structure_score = 20.0
+        else:
+            badge = "🟡 BASE BUILDING"
+            status = "BASE_BUILDING"
+            structure_score = 18.0
     elif not has_higher_low and not has_higher_high:
         regime = "BEARISH_LH_LL"
         badge = "🔴 LH/LL BEARISH"
+        status = "BEARISH_TRAP"
         structure_score = 5.0
     else:
         regime = "NEUTRAL"
         badge = "⚪ NEUTRAL"
+        status = "NEUTRAL"
         structure_score = 12.0
 
     return {
@@ -178,7 +196,10 @@ def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, 
         "break_of_structure": break_of_structure,
         "prior_swing_high": round(sh2, 2),
         "prior_swing_low": round(sl1, 2),
-        "structure_score": structure_score
+        "structure_score": structure_score,
+        "status": status,
+        "is_emerging_hh": is_emerging_hh,
+        "is_emerging_hl": is_emerging_hl
     }
 
 
@@ -219,13 +240,16 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
     current_ema50 = float(ema50.iloc[-1]) if not np.isnan(ema50.iloc[-1]) else current_price
     current_sma150 = float(sma150.iloc[-1]) if not np.isnan(sma150.iloc[-1]) else current_ema50
     current_ema200 = float(ema200.iloc[-1]) if not np.isnan(ema200.iloc[-1]) else current_ema50
-    current_sma200 = float(sma200.iloc[-1]) if not np.isnan(sma200.iloc[-1]) else current_ema50
+    
+    # Item 2D: Distinguish stocks with < 200 trading days history vs genuine 200 SMA
+    has_200sma = bool(len(close) >= 200 and not np.isnan(sma200.iloc[-1]))
+    current_sma200 = float(sma200.iloc[-1]) if has_200sma else None
     
     # Percentages
     ema50_dist_pct = round(((current_price - current_ema50) / current_ema50) * 100, 2) if current_ema50 > 0 else 0.0
     sma150_dist_pct = round(((current_price - current_sma150) / current_sma150) * 100, 2) if current_sma150 > 0 else 0.0
     ema200_dist_pct = round(((current_price - current_ema200) / current_ema200) * 100, 2) if current_ema200 > 0 else 0.0
-    sma200_dist_pct = round(((current_price - current_sma200) / current_sma200) * 100, 2) if current_sma200 > 0 else 0.0
+    sma200_dist_pct = round(((current_price - current_sma200) / current_sma200) * 100, 2) if (has_200sma and current_sma200 > 0) else None
     ema10_dist_pct = round(((current_price - float(ema10.iloc[-1])) / float(ema10.iloc[-1])) * 100, 2) if float(ema10.iloc[-1]) > 0 else 0.0
     ema21_dist_pct = round(((current_price - float(ema21.iloc[-1])) / float(ema21.iloc[-1])) * 100, 2) if float(ema21.iloc[-1]) > 0 else 0.0
     
@@ -234,9 +258,15 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
     macd_crawling_up = bool(macd_hist.iloc[-1] > macd_hist.iloc[-2]) if len(macd_hist) >= 2 else False
     rsi_above_50 = bool(float(rsi.iloc[-1]) >= 50.0)
     
-    # Overhead Clearance to 200 MA (Mandatory Options Alpha Radar rule: 5-8% clearance runway)
-    overhead_runway_pct = max(0.0, -sma200_dist_pct) if current_price < current_sma200 else 999.0
-    overhead_clearance_ok = bool(overhead_runway_pct >= 5.0)  # Either >200 MA or at least 5% runway below it
+    # Overhead Clearance to 200 MA (Item 2D guardrail)
+    if has_200sma:
+        overhead_runway_pct = max(0.0, -sma200_dist_pct) if current_price < current_sma200 else 999.0
+        overhead_clearance_ok = bool(overhead_runway_pct >= 5.0)
+        overhead_runway_label = "CLEAR (Above 200MA)" if overhead_runway_pct >= 900.0 else f"{overhead_runway_pct:.1f}% Runway"
+    else:
+        overhead_runway_pct = None
+        overhead_clearance_ok = True # Does not disqualify, but transparently flagged
+        overhead_runway_label = "N/A (<200d History)" 
     
     # ADR% and Beta
     adr_pct = round(calculate_adr_pct(high, low, close, 20), 2)
@@ -289,7 +319,7 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
         "ema50": round(current_ema50, 2),
         "sma150": round(current_sma150, 2),
         "ema200": round(current_ema200, 2),
-        "sma200": round(current_sma200, 2),
+        "sma200": round(current_sma200, 2) if current_sma200 is not None else None,
         "ema50_dist_pct": ema50_dist_pct,
         "sma150_dist_pct": sma150_dist_pct,
         "ema200_dist_pct": ema200_dist_pct,
@@ -301,7 +331,9 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
         "rsi_above_50": rsi_above_50,
         "macd_hist": round(float(macd_hist.iloc[-1]), 4),
         "macd_crawling_up": macd_crawling_up,
-        "overhead_runway_pct": round(overhead_runway_pct, 2),
+        "has_200sma": has_200sma,
+        "overhead_runway_pct": (round(overhead_runway_pct, 2) if overhead_runway_pct is not None else None),
+        "overhead_runway_label": overhead_runway_label,
         "overhead_clearance_ok": overhead_clearance_ok,
         "adr_pct": adr_pct,
         "beta": beta,

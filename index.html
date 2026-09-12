@@ -2228,7 +2228,7 @@
                     } else {
                         sizingHtml = `
                             <div class="mb-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${rankBadge}">★ ${rankTitle}</span></div>
-                            <div><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isSafeEarnings ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/60 text-amber-400 border border-amber-500/30'}">● ${earningsText}</span></div>
+                            <div><span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.earnings_status === 'UNVERIFIED EARNINGS' ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30' : (isSafeEarnings ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30' : 'bg-rose-950/60 text-rose-400 border border-rose-500/30')}">● ${c.earnings_status === 'UNVERIFIED EARNINGS' ? '⚠️ UNVERIFIED EARNINGS' : earningsText}</span></div>
                             <div class="text-xs font-mono font-bold text-emerald-400">Buy ${contracts} Contract${contracts > 1 ? 's' : ''}</div>
                             <div class="text-[10px] font-mono text-slate-400">$${totalTradeDebit.toLocaleString()} debit ($${allocPerTrade.toLocaleString()} budget${idleRolledCash > 0 ? ` · $${idleRolledCash} rolled` : ''})</div>
                         `;
@@ -2259,7 +2259,7 @@
                             </div>
                             <div class="mt-0.5"><span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">OI: ${c.long_oi || 500}/${c.short_oi || 420} · Vol: ${c.opt_volume || 85}</span></div>
                         </td>
-                        <td class="py-2.5 px-2.5 text-[11px] font-mono">${(c.overhead_runway_pct === 0 || c.overhead_runway_pct === 0.0 || c.overhead_runway_pct === "0%" || c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`}</td>
+                        <td class="py-2.5 px-2.5 text-[11px] font-mono">${c.has_200sma === false ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">N/A (<200d History)</span>' : ((c.overhead_runway_pct === 0 || c.overhead_runway_pct === 0.0 || c.overhead_runway_pct === "0%" || c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`)}</td>
                         <td class="py-2.5 px-2.5 space-y-1">
                             ${sizingHtml}
                             ${portBtnHtml}

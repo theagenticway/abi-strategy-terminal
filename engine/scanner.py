@@ -484,10 +484,11 @@ def process_universe(raw_data=None, sample_date_str=None):
         else:
             trend_quality = "BELOW ALL — avoid longs"
 
-        # Clearance runway to 200 MA
-        is_above_200 = (snapshot["price"] >= snapshot["sma200"])
-        runway_val = 0.0 if is_above_200 else snapshot["overhead_runway_pct"]
-        overhead_ok = bool(is_above_200 or runway_val >= 5.0)
+        # Clearance runway to 200 MA (Item 2D guardrail for <200d history)
+        has_200 = bool(snapshot.get("has_200sma", True) and snapshot.get("sma200") is not None)
+        is_above_200 = bool(snapshot["price"] >= snapshot["sma200"]) if has_200 else True
+        runway_val = 0.0 if is_above_200 else (snapshot.get("overhead_runway_pct") or 0.0)
+        overhead_ok = bool(not has_200 or is_above_200 or (runway_val and runway_val >= 5.0))
 
         is_qualified = (
             snapshot["price"] >= snapshot["ema50"] and
@@ -550,6 +551,8 @@ def process_universe(raw_data=None, sample_date_str=None):
             trade_setup = structure_trade_signal(ticker, sector, snapshot, retrace_type, reclaim_days, spy_regime_for_sizing)
             trade_setup["overhead_runway_pct"] = runway_val
             trade_setup["overhead_clearance_ok"] = overhead_ok
+            trade_setup["has_200sma"] = snapshot.get("has_200sma", True)
+            trade_setup["overhead_runway_label"] = snapshot.get("overhead_runway_label", "CLEAR (Above 200MA)")
             trade_setup["execution_state"] = "PENDING_EOD" if (is_intraday and reclaim_days == 0) else "CONFIRMED"
             trade_setup["execution_badge"] = "🟡 PENDING CLOSE (Wait EOD)" if (is_intraday and reclaim_days == 0) else "🟢 CONFIRMED CLOSE"
             
@@ -573,6 +576,8 @@ def process_universe(raw_data=None, sample_date_str=None):
                 if stock_setup is not None:
                     stock_setup["overhead_runway_pct"] = runway_val
                     stock_setup["overhead_clearance_ok"] = overhead_ok
+                    stock_setup["has_200sma"] = snapshot.get("has_200sma", True)
+                    stock_setup["overhead_runway_label"] = snapshot.get("overhead_runway_label", "CLEAR (Above 200MA)")
                     stock_setup["execution_state"] = trade_setup["execution_state"]
                     stock_setup["execution_badge"] = trade_setup["execution_badge"]
                     if not is_broad_index:

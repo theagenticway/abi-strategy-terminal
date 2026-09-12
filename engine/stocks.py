@@ -377,7 +377,7 @@ def structure_core_stock_accumulation(ticker: str, sector: str, snapshot: dict, 
     price = snapshot.get("price")
     if price is None or np.isnan(price) or price <= 0:
         return None
-    sma200 = snapshot.get("sma200", price * 0.85)
+    sma200 = snapshot.get("sma200") or (price * 0.85)
     macro_stop = round(sma200 * 0.97, 2)
     risk_per_share = round(price - macro_stop, 2)
 
