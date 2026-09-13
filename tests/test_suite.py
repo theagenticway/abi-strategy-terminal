@@ -215,17 +215,23 @@ class TestDataIntegrity(unittest.TestCase):
         self.assertIn("profit_factor", summary)
         self.assertGreater(summary["total_recommendations"], 0)
         self.assertGreater(len(log_data["trades"]), 0)
-        
+
+        # Complete set of valid statuses supported across engine, UI, and ledger
         valid_statuses = [
-            "OPEN", 
-            "TP1_HIT", 
-            "TP2_HIT", 
-            "TP1_EXPIRED_WIN", 
-            "CLOSED_BREAKEVEN", 
-            "STOPPED_OUT", 
-            "STAGNATION_EXIT"
+            "OPEN",
+            "TP1_HIT",
+            "TP2_HIT",
+            "TP1_SCALED",
+            "TP1_EXPIRED_WIN",
+            "CLOSED_WIN",
+            "CLOSED_LOSS",
+            "CLOSED_TRAILING_PROFIT",
+            "CLOSED_BREAKEVEN",
+            "STOPPED_OUT",
+            "STAGNATION_EXIT",
+            "CLOSED_EVICTED"
         ]
-        
+
         for t in log_data["trades"]:
             self.assertIn("ticker", t)
             self.assertIn("entry_price", t)
