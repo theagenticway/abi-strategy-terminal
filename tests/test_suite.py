@@ -215,14 +215,24 @@ class TestDataIntegrity(unittest.TestCase):
         self.assertIn("profit_factor", summary)
         self.assertGreater(summary["total_recommendations"], 0)
         self.assertGreater(len(log_data["trades"]), 0)
+        
+        valid_statuses = [
+            "OPEN", 
+            "TP1_HIT", 
+            "TP2_HIT", 
+            "TP1_EXPIRED_WIN", 
+            "CLOSED_BREAKEVEN", 
+            "STOPPED_OUT", 
+            "STAGNATION_EXIT"
+        ]
+        
         for t in log_data["trades"]:
             self.assertIn("ticker", t)
             self.assertIn("entry_price", t)
             self.assertIn("stop_price", t)
             self.assertIn("tp1", t)
             self.assertIn("status", t)
-            self.assertIn(t["status"], ["OPEN", "TP1_HIT", "TP2_HIT", "STOPPED_OUT"])
-
+            self.assertIn(t["status"], valid_statuses)
 class TestFrontendLogic(unittest.TestCase):
     def setUp(self):
         index_path = os.path.join(ROOT_DIR, "index.html")
