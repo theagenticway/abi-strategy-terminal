@@ -422,7 +422,8 @@ def structure_high_risk_stock_trade(
         risk_per_share = round(price * 0.04, 2)
         stop_price = round(price - risk_per_share, 2)
 
-    # Velocity Harvest Target Geometry: Tranche 1 at +2.2R, Tranche 2 at +3.5R
+    # Velocity Harvest Target Geometry: TP0.5 at +1.0R (Scale 50%), TP1 at +2.2R, TP2 at +3.5R
+    tp0_5 = round(price + (risk_per_share * 1.0), 2)
     tp1 = round(price + (risk_per_share * 2.2), 2)
     tp2 = round(price + (risk_per_share * 3.5), 2)
     rr_ratio = f"1:{round((tp1 - price) / max(0.01, risk_per_share), 1)}"
@@ -466,6 +467,7 @@ def structure_high_risk_stock_trade(
         "subsector": subsector or "General",
         "price": price,
         "stop": stop_price,
+        "tp0_5": tp0_5,
         "tp1": tp1,
         "tp2": tp2,
         "rr_ratio": rr_ratio,
@@ -521,7 +523,8 @@ def structure_balanced_stock_trade(
         risk_per_share = round(price * 0.05, 2)
         stop_price = round(price - risk_per_share, 2)
 
-    # Balanced Swing Geometry: Tranche 1 at +2.5R, Tranche 2 at +3.5R
+    # Balanced Swing Geometry: TP0.5 at +1.0R (Scale 50%), TP1 at +2.5R, TP2 at +3.5R
+    tp0_5 = round(price + (risk_per_share * 1.0), 2)
     tp1 = round(price + (risk_per_share * 2.5), 2)
     tp2 = round(price + (risk_per_share * 3.5), 2)
     rr_ratio = f"1:{round((tp1 - price) / max(0.01, risk_per_share), 1)}"
@@ -566,6 +569,7 @@ def structure_balanced_stock_trade(
         "subsector": subsector or "General",
         "price": price,
         "stop": stop_price,
+        "tp0_5": tp0_5,
         "tp1": tp1,
         "tp2": tp2,
         "rr_ratio": rr_ratio,
@@ -719,8 +723,8 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
 
             entry_p = t["entry_price"]
             stop_p = t["stop_price"]
-            tp1 = t["tp1"]
-            tp2 = t["tp2"]
+            tp1 = t.get("tp1", round(entry_p * 1.15, 2))
+            tp2 = t.get("tp2", round(entry_p * 1.25, 2))
             prong = t.get("strategy_prong", "BALANCED")
             days_active = t.get("days_active", 1)
             risk_per_share = max(0.01, entry_p - stop_p)
@@ -731,7 +735,7 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
                     current_r = (close_p - entry_p) / risk_per_share
                     # If trade is healthy, trending above EMA50, and profitable, let it run!
                     is_healthy_runner = (close_p > entry_p and close_p >= ema50_p and current_r >= 0.5)
-                    if is_healthy_runner and days_active < 22:
+                    if is_healthy_runner and days_active < 25:
                         # Trail stop to breakeven to lock in house money, give it extended runway
                         t["stop_price"] = max(t["stop_price"], entry_p)
                     elif current_r < 1.0:
@@ -749,8 +753,8 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
                     tp1_dist = tp1 - entry_p
                     curr_gain = close_p - entry_p
                     is_healthy_runner = (close_p > entry_p and close_p >= ema50_p)
-                    if is_healthy_runner and days_active < 35:
-                        # Trail stop to breakeven, allow extended 35-day trend compounding
+                    if is_healthy_runner and days_active < 45:
+                        # Trail stop to breakeven, allow extended 45-day trend compounding
                         t["stop_price"] = max(t["stop_price"], entry_p)
                     elif curr_gain < (0.50 * tp1_dist):
                         if close_p < entry_p:
@@ -771,18 +775,31 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
                 effective_stop = max(stop_p, hard_stop)
                 if low_p <= effective_stop:
                     fill_price = open_p if open_p < effective_stop else effective_stop
-                    realized_pnl = round(((fill_price - entry_p) / entry_p) * 100, 2)
-                    t["status"] = "STOPPED_OUT"
-                    t["exit_price"] = fill_price
-                    t["exit_date"] = today_str
-                    t["pnl_pct"] = realized_pnl
-                    t["exit_reason"] = f"Technical Stop Hit at ${fill_price:.2f} ({realized_pnl:+.2f}%)"
-                    if spy_ret is not None and spy_ret <= -0.012:
-                        t["invalidation_driver"] = "MACRO CONTAGION"
-                        t["driver_badge"] = "orange"
+                    if t.get("tp0_5_scaled"):
+                        tp0_5_fill = float(t.get("tp0_5_fill_price", entry_p * 1.05))
+                        pnl_tranche1 = ((tp0_5_fill - entry_p) / entry_p) * 100
+                        pnl_tranche2 = ((fill_price - entry_p) / entry_p) * 100
+                        blended_pnl = round((0.5 * pnl_tranche1) + (0.5 * pnl_tranche2), 2)
+                        t["status"] = "CLOSED_TRAILING_PROFIT" if blended_pnl > 0.01 else "CLOSED_BREAKEVEN"
+                        t["exit_price"] = fill_price
+                        t["exit_date"] = today_str
+                        t["pnl_pct"] = blended_pnl
+                        t["exit_reason"] = f"Scaled 50% at TP0.5 (${tp0_5_fill:.2f}, +{pnl_tranche1:.1f}%) · Remainder Closed at ${fill_price:.2f} (Blended PnL: {blended_pnl:+.2f}%)"
+                        t["invalidation_driver"] = "TRAILING STOP EXIT"
+                        t["driver_badge"] = "emerald" if blended_pnl > 0 else "slate"
                     else:
-                        t["invalidation_driver"] = "IDIOSYNCRATIC"
-                        t["driver_badge"] = "rose"
+                        realized_pnl = round(((fill_price - entry_p) / entry_p) * 100, 2)
+                        t["status"] = "STOPPED_OUT"
+                        t["exit_price"] = fill_price
+                        t["exit_date"] = today_str
+                        t["pnl_pct"] = realized_pnl
+                        t["exit_reason"] = f"Technical Stop Hit at ${fill_price:.2f} ({realized_pnl:+.2f}%)"
+                        if spy_ret is not None and spy_ret <= -0.012:
+                            t["invalidation_driver"] = "MACRO CONTAGION"
+                            t["driver_badge"] = "orange"
+                        else:
+                            t["invalidation_driver"] = "IDIOSYNCRATIC"
+                            t["driver_badge"] = "rose"
                     continue
 
                 elif high_p >= tp1:
@@ -795,6 +812,17 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
                     t["exit_reason"] = f"Scaled 50% at TP1 (${tp1:.2f}) · Stop Trailed to Breakeven (${entry_p:.2f})"
                     t["pnl_pct"] = round(((close_p - entry_p) / entry_p) * 100, 2)
                     continue
+
+                elif t.get("tp0_5") and high_p >= t["tp0_5"] and not t.get("tp0_5_scaled"):
+                    tp0_5_val = float(t["tp0_5"])
+                    t["tp0_5_scaled"] = True
+                    t["stop_price"] = max(t["stop_price"], entry_p)
+                    t["tp0_5_hit_date"] = today_str
+                    t["tp0_5_fill_price"] = tp0_5_val
+                    t["invalidation_driver"] = "TP0.5 SCALED (+1.0 R:R)"
+                    t["driver_badge"] = "emerald"
+                    t["exit_reason"] = f"Scaled 50% at TP0.5 (${tp0_5_val:.2f}, +1.0R) · Stop Trailed to Breakeven (${entry_p:.2f})"
+                    t["pnl_pct"] = round(((close_p - entry_p) / entry_p) * 100, 2)
 
                 # Floating PnL update for active open position
                 t["pnl_pct"] = round(((close_p - entry_p) / entry_p) * 100, 2)
@@ -816,14 +844,17 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
 
                 elif low_p <= t["stop_price"]:
                     fill_price = open_p if open_p < t["stop_price"] else t["stop_price"]
-                    realized_pnl = round(((fill_price - entry_p) / entry_p) * 100, 2)
-                    t["status"] = "CLOSED_TRAILING_PROFIT" if fill_price >= entry_p else "CLOSED_BREAKEVEN"
+                    tp1_fill = float(t.get("tp1_fill_price", tp1))
+                    pnl_tranche1 = ((tp1_fill - entry_p) / entry_p) * 100
+                    pnl_tranche2 = ((fill_price - entry_p) / entry_p) * 100
+                    blended_pnl = round((0.5 * pnl_tranche1) + (0.5 * pnl_tranche2), 2)
+                    t["status"] = "CLOSED_TRAILING_PROFIT" if blended_pnl > 0.01 else "CLOSED_BREAKEVEN"
                     t["exit_price"] = fill_price
                     t["exit_date"] = today_str
-                    t["pnl_pct"] = realized_pnl
-                    t["exit_reason"] = f"Remaining 50% Closed on Trailing Stop at ${fill_price:.2f} ({realized_pnl:+.2f}%)"
+                    t["pnl_pct"] = blended_pnl
+                    t["exit_reason"] = f"Scaled 50% at TP1 (${tp1_fill:.2f}, +{pnl_tranche1:.1f}%) · Remainder Closed at ${fill_price:.2f} (Blended PnL: {blended_pnl:+.2f}%)"
                     t["invalidation_driver"] = "TRAILING STOP EXIT"
-                    t["driver_badge"] = "emerald" if realized_pnl > 0 else "slate"
+                    t["driver_badge"] = "emerald" if blended_pnl > 0 else "slate"
                 else:
                     t["pnl_pct"] = round(((close_p - entry_p) / entry_p) * 100, 2)
 
@@ -925,9 +956,15 @@ def update_stock_trades_log(
             anchor_open = [t for t in open_trades if t.get("strategy_prong") == "CORE"]
             total_open = len(open_trades)
 
+            # Regime-Gated Sector Guard: In hostile or rotation regimes (confluence_score <= 2), block Tech/Growth common share swings
+            cand_prong = s_rec.get("strategy_prong", "BALANCED")
+            if confluence_score <= 2 and cand_prong in ["HIGH_RISK", "BALANCED"]:
+                sec_upper = (s_rec.get("sector") or "").upper()
+                if any(kw in sec_upper for kw in ["TECH", "SEMIS", "SOFTWARE"]):
+                    continue  # Protect against Nasdaq/tech distribution contagion
+
             # Regime-Gated Tier Capacity Enforcement
             tier_caps = get_regime_tier_capacities(confluence_score)
-            cand_prong = s_rec.get("strategy_prong", "BALANCED")
             prong_open = [t for t in open_trades if t.get("strategy_prong") == cand_prong]
             tier_max = tier_caps.get(cand_prong, 5)
             if len(prong_open) >= tier_max:
@@ -937,8 +974,14 @@ def update_stock_trades_log(
             max_anchor = kwargs.get("max_anchor_slots", MAX_STOCK_ANCHOR_SLOTS) if "kwargs" in locals() else MAX_STOCK_ANCHOR_SLOTS
             book_full = (len(sprint_open) >= max_sprint if cand_book == "SPRINT" else len(anchor_open) >= max_anchor)
             portfolio_full = (total_open >= max_active_positions or total_open >= max(1, int(max_active_positions * 0.85)))
+            target_book_trades = sprint_open if cand_book == "SPRINT" else anchor_open
+            has_eviction_eligible = any(
+                t.get("eviction_eligible") is True and t.get("days_active", 0) >= MIN_EVICTION_AGING_DAYS
+                for t in target_book_trades
+            )
 
-            if book_full or portfolio_full:
+            # Active replacement triggers if book/portfolio is full OR if an incumbent is marked Tier D Eviction Eligible
+            if book_full or portfolio_full or has_eviction_eligible:
                 target_book_trades = sprint_open if cand_book == "SPRINT" else anchor_open
                 eviction_pool = [
                     t for t in target_book_trades 
@@ -990,9 +1033,10 @@ def update_stock_trades_log(
                 "subsector": s_rec.get("subsector", "General"),
                 "entry_price": s_rec["price"],
                 "stop_price": s_rec["stop"],
-                "tp1": s_rec["tp1"],
-                "tp2": s_rec["tp2"],
-                "rr_ratio": s_rec["rr_ratio"],
+                "tp0_5": s_rec.get("tp0_5", round(float(s_rec["price"]) + max(0.01, float(s_rec["price"]) - float(s_rec.get("stop", s_rec["price"]*0.92))) * 1.0, 2)),
+                "tp1": s_rec.get("tp1", round(float(s_rec["price"]) * 1.15, 2)),
+                "tp2": s_rec.get("tp2", round(float(s_rec["price"]) * 1.25, 2)),
+                "rr_ratio": s_rec.get("rr_ratio", "1:2.5"),
                 "shares": s_rec.get("shares", 50),
                 "capital_deployed": s_rec.get("capital_deployed", 4500.0),
                 "actual_risk_dollars": s_rec.get("actual_risk_dollars", 450.0),

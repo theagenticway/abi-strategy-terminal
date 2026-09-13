@@ -547,3 +547,144 @@ class TestStockStrategyEngine(unittest.TestCase):
 if __name__ == "__main__":
 
     unittest.main(verbosity=2)
+
+
+class TestNewStockOptimizations(unittest.TestCase):
+    def test_tp0_5_scaling_and_blended_pnl(self):
+        """Verifies TP0.5 scales 50%, moves stop to breakeven, and computes blended PnL upon exit"""
+        trade = [{
+            "id": "STOCK_TP05_TEST",
+            "status": "OPEN",
+            "ticker": "AAPL",
+            "entry_price": 100.0,
+            "stop_price": 95.0,
+            "tp0_5": 105.0,
+            "tp1": 112.5,
+            "tp2": 120.0,
+            "shares": 100,
+            "days_active": 1,
+            "strategy_prong": "BALANCED"
+        }]
+
+        # Day 1: Price touches TP0.5 ($105.0) -> Scaled 50%
+        bars_d1 = {"AAPL": {"High": 106.0, "Low": 99.0, "Open": 100.0, "Close": 105.5, "EMA50": 96.0}}
+        audited_1 = stocks.audit_stock_positions(trade, bars_d1, "2026-09-01")
+        self.assertTrue(audited_1[0].get("tp0_5_scaled"))
+        self.assertEqual(audited_1[0]["stop_price"], 100.0, "Stop must ratchet to breakeven upon TP0.5 touch")
+
+        # Day 2: Market pulls back, hits breakeven stop ($100.0) -> Exits with blended profit!
+        bars_d2 = {"AAPL": {"High": 104.0, "Low": 99.5, "Open": 101.0, "Close": 100.0, "EMA50": 96.0}}
+        audited_2 = stocks.audit_stock_positions(audited_1, bars_d2, "2026-09-02")
+        self.assertEqual(audited_2[0]["status"], "CLOSED_TRAILING_PROFIT")
+        # 50% @ +5.0%, 50% @ 0.0% -> Blended = +2.50%
+        self.assertAlmostEqual(audited_2[0]["pnl_pct"], 2.50, delta=0.1)
+        self.assertIn("Blended PnL: +2.50%", audited_2[0]["exit_reason"])
+
+    def test_eviction_when_portfolio_not_full(self):
+        """Verifies that a Tier D incumbent is evicted when Delta >= 18.0 even if portfolio has empty slots"""
+        incumbent = {
+            "id": "STOCK_INCUMBENT",
+            "status": "OPEN",
+            "ticker": "OLD_STOCK",
+            "entry_price": 50.0,
+            "stop_price": 45.0,
+            "tp1": 60.0,
+            "tp2": 70.0,
+            "current_price": 46.1,
+            "strategy_prong": "BALANCED",
+            "days_active": 6,
+            "consecutive_low_score_days": 2,
+            "eviction_eligible": True,
+            "current_alpha_score": 35.0
+        }
+        open_trades = [incumbent]
+
+        new_rec = [{
+            "ticker": "NEW_ALPHA",
+            "sector": "FINANCIALS",
+            "strategy_prong": "BALANCED",
+            "alpha_score": 80.0,
+            "price": 100.0,
+            "stop": 92.0,
+            "tp1": 115.0,
+            "tp2": 125.0,
+            "shares": 50
+        }]
+
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as tf:
+            json.dump({"summary": {}, "trades": open_trades}, tf)
+            temp_path = tf.name
+
+        try:
+            bars = {
+                "OLD_STOCK": {
+                    "Close": 46.1, "High": 47.0, "Low": 45.8, "Open": 46.5, "EMA50": 46.0,
+                    "market_structure": "BEARISH_LH_LL", "sector_weakness": True, "rvol": 0.5, "rsi": 40.0, "reclaim_days": 5
+                },
+                "NEW_ALPHA": {"Close": 100.0, "High": 101.0, "Low": 99.0, "Open": 100.0, "EMA50": 95.0}
+            }
+            res = stocks.update_stock_trades_log(
+                new_recommendations=new_rec,
+                current_market_bars=bars,
+                today_str="2026-09-12",
+                log_path=temp_path,
+                confluence_score=4
+            )
+            trades = res["trades"]
+            evicted = [t for t in trades if t["status"] == "CLOSED_EVICTED"]
+            self.assertEqual(len(evicted), 1, "Incumbent must be evicted despite empty slots")
+            self.assertEqual(evicted[0]["ticker"], "OLD_STOCK")
+            self.assertIn("Relative Strength Eviction", evicted[0]["exit_reason"])
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    def test_macro_regime_tech_blocking(self):
+        """Verifies Tech/Semis swings are blocked when confluence_score <= 2"""
+        tech_rec = [{
+            "ticker": "NVDA",
+            "sector": "TECH SEMIS",
+            "strategy_prong": "BALANCED",
+            "alpha_score": 85.0,
+            "price": 100.0,
+            "stop": 92.0,
+            "tp1": 115.0,
+            "tp2": 125.0,
+            "shares": 50
+        }]
+        fin_rec = [{
+            "ticker": "JPM",
+            "sector": "FINANCIALS",
+            "strategy_prong": "BALANCED",
+            "alpha_score": 85.0,
+            "price": 120.0,
+            "stop": 110.0,
+            "tp1": 135.0,
+            "tp2": 145.0,
+            "shares": 40
+        }]
+
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as tf:
+            json.dump({"summary": {}, "trades": []}, tf)
+            temp_path = tf.name
+
+        try:
+            bars = {
+                "NVDA": {"Close": 100.0, "High": 101.0, "Low": 99.0, "Open": 100.0, "EMA50": 95.0},
+                "JPM": {"Close": 120.0, "High": 121.0, "Low": 119.0, "Open": 120.0, "EMA50": 115.0}
+            }
+            res = stocks.update_stock_trades_log(
+                new_recommendations=tech_rec + fin_rec,
+                current_market_bars=bars,
+                today_str="2026-09-12",
+                log_path=temp_path,
+                confluence_score=2
+            )
+            open_tickers = [t["ticker"] for t in res["trades"] if t["status"] == "OPEN"]
+            self.assertNotIn("NVDA", open_tickers, "Tech swing must be blocked when Confluence <= 2")
+            self.assertIn("JPM", open_tickers, "Financials swing must be permitted when Confluence <= 2")
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
