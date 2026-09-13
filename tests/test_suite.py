@@ -203,7 +203,7 @@ class TestDataIntegrity(unittest.TestCase):
             self.assertGreater(item["tp1"], item["price"], "Target must be above share price")
             self.assertIn("LEAPS", item["contract"])
 
-def test_trades_log_integrity(self):
+    def test_trades_log_integrity(self):
         log_path = os.path.join(DATA_DIR, "trades_log.json")
         self.assertTrue(os.path.exists(log_path), "data/trades_log.json must exist")
         with open(log_path, "r") as f:
