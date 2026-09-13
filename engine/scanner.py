@@ -1288,6 +1288,100 @@ def process_universe(raw_data=None, sample_date_str=None):
                 if len(selected_stock_recommendations) >= 5:
                     break
 
+    # 13. Dedicated High-Risk Radar: Top 10 Stocks & Top 10 Options
+    high_risk_stocks_radar = []
+    for t in ticker_records:
+        if t["ticker"] in ["SPY", "QQQ", "RSP", "IWM"]:
+            continue
+        t_price = float(t.get("price", 100.0))
+        t_stop = round(t_price * 0.925, 2)
+        t_risk = round(t_price - t_stop, 2)
+        t_tp05 = round(t_price + (t_risk * 1.0), 2)
+        t_tp1 = round(t_price + (t_risk * 2.2), 2)
+        t_tp2 = round(t_price + (t_risk * 3.5), 2)
+        t_shares = int(min(6000.0 / max(1.0, t_price), 450.0 / max(0.01, t_risk)))
+        t_score = float(t.get("alpha_score") or t.get("options_alpha_score") or 55.0)
+
+        high_risk_stocks_radar.append({
+            "action": "BUY",
+            "ticker": t["ticker"],
+            "sector": t.get("sector", "GENERAL"),
+            "subsector": t.get("subsector", "General"),
+            "price": t_price,
+            "stop": t_stop,
+            "tp0_5": t_tp05,
+            "tp1": t_tp1,
+            "tp2": t_tp2,
+            "rr_ratio": "1:2.2",
+            "beta": float(t.get("beta", 1.5)),
+            "adr_pct": float(t.get("adr_pct", 3.5)),
+            "rvol": float(t.get("rvol", 1.2)),
+            "rsi": float(t.get("rsi", 50.0)),
+            "weekly_stage": t.get("weekly_stage", "STAGE 2 (Advancing)"),
+            "structure": "High-Risk Sprint (Common Shares)",
+            "alpha_score": t_score,
+            "shares": t_shares,
+            "capital_deployed": round(t_shares * t_price, 2),
+            "actual_risk_dollars": round(t_shares * t_risk, 2),
+            "order_ticket": f"BUY {t_shares} SHARES @ ${t_price:.2f} LIMIT · STOP @ ${t_stop:.2f} · TP0.5: ${t_tp05:.2f} / TP1: ${t_tp1:.2f}",
+            "execution_guidance": "High-Risk Sprint · Scale 50% at TP0.5 (+1.0R) · Breakeven Stop · Day 10 Velocity Exit (<1.0R)",
+            "execution_intent": "RADAR_SURVEILLANCE"
+        })
+
+    high_risk_stocks_radar.sort(key=lambda x: (x.get("alpha_score", 0), x.get("beta", 1.0)), reverse=True)
+    high_risk_stocks_radar = high_risk_stocks_radar[:10]
+    for i, s in enumerate(high_risk_stocks_radar):
+        s["rank"] = i + 1
+
+    high_risk_options_radar = []
+    for t in ticker_records:
+        if t["ticker"] in ["SPY", "QQQ", "RSP", "IWM"]:
+            continue
+        t_price = float(t.get("price", 100.0))
+        l_strike = round(t_price * 0.98 / 5.0) * 5.0 if t_price > 20 else round(t_price * 0.98 * 2) / 2
+        s_width = round(t_price * 0.20 / 5.0) * 5.0 if t_price > 40 else (5.0 if t_price > 15 else 2.5)
+        if s_width <= 0: s_width = 5.0
+        sh_strike = round(l_strike + s_width, 2)
+        debit = round(s_width * 0.38, 2)
+        max_g = round(s_width - debit, 2)
+        iv_r = float(t.get("iv_rank", 45.0))
+        t_score = float(t.get("options_alpha_score") or t.get("alpha_score") or 55.0)
+
+        high_risk_options_radar.append({
+            "action": "BUY",
+            "ticker": t["ticker"],
+            "sector": t.get("sector", "GENERAL"),
+            "subsector": t.get("subsector", "General"),
+            "price": t_price,
+            "stop": round(t_price * 0.925, 2),
+            "tp1": round(t_price * 1.15, 2),
+            "tp2": round(t_price * 1.25, 2),
+            "rr_ratio": f"1:{round(max_g / max(0.01, debit), 1)}",
+            "contract": f"Oct 26 ${l_strike:.0f}/${sh_strike:.0f} Call Spread",
+            "contract_details": f"Width: ${s_width:.2f} | Est. Debit: ${debit:.2f} | Max Gain: ${max_g:.2f} | Theta Cliff: Oct 05 (21 DTE)",
+            "expiry": "2026-10-26",
+            "dte": 44,
+            "long_strike": l_strike,
+            "short_strike": sh_strike,
+            "width": s_width,
+            "est_debit": debit,
+            "max_profit": max_g,
+            "beta": float(t.get("beta", 1.5)),
+            "adr_pct": float(t.get("adr_pct", 3.5)),
+            "rvol": float(t.get("rvol", 1.2)),
+            "iv_rank": iv_r,
+            "liquidity": "HIGH",
+            "options_alpha_score": t_score,
+            "routing_guidance": f"LIMIT @ ${debit:.2f} Mid (Do not cross spread; High-Risk BCS)",
+            "execution_guidance": "High-Risk BCS · Exit before 21 DTE Theta Cliff (Oct 05) or Day 10 Velocity Stop",
+            "execution_intent": "RADAR_SURVEILLANCE"
+        })
+
+    high_risk_options_radar.sort(key=lambda x: (x.get("options_alpha_score", 0), x.get("beta", 1.0)), reverse=True)
+    high_risk_options_radar = high_risk_options_radar[:10]
+    for i, o in enumerate(high_risk_options_radar):
+        o["rank"] = i + 1
+
     return {
         "macro_breadth": macro_breadth,
         "benchmark_matrix": benchmark_matrix,
@@ -1307,6 +1401,8 @@ def process_universe(raw_data=None, sample_date_str=None):
         "daily_activity": daily_activity,
         "regime_change_etfs": regime_change_etfs,
         "top_candidates": verified_top_candidates[:5],
+        "high_risk_stocks_radar": high_risk_stocks_radar,
+        "high_risk_options_radar": high_risk_options_radar,
         "stock_recommendations": selected_stock_recommendations[:5],
         "all_qualified_stocks": qualified_stock_candidates,
         "core_stocks": core_stock_candidates[:5],

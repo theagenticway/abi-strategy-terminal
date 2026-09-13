@@ -230,6 +230,98 @@ def extract_signal_records(payload, date_str):
             }
         })
 
+    # 5. Dedicated Daily High-Risk Radar: Options
+    for c in payload.get("high_risk_options_radar", []):
+        ticker = c.get("ticker", "")
+        if not ticker:
+            continue
+        rec_id = f"{date_str}_{ticker}_HIGH_RISK_RADAR_OPTION"
+        signals.append({
+            "id": rec_id,
+            "date": date_str,
+            "asset_type": "OPTION",
+            "category": "HIGH_RISK_SPRINT",
+            "is_radar": True,
+            "execution_intent": "RADAR_SURVEILLANCE",
+            "ticker": ticker,
+            "company_name": c.get("company_name", c.get("name", ticker)),
+            "sector": c.get("sector", "Unknown"),
+            "sub_industry": c.get("sub_industry", c.get("industry", "Unknown")),
+            "entry_price": _safe_float(c.get("price", c.get("entry_price"))),
+            "alpha_score": _safe_float(c.get("options_alpha_score", c.get("alpha_score", 60.0))),
+            "technical_snapshot": {
+                "ema50": _safe_float(c.get("ema50")),
+                "rsi": _safe_float(c.get("rsi", 50.0)),
+                "macd_hist": _safe_float(c.get("macd_hist")),
+                "rvol": _safe_float(c.get("rvol", 1.2)),
+                "retrace_type": str(c.get("retrace_type", "EMA50")),
+                "reclaim_days": _safe_int(c.get("reclaim_days", 1)),
+                "market_structure": str(c.get("market_structure", "BULLISH_HH_HL")),
+                "beta": _safe_float(c.get("beta", 1.5)),
+                "adr_pct": _safe_float(c.get("adr_pct", 3.0)),
+                "iv_rank": _safe_float(c.get("iv_rank", 50.0))
+            },
+            "structure": {
+                "strategy": c.get("structure", "High-Risk Bull Call Spread"),
+                "contract": c.get("contract"),
+                "expiration": c.get("expiry", "N/A"),
+                "dte": _safe_int(c.get("dte", 45)),
+                "long_strike": _safe_float(c.get("long_strike")),
+                "short_strike": _safe_float(c.get("short_strike")),
+                "net_debit": _safe_float(c.get("est_debit")),
+                "stop_price": _safe_float(c.get("stop", c.get("stop_price"))),
+                "tp1": _safe_float(c.get("tp1")),
+                "tp2": _safe_float(c.get("tp2")),
+                "shares": None
+            }
+        })
+
+    # 6. Dedicated Daily High-Risk Radar: Stocks
+    for s in payload.get("high_risk_stocks_radar", []):
+        ticker = s.get("ticker", "")
+        if not ticker:
+            continue
+        rec_id = f"{date_str}_{ticker}_HIGH_RISK_RADAR_STOCK"
+        signals.append({
+            "id": rec_id,
+            "date": date_str,
+            "asset_type": "EQUITY",
+            "category": "HIGH_RISK_SPRINT",
+            "is_radar": True,
+            "execution_intent": "RADAR_SURVEILLANCE",
+            "ticker": ticker,
+            "company_name": s.get("company_name", s.get("name", ticker)),
+            "sector": s.get("sector", "Unknown"),
+            "sub_industry": s.get("sub_industry", s.get("industry", "Unknown")),
+            "entry_price": _safe_float(s.get("price", s.get("entry_price"))),
+            "alpha_score": _safe_float(s.get("alpha_score", 60.0)),
+            "technical_snapshot": {
+                "ema50": _safe_float(s.get("ema50")),
+                "rsi": _safe_float(s.get("rsi", 50.0)),
+                "macd_hist": _safe_float(s.get("macd_hist")),
+                "rvol": _safe_float(s.get("rvol", 1.2)),
+                "retrace_type": str(s.get("retrace_type", "EMA50")),
+                "reclaim_days": _safe_int(s.get("reclaim_days", 1)),
+                "market_structure": str(s.get("market_structure", "BULLISH_HH_HL")),
+                "beta": _safe_float(s.get("beta", 1.5)),
+                "adr_pct": _safe_float(s.get("adr_pct", 3.0)),
+                "iv_rank": _safe_float(s.get("iv_rank", 50.0))
+            },
+            "structure": {
+                "strategy": s.get("structure", "High-Risk Sprint (Common Shares)"),
+                "expiration": "N/A",
+                "dte": 0,
+                "long_strike": None,
+                "short_strike": None,
+                "net_debit": None,
+                "stop_price": _safe_float(s.get("stop", s.get("stop_price"))),
+                "tp0_5": _safe_float(s.get("tp0_5")),
+                "tp1": _safe_float(s.get("tp1")),
+                "tp2": _safe_float(s.get("tp2")),
+                "shares": _safe_int(s.get("shares", 50))
+            }
+        })
+
     return signals
 
 def update_recommendations_archive(payload, date_str, archive_path=ARCHIVE_PATH, retention_days=RETENTION_DAYS):

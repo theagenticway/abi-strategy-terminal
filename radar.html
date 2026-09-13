@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABI Strategy Terminal - High-Risk Radar (10+10)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            850: '#0f172a',
+                            900: '#0b0f19',
+                            950: '#060911'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #060911;
+            color: #f1f5f9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .terminal-panel {
+            background: #0d1322;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+        }
+        .tab-btn.active {
+            background: #e11d48;
+            color: #fff;
+            font-weight: 700;
+        }
+        .filter-btn {
+            background: #131d31;
+            border: 1px solid #1e293b;
+            padding: 4px 10px;
+            font-size: 11px;
+            border-radius: 4px;
+            color: #94a3b8;
+            transition: all 0.15s;
+        }
+        .filter-btn:hover {
+            color: #fff;
+            border-color: #334155;
+        }
+        .filter-btn.active {
+            background: #e11d48;
+            color: #fff;
+            border-color: #f43f5e;
+            font-weight: 600;
+        }
+        .toggle-radar-btn.active {
+            background: #2563eb;
+            color: #fff;
+            border-color: #3b82f6;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-3 md:p-6 space-y-4">
+
+    <!-- Top Master Header -->
+    <header class="terminal-panel p-3.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+                <span class="font-black tracking-wider text-base md:text-lg text-white">EMA50 SCANNER</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                    ⚡ HIGH-RISK RADAR
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-slate-800 text-slate-400 border border-slate-700">
+                    DAILY 10+10 & 365D ARCHIVE
+                </span>
+            </div>
+            <span id="header-clock" class="text-xs text-slate-400 font-mono hidden sm:inline">--:--:--</span>
+            <span id="header-count-badge" class="text-xs text-slate-500 hidden sm:inline">• loading...</span>
+        </div>
+
+        <!-- Navigation Switcher -->
+        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+            <div class="flex rounded-lg bg-slate-900 p-1 border border-slate-800">
+                <a href="index.html?tab=macro" id="tab-macro-link" class="tab-btn px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <span>🌐</span> Macroeconomic Board
+                </a>
+                <a href="index.html?tab=recs" id="tab-recs-link" class="tab-btn px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <span>🎯</span> Options Alpha Radar
+                </a>
+                <a href="stocks.html" id="tab-stocks-link" class="tab-btn px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <span>📈</span> Equity / Stock Radar
+                </a>
+                <button id="tab-radar-btn" class="tab-btn active px-3 py-1.5 rounded text-xs font-bold transition flex items-center gap-1.5 bg-rose-600 text-white shadow">
+                    <span>⚡</span> High-Risk Radar (10+10)
+                </button>
+                <a href="archive.html" id="tab-archive-link" class="tab-btn px-3 py-1.5 rounded text-xs font-bold text-amber-400 hover:text-white hover:bg-amber-950/60 transition flex items-center gap-1.5 border border-amber-500/30">
+                    <span>🗄️</span> Signal Archive (365d)
+                </a>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+                <button onclick="window.location.reload()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 border border-slate-700">
+                    <span>🔄</span> Refresh
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Radar Surveillance Briefing Card -->
+    <div class="terminal-panel p-4 border-l-4 border-l-rose-500">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div class="space-y-1 max-w-4xl">
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded text-xs font-black bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                        ⚡ UNCONSTRAINED DAILY HIGH-RISK SURVEILLANCE
+                    </span>
+                    <span class="text-xs text-slate-400" id="radar-as-of-date">As of Today</span>
+                </div>
+                <h1 class="text-base md:text-lg font-bold text-white tracking-tight">
+                    Top 10 High-Risk Stocks & Top 10 High-Risk Options Radar
+                </h1>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Designed to capture early-stage turnaround momentum, high-beta elasticity (&beta; &ge; 1.5, ADR &ge; 3.0%), and high-IV asymmetric payouts <strong>regardless of broader market regime</strong>. While portfolio capital allocation remains strictly gated for capital preservation, this radar monitors the top 10 setups daily and indexes every signal into the 365-day archive for forward-testing and analytics.
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 bg-slate-900/90 p-3 rounded-lg border border-slate-800 text-xs shrink-0">
+                <div>
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">Macro Regime</div>
+                    <div class="font-bold text-amber-400" id="radar-macro-regime">MIXED (2/4)</div>
+                </div>
+                <div class="h-6 w-px bg-slate-800 mx-1"></div>
+                <div>
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">Portfolio Heat</div>
+                    <div class="font-bold text-slate-300" id="radar-portfolio-heat">Throttled (0-2 Slots)</div>
+                </div>
+                <div class="h-6 w-px bg-slate-800 mx-1"></div>
+                <div>
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">Radar Surveillance</div>
+                    <div class="font-bold text-rose-400">10 Stocks + 10 Options</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1 & 2 Switcher / Toggles -->
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-2">
+        <div class="flex items-center gap-2">
+            <button id="view-stocks-btn" class="toggle-radar-btn active px-4 py-2 rounded text-xs font-bold border border-blue-500/40 bg-blue-600 text-white flex items-center gap-2 shadow" onclick="switchRadarView('STOCKS')">
+                <span>🚀</span> Today's Top 10 High-Risk Stocks
+            </button>
+            <button id="view-options-btn" class="toggle-radar-btn px-4 py-2 rounded text-xs font-bold border border-slate-700 bg-slate-900 text-slate-400 hover:text-white flex items-center gap-2" onclick="switchRadarView('OPTIONS')">
+                <span>⚡</span> Today's Top 10 High-Risk Options
+            </button>
+            <button id="view-both-btn" class="toggle-radar-btn px-4 py-2 rounded text-xs font-bold border border-slate-700 bg-slate-900 text-slate-400 hover:text-white flex items-center gap-2" onclick="switchRadarView('BOTH')">
+                <span>📑</span> Side-by-Side Split View
+            </button>
+        </div>
+        <div class="text-xs text-slate-400 flex items-center gap-2">
+            <span>Scroll below for 365-Day Historical Registry</span>
+            <a href="#historical-section" class="text-rose-400 hover:underline font-semibold flex items-center gap-1">
+                <span>↓ History</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Container for Today's Tables -->
+    <div id="radar-today-container" class="space-y-4">
+        <!-- Stock Radar Panel -->
+        <div id="panel-stocks-radar" class="terminal-panel overflow-hidden">
+            <div class="p-3.5 bg-slate-900/90 border-b border-slate-800 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-white flex items-center gap-2">
+                        <span>🚀</span> Today's Top 10 High-Risk Equities (Common Shares)
+                    </span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        Prong 3 Sprint Architecture · Staged Scaling TP0.5
+                    </span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono" id="stocks-count-tag">10 candidates</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900/60 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                            <th class="p-2.5">Rank & Ticker</th>
+                            <th class="p-2.5">Price & Entry</th>
+                            <th class="p-2.5">Stop Loss (-7.5%)</th>
+                            <th class="p-2.5">TP0.5 (Scale 50%)</th>
+                            <th class="p-2.5">TP1 (+2.2R)</th>
+                            <th class="p-2.5">R:R</th>
+                            <th class="p-2.5">Elasticity (&beta; / ADR)</th>
+                            <th class="p-2.5">Score</th>
+                            <th class="p-2.5">Execution & Sizing</th>
+                        </tr>
+                    </thead>
+                    <tbody id="today-stocks-tbody" class="divide-y divide-slate-800/60 text-slate-200">
+                        <tr><td colspan="9" class="p-6 text-center text-slate-500">Loading today's high-risk stock signals...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Options Radar Panel -->
+        <div id="panel-options-radar" class="terminal-panel overflow-hidden">
+            <div class="p-3.5 bg-slate-900/90 border-b border-slate-800 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-white flex items-center gap-2">
+                        <span>⚡</span> Today's Top 10 High-Risk Options (Bull Call Spreads)
+                    </span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                        45-60 DTE Vertical Spreads · Defined Risk
+                    </span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono" id="options-count-tag">10 candidates</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900/60 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                            <th class="p-2.5">Rank & Ticker</th>
+                            <th class="p-2.5">Underlying Price</th>
+                            <th class="p-2.5">Contract Structure</th>
+                            <th class="p-2.5">DTE / Expiry</th>
+                            <th class="p-2.5">Est. Debit / Width</th>
+                            <th class="p-2.5">Max Gain / R:R</th>
+                            <th class="p-2.5">IV Rank & Volatility</th>
+                            <th class="p-2.5">Options Alpha</th>
+                            <th class="p-2.5">Routing & Theta Cliff</th>
+                        </tr>
+                    </thead>
+                    <tbody id="today-options-tbody" class="divide-y divide-slate-800/60 text-slate-200">
+                        <tr><td colspan="9" class="p-6 text-center text-slate-500">Loading today's high-risk options signals...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: 365-Day Historical High-Risk Signal Registry -->
+    <div id="historical-section" class="space-y-3 pt-4">
+        <div class="terminal-panel p-4 space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
+                <div class="space-y-0.5">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <span>🗄️</span> 365-Day High-Risk Historical Signal Registry
+                        </h2>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            FORWARD-TEST ARCHIVE
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">
+                        Immutable record of all daily high-risk stock and options recommendations logged across all market regimes.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportArchiveCSV()" class="px-3 py-1.5 rounded text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition">
+                        <span>📥</span> Export CSV
+                    </button>
+                    <button onclick="exportArchiveJSON()" class="px-3 py-1.5 rounded text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition">
+                        <span>📋</span> Export JSON
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI Cards for High-Risk Archive -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 text-center text-xs">
+                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                    <div class="text-[10px] text-slate-400 uppercase">Archived Signals</div>
+                    <div class="text-lg font-bold text-white mt-0.5" id="kpi-total-signals">0</div>
+                </div>
+                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                    <div class="text-[10px] text-slate-400 uppercase">High-Risk Stocks</div>
+                    <div class="text-lg font-bold text-blue-400 mt-0.5" id="kpi-stocks-signals">0</div>
+                </div>
+                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                    <div class="text-[10px] text-slate-400 uppercase">High-Risk Options</div>
+                    <div class="text-lg font-bold text-rose-400 mt-0.5" id="kpi-options-signals">0</div>
+                </div>
+                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                    <div class="text-[10px] text-slate-400 uppercase">Avg High-Risk Score</div>
+                    <div class="text-lg font-bold text-emerald-400 mt-0.5" id="kpi-avg-score">--</div>
+                </div>
+                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                    <div class="text-[10px] text-slate-400 uppercase">Avg Beta</div>
+                    <div class="text-lg font-bold text-purple-400 mt-0.5" id="kpi-avg-beta">--</div>
+                </div>
+                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                    <div class="text-[10px] text-slate-400 uppercase">Avg ADR%</div>
+                    <div class="text-lg font-bold text-amber-400 mt-0.5" id="kpi-avg-adr">--</div>
+                </div>
+            </div>
+
+            <!-- Historical Filter Controls -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <input type="text" id="hist-search" placeholder="Search Ticker, Sector, Contract..." oninput="applyHistFilters()" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded px-3 py-1.5 w-60 focus:outline-none focus:border-rose-500">
+                    
+                    <select id="hist-asset-filter" onchange="applyHistFilters()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded px-2.5 py-1.5 focus:outline-none">
+                        <option value="ALL">All High-Risk Assets</option>
+                        <option value="EQUITY">High-Risk Equities Only</option>
+                        <option value="OPTION">High-Risk Options Spreads Only</option>
+                    </select>
+
+                    <select id="hist-days-filter" onchange="applyHistFilters()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded px-2.5 py-1.5 focus:outline-none">
+                        <option value="7">Past 7 Days</option>
+                        <option value="30">Past 30 Days</option>
+                        <option value="90">Past 90 Days</option>
+                        <option value="365" selected>Full 365 Days</option>
+                    </select>
+
+                    <button onclick="resetHistFilters()" class="text-xs text-slate-400 hover:text-white underline ml-1">
+                        Reset
+                    </button>
+                </div>
+                <span class="text-xs text-slate-400 font-mono" id="hist-match-count">0 matching signals</span>
+            </div>
+
+            <!-- Historical Data Table -->
+            <div class="overflow-x-auto border border-slate-800 rounded">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900/80 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                            <th class="p-2.5">Date</th>
+                            <th class="p-2.5">Asset</th>
+                            <th class="p-2.5">Ticker & Sector</th>
+                            <th class="p-2.5">Entry Price</th>
+                            <th class="p-2.5">Stop Price</th>
+                            <th class="p-2.5">TP1 / Target</th>
+                            <th class="p-2.5">Strategy / Contract</th>
+                            <th class="p-2.5">Elasticity (&beta; / ADR)</th>
+                            <th class="p-2.5">Score</th>
+                            <th class="p-2.5">Intent</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hist-table-tbody" class="divide-y divide-slate-800/60 text-slate-200">
+                        <tr><td colspan="10" class="p-6 text-center text-slate-500">Loading historical signals...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client-Side Javascript Controller -->
+    <script>
+        let latestData = null;
+        let allArchiveSignals = [];
+        let highRiskArchiveSignals = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateClock();
+            setInterval(updateClock, 1000);
+            await loadLatestData();
+            await loadArchiveData();
+        });
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('header-clock').textContent = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York' }) + ' ET';
+        }
+
+        async function loadLatestData() {
+            try {
+                const res = await fetch('data/latest.json?t=' + Date.now());
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                latestData = await res.json();
+                
+                // Update macro summary
+                if (latestData.macro_breadth) {
+                    document.getElementById('radar-as-of-date').textContent = `As of ${latestData.macro_breadth.date || 'Today'}`;
+                    document.getElementById('radar-macro-regime').textContent = `${latestData.macro_breadth.regime || 'MIXED'} (Confluence ${latestData.benchmark_matrix?.composite_score || 2}/4)`;
+                }
+
+                renderTodayStocks(latestData.high_risk_stocks_radar || []);
+                renderTodayOptions(latestData.high_risk_options_radar || []);
+            } catch (err) {
+                console.warn('Could not load latest.json:', err);
+                document.getElementById('today-stocks-tbody').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-amber-400">Could not load live latest.json</td></tr>`;
+                document.getElementById('today-options-tbody').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-amber-400">Could not load live latest.json</td></tr>`;
+            }
+        }
+
+        async function loadArchiveData() {
+            try {
+                const res = await fetch('data/recommendations_archive.json?t=' + Date.now());
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                allArchiveSignals = await res.json();
+                
+                // Filter for High Risk signals
+                highRiskArchiveSignals = allArchiveSignals.filter(s => 
+                    s.category === 'HIGH_RISK_SPRINT' || 
+                    s.is_radar === true || 
+                    (s.id && s.id.includes('RADAR')) ||
+                    (s.structure && s.structure.strategy && s.structure.strategy.toLowerCase().includes('high-risk'))
+                );
+
+                updateKPIs(highRiskArchiveSignals);
+                applyHistFilters();
+            } catch (err) {
+                console.warn('Could not load recommendations_archive.json:', err);
+                document.getElementById('hist-table-tbody').innerHTML = `<tr><td colspan="10" class="p-4 text-center text-amber-400">Archive file loading...</td></tr>`;
+            }
+        }
+
+        function renderTodayStocks(stocks) {
+            const tbody = document.getElementById('today-stocks-tbody');
+            if (!stocks || stocks.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-400">No high-risk stock candidates in current scan.</td></tr>`;
+                return;
+            }
+            document.getElementById('stocks-count-tag').textContent = `${stocks.length} candidates`;
+            tbody.innerHTML = stocks.map(s => `
+                <tr class="hover:bg-slate-800/40 transition">
+                    <td class="p-2.5">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-slate-800 text-blue-400 font-black text-[10px] flex items-center justify-center border border-blue-500/30">
+                                ${s.rank || '#'}
+                            </span>
+                            <div>
+                                <span class="font-bold text-white text-xs">${s.ticker}</span>
+                                <span class="text-[10px] text-slate-400 block">${s.sector || 'General'}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-2.5 font-mono text-white font-semibold">$${(s.price || 0).toFixed(2)}</td>
+                    <td class="p-2.5 font-mono text-rose-400 font-semibold">$${(s.stop || 0).toFixed(2)}</td>
+                    <td class="p-2.5 font-mono text-emerald-400 font-semibold">$${(s.tp0_5 || 0).toFixed(2)}</td>
+                    <td class="p-2.5 font-mono text-blue-400 font-semibold">$${(s.tp1 || 0).toFixed(2)}</td>
+                    <td class="p-2.5 font-mono text-slate-300">${s.rr_ratio || '1:2.2'}</td>
+                    <td class="p-2.5">
+                        <span class="font-mono text-purple-400 font-semibold">&beta; ${(s.beta || 1.5).toFixed(2)}</span>
+                        <span class="text-[10px] text-slate-400 block">ADR: ${(s.adr_pct || 3.0).toFixed(1)}%</span>
+                    </td>
+                    <td class="p-2.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                            ${(s.alpha_score || 60).toFixed(1)}
+                        </span>
+                    </td>
+                    <td class="p-2.5 text-[11px] text-slate-300 max-w-xs">
+                        <div class="truncate text-slate-200 font-mono">${s.order_ticket || `BUY ${s.shares || 50} SHARES @ $${(s.price || 0).toFixed(2)}`}</div>
+                        <div class="text-[10px] text-slate-400 truncate">${s.execution_guidance || 'High-Risk Sprint'}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderTodayOptions(options) {
+            const tbody = document.getElementById('today-options-tbody');
+            if (!options || options.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-400">No high-risk options candidates in current scan.</td></tr>`;
+                return;
+            }
+            document.getElementById('options-count-tag').textContent = `${options.length} candidates`;
+            tbody.innerHTML = options.map(o => `
+                <tr class="hover:bg-slate-800/40 transition">
+                    <td class="p-2.5">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-slate-800 text-rose-400 font-black text-[10px] flex items-center justify-center border border-rose-500/30">
+                                ${o.rank || '#'}
+                            </span>
+                            <div>
+                                <span class="font-bold text-white text-xs">${o.ticker}</span>
+                                <span class="text-[10px] text-slate-400 block">${o.sector || 'General'}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-2.5 font-mono text-white font-semibold">$${(o.price || 0).toFixed(2)}</td>
+                    <td class="p-2.5">
+                        <span class="font-bold text-amber-300 font-mono text-xs">${o.contract || 'Oct 26 Call Spread'}</span>
+                        <span class="text-[10px] text-slate-400 block font-mono">Width: $${(o.width || 0).toFixed(2)}</span>
+                    </td>
+                    <td class="p-2.5 font-mono text-slate-300">${o.dte || 45}d (${o.expiry || 'Oct 26'})</td>
+                    <td class="p-2.5 font-mono text-rose-300 font-semibold">$${(o.est_debit || 0).toFixed(2)}</td>
+                    <td class="p-2.5">
+                        <span class="font-mono text-emerald-400 font-bold">+$${(o.max_profit || 0).toFixed(2)}</span>
+                        <span class="text-[10px] text-slate-400 block font-mono">R:R ${o.rr_ratio || '1:1.6'}</span>
+                    </td>
+                    <td class="p-2.5">
+                        <span class="font-mono text-amber-400 font-semibold">IVR ${(o.iv_rank || 50).toFixed(0)}%</span>
+                        <span class="text-[10px] text-slate-400 block">&beta; ${(o.beta || 1.5).toFixed(2)}</span>
+                    </td>
+                    <td class="p-2.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                            ${(o.options_alpha_score || 55).toFixed(1)}
+                        </span>
+                    </td>
+                    <td class="p-2.5 text-[11px] text-slate-300 max-w-xs">
+                        <div class="truncate text-slate-200 font-mono">${o.routing_guidance || `LIMIT @ $${(o.est_debit || 0).toFixed(2)} Mid`}</div>
+                        <div class="text-[10px] text-amber-400 truncate">Cliff: Oct 05 (21 DTE)</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function switchRadarView(view) {
+            const pStocks = document.getElementById('panel-stocks-radar');
+            const pOptions = document.getElementById('panel-options-radar');
+            const bStocks = document.getElementById('view-stocks-btn');
+            const bOptions = document.getElementById('view-options-btn');
+            const bBoth = document.getElementById('view-both-btn');
+
+            bStocks.classList.remove('active', 'bg-blue-600', 'text-white');
+            bOptions.classList.remove('active', 'bg-blue-600', 'text-white');
+            bBoth.classList.remove('active', 'bg-blue-600', 'text-white');
+            bStocks.classList.add('bg-slate-900', 'text-slate-400');
+            bOptions.classList.add('bg-slate-900', 'text-slate-400');
+            bBoth.classList.add('bg-slate-900', 'text-slate-400');
+
+            if (view === 'STOCKS') {
+                pStocks.style.display = 'block';
+                pOptions.style.display = 'none';
+                bStocks.classList.add('active', 'bg-blue-600', 'text-white');
+                bStocks.classList.remove('bg-slate-900', 'text-slate-400');
+            } else if (view === 'OPTIONS') {
+                pStocks.style.display = 'none';
+                pOptions.style.display = 'block';
+                bOptions.classList.add('active', 'bg-blue-600', 'text-white');
+                bOptions.classList.remove('bg-slate-900', 'text-slate-400');
+            } else {
+                pStocks.style.display = 'block';
+                pOptions.style.display = 'block';
+                bBoth.classList.add('active', 'bg-blue-600', 'text-white');
+                bBoth.classList.remove('bg-slate-900', 'text-slate-400');
+            }
+        }
+
+        function updateKPIs(signals) {
+            document.getElementById('kpi-total-signals').textContent = signals.length;
+            document.getElementById('header-count-badge').textContent = `• ${signals.length} high-risk signals archived`;
+            
+            const stocks = signals.filter(s => s.asset_type === 'EQUITY');
+            const options = signals.filter(s => s.asset_type === 'OPTION');
+            document.getElementById('kpi-stocks-signals').textContent = stocks.length;
+            document.getElementById('kpi-options-signals').textContent = options.length;
+
+            if (signals.length > 0) {
+                const avgScore = signals.reduce((acc, s) => acc + (s.alpha_score || 0), 0) / signals.length;
+                const avgBeta = signals.reduce((acc, s) => acc + ((s.technical_snapshot && s.technical_snapshot.beta) || 1.5), 0) / signals.length;
+                const avgAdr = signals.reduce((acc, s) => acc + ((s.technical_snapshot && s.technical_snapshot.adr_pct) || 3.0), 0) / signals.length;
+
+                document.getElementById('kpi-avg-score').textContent = avgScore.toFixed(1);
+                document.getElementById('kpi-avg-beta').textContent = avgBeta.toFixed(2);
+                document.getElementById('kpi-avg-adr').textContent = avgAdr.toFixed(1) + '%';
+            }
+        }
+
+        function resetHistFilters() {
+            document.getElementById('hist-search').value = '';
+            document.getElementById('hist-asset-filter').value = 'ALL';
+            document.getElementById('hist-days-filter').value = '365';
+            applyHistFilters();
+        }
+
+        function applyHistFilters() {
+            const query = (document.getElementById('hist-search').value || '').toLowerCase().trim();
+            const asset = document.getElementById('hist-asset-filter').value;
+            const days = parseInt(document.getElementById('hist-days-filter').value, 10);
+
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - days);
+            const cutoffStr = cutoff.toISOString().split('T')[0];
+
+            const filtered = highRiskArchiveSignals.filter(s => {
+                if (asset !== 'ALL' && s.asset_type !== asset) return false;
+                if (s.date && s.date < cutoffStr) return false;
+                if (query) {
+                    const matchTicker = (s.ticker || '').toLowerCase().includes(query);
+                    const matchCompany = (s.company_name || '').toLowerCase().includes(query);
+                    const matchSector = (s.sector || '').toLowerCase().includes(query);
+                    const matchStrat = ((s.structure && (s.structure.strategy || s.structure.contract)) || '').toLowerCase().includes(query);
+                    if (!matchTicker && !matchCompany && !matchSector && !matchStrat) return false;
+                }
+                return true;
+            });
+
+            renderHistTable(filtered);
+        }
+
+        function renderHistTable(signals) {
+            const tbody = document.getElementById('hist-table-tbody');
+            document.getElementById('hist-match-count').textContent = `${signals.length} matching signals`;
+            if (signals.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center text-slate-500">No high-risk signals matching your filter criteria.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = signals.slice(0, 100).map(s => {
+                const isOpt = (s.asset_type === 'OPTION');
+                const beta = (s.technical_snapshot && s.technical_snapshot.beta) || 1.5;
+                const adr = (s.technical_snapshot && s.technical_snapshot.adr_pct) || 3.0;
+                const strat = (s.structure && (s.structure.contract || s.structure.strategy)) || (isOpt ? 'Bull Call Spread' : 'Sprint Equity');
+                const entry = s.entry_price ? `$${s.entry_price.toFixed(2)}` : '--';
+                const stop = (s.structure && s.structure.stop_price) ? `$${s.structure.stop_price.toFixed(2)}` : '--';
+                const tp1 = (s.structure && s.structure.tp1) ? `$${s.structure.tp1.toFixed(2)}` : '--';
+
+                return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="p-2.5 font-mono text-slate-400 text-xs">${s.date}</td>
+                        <td class="p-2.5">
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${isOpt ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'}">
+                                ${s.asset_type}
+                            </span>
+                        </td>
+                        <td class="p-2.5 font-bold text-white text-xs">
+                            ${s.ticker}
+                            <span class="text-[10px] text-slate-400 block font-normal">${s.sector || 'General'}</span>
+                        </td>
+                        <td class="p-2.5 font-mono text-slate-300">${entry}</td>
+                        <td class="p-2.5 font-mono text-rose-400">${stop}</td>
+                        <td class="p-2.5 font-mono text-emerald-400">${tp1}</td>
+                        <td class="p-2.5 text-xs text-slate-300 max-w-xs truncate">${strat}</td>
+                        <td class="p-2.5">
+                            <span class="font-mono text-purple-400 font-semibold">&beta; ${beta.toFixed(2)}</span>
+                            <span class="text-[10px] text-slate-400 block">ADR: ${adr.toFixed(1)}%</span>
+                        </td>
+                        <td class="p-2.5">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-slate-800 text-slate-200 border border-slate-700">
+                                ${(s.alpha_score || 0).toFixed(1)}
+                            </span>
+                        </td>
+                        <td class="p-2.5">
+                            <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                ${s.execution_intent || 'RADAR'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function exportArchiveCSV() {
+            if (highRiskArchiveSignals.length === 0) return alert('No records to export');
+            const headers = ['date', 'asset_type', 'ticker', 'sector', 'entry_price', 'stop_price', 'tp1', 'beta', 'adr_pct', 'alpha_score', 'strategy'];
+            const rows = highRiskArchiveSignals.map(s => [
+                s.date,
+                s.asset_type,
+                s.ticker,
+                `"${s.sector || ''}"`,
+                s.entry_price || '',
+                (s.structure && s.structure.stop_price) || '',
+                (s.structure && s.structure.tp1) || '',
+                (s.technical_snapshot && s.technical_snapshot.beta) || '',
+                (s.technical_snapshot && s.technical_snapshot.adr_pct) || '',
+                s.alpha_score || '',
+                `"${(s.structure && (s.structure.contract || s.structure.strategy)) || ''}"`
+            ]);
+            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `high_risk_radar_archive_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        function exportArchiveJSON() {
+            if (highRiskArchiveSignals.length === 0) return alert('No records to export');
+            const blob = new Blob([JSON.stringify(highRiskArchiveSignals, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `high_risk_radar_archive_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+    </script>
+</body>
+</html>
