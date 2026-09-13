@@ -59,7 +59,7 @@ def extract_signal_records(payload, date_str):
             "company_name": c.get("company_name", c.get("name", ticker)),
             "sector": c.get("sector", "Unknown"),
             "sub_industry": c.get("sub_industry", c.get("industry", "Unknown")),
-            "entry_price": _safe_float(c.get("current_price", c.get("entry_price"))),
+            "entry_price": _safe_float(c.get("price", c.get("current_price", c.get("entry_price")))),
             "alpha_score": _safe_float(c.get("options_alpha_score", c.get("alpha_score", c.get("score")))),
             "technical_snapshot": {
                 "ema50": _safe_float(c.get("ema50")),
@@ -79,8 +79,8 @@ def extract_signal_records(payload, date_str):
                 "dte": _safe_int(c.get("dte", 60)),
                 "long_strike": _safe_float(c.get("long_strike", c.get("strike_long"))),
                 "short_strike": _safe_float(c.get("short_strike", c.get("strike_short"))),
-                "net_debit": _safe_float(c.get("net_debit", c.get("mid_debit"))),
-                "stop_price": _safe_float(c.get("stop_loss", c.get("stop_price"))),
+                "net_debit": _safe_float(c.get("est_debit", c.get("net_debit", c.get("mid_debit")))),
+                "stop_price": _safe_float(c.get("stop", c.get("stop_loss", c.get("stop_price")))),
                 "tp1": _safe_float(c.get("tp1", c.get("target_1"))),
                 "tp2": _safe_float(c.get("tp2", c.get("target_2"))),
                 "shares": None
@@ -102,7 +102,7 @@ def extract_signal_records(payload, date_str):
             "company_name": c.get("company_name", c.get("name", ticker)),
             "sector": c.get("sector", "Unknown"),
             "sub_industry": c.get("sub_industry", c.get("industry", "Unknown")),
-            "entry_price": _safe_float(c.get("current_price", c.get("entry_price"))),
+            "entry_price": _safe_float(c.get("price", c.get("current_price", c.get("entry_price")))),
             "alpha_score": _safe_float(c.get("options_alpha_score", c.get("alpha_score", c.get("score")))),
             "technical_snapshot": {
                 "ema50": _safe_float(c.get("ema50")),
@@ -122,8 +122,8 @@ def extract_signal_records(payload, date_str):
                 "dte": _safe_int(c.get("dte", 300)),
                 "long_strike": _safe_float(c.get("strike", c.get("long_strike"))),
                 "short_strike": None,
-                "net_debit": _safe_float(c.get("ask", c.get("mid_debit", c.get("net_debit")))),
-                "stop_price": _safe_float(c.get("macro_stop", c.get("stop_loss"))),
+                "net_debit": _safe_float(c.get("est_premium", c.get("ask", c.get("mid_debit", c.get("net_debit"))))),
+                "stop_price": _safe_float(c.get("macro_stop", c.get("stop", c.get("stop_loss", c.get("stop_price"))))),
                 "tp1": _safe_float(c.get("tp1", c.get("target_1"))),
                 "tp2": _safe_float(c.get("tp2", c.get("target_2"))),
                 "shares": None
@@ -145,7 +145,7 @@ def extract_signal_records(payload, date_str):
             "company_name": c.get("company_name", c.get("name", ticker)),
             "sector": c.get("sector", "Unknown"),
             "sub_industry": c.get("sub_industry", c.get("industry", "Unknown")),
-            "entry_price": _safe_float(c.get("current_price", c.get("entry_price"))),
+            "entry_price": _safe_float(c.get("price", c.get("current_price", c.get("entry_price")))),
             "alpha_score": _safe_float(c.get("options_alpha_score", c.get("alpha_score", c.get("score")))),
             "technical_snapshot": {
                 "ema50": _safe_float(c.get("ema50")),
@@ -165,8 +165,8 @@ def extract_signal_records(payload, date_str):
                 "dte": _safe_int(c.get("dte", 45)),
                 "long_strike": _safe_float(c.get("long_strike", c.get("strike_long"))),
                 "short_strike": _safe_float(c.get("short_strike", c.get("strike_short"))),
-                "net_debit": _safe_float(c.get("net_debit", c.get("mid_debit"))),
-                "stop_price": _safe_float(c.get("stop_loss", c.get("stop_price"))),
+                "net_debit": _safe_float(c.get("est_debit", c.get("net_debit", c.get("mid_debit")))),
+                "stop_price": _safe_float(c.get("stop", c.get("stop_loss", c.get("stop_price")))),
                 "tp1": _safe_float(c.get("tp1", c.get("target_1"))),
                 "tp2": _safe_float(c.get("tp2", c.get("target_2"))),
                 "shares": None
@@ -202,7 +202,7 @@ def extract_signal_records(payload, date_str):
             "company_name": s.get("company_name", s.get("name", ticker)),
             "sector": s.get("sector", "Unknown"),
             "sub_industry": s.get("sub_industry", s.get("industry", "Unknown")),
-            "entry_price": _safe_float(s.get("entry_price", s.get("current_price"))),
+            "entry_price": _safe_float(s.get("price", s.get("entry_price", s.get("current_price")))),
             "alpha_score": _safe_float(s.get("alpha_composite_score", s.get("alpha_score", s.get("score")))),
             "technical_snapshot": {
                 "ema50": _safe_float(s.get("ema50")),
@@ -223,7 +223,7 @@ def extract_signal_records(payload, date_str):
                 "long_strike": None,
                 "short_strike": None,
                 "net_debit": None,
-                "stop_price": _safe_float(s.get("stop_loss", s.get("stop_price"))),
+                "stop_price": _safe_float(s.get("stop", s.get("macro_stop", s.get("stop_loss", s.get("stop_price"))))),
                 "tp1": _safe_float(s.get("tp1", s.get("take_profit_1"))),
                 "tp2": _safe_float(s.get("tp2", s.get("take_profit_2"))),
                 "shares": _safe_int(s.get("shares_recommended", s.get("shares", 0)))
