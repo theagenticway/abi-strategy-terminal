@@ -56,6 +56,114 @@ Every recommendation is sized strictly on **Dollar-at-Risk (Capital Protection F
 
 ---
 
+## 📈 Dedicated Cash Equities Portfolio Management Engine
+
+To eliminate capital competition with leveraged options contracts and preserve a disciplined capital allocation structure, the terminal deploys a dedicated, production-grade **Common Stock Portfolio Management Engine** (`engine/stocks.py`) rendered on its own interactive portal (`stocks.html`):
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                    DEDICATED CASH EQUITIES PORTFOLIO MANAGEMENT ENGINE                          │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ • Total Portfolio Capital : $100,000 baseline (dynamically scalable to $500,000+)                 │
+│ • Active Position Capacity: 16 to 21 concurrent positions (hard target: 18 slots)                │
+│ • Sub-Book Allocation     : Tactical Sprint (12 slots) | Strategic Anchor (6 slots)             │
+│ • Position Sizing Rule    : Dollar-at-Risk ($350–$500 per setup / 0.45% baseline)                │
+│ • Capital Ceiling Guard   : 6.0% max capital allocation per ticker ($6,000 on $100K baseline)   │
+│ • Sector Risk Cap         : Max 30%–35% capital per GICS sector (~5–6 positions max)             │
+│ • Sub-Industry Risk Cap   : Max 20% capital per sub-industry (~3–4 positions max)                │
+│ • Hostile Macro Shield    : Freeze Tech/Growth swings when 4-Index Confluence Score ≤ 2          │
+│ • Execution Methodology   : Two-Tranche Scale & Trail (50% scale at TP1, Breakeven stop move)    │
+│ • Runway Governance       : Price-Gated Stagnation Protocol (extends winning runners up to 35d)  │
+│ • Active Ledger Auditing  : Continuous daily re-scoring & Tier A–D health classification         │
+│ • Relative Strength Evict : Hurdle Δ ≥ 18.0 pts replacement (requires ≥ 5-day incumbent aging)   │
+│ • Audit Persistence       : Independent ledger tracking in data/stock_trades_log.json            │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### A. Independent $100,000 Equity Book & 18-Slot Capacity
+* **Decoupled Architecture**: Cash equities run on an independent $100,000 allocation, completely separated from the $100,000 options book. Buying common shares never competes with or starves options margin, and vice-versa.
+* **Expanded Capacity**: The engine maintains **16 to 21 active slots** (`MAX_STOCK_PORTFOLIO_SLOTS = 18`), replacing legacy 7-position bottlenecks.
+* **Dual Sub-Books**:
+  * **Tactical Sprint Book (`MAX_STOCK_SPRINT_SLOTS = 12`)**: High-velocity momentum breakouts and 50 EMA tactical swings (High-Risk and Balanced prongs) targeting 10–22 day holding horizons.
+  * **Strategic Anchor Book (`MAX_STOCK_ANCHOR_SLOTS = 6`)**: Stage 2 secular compounders with verified institutional trend stacks ($EMA_{50} > SMA_{150} > SMA_{200}$), positive free cash flow, and 40–120+ day investment horizons.
+
+### B. Institutional Dollar-at-Risk Position Sizing & 6.0% Capital Ceiling
+Every equity trade is sized strictly by **Dollar-at-Risk** rather than arbitrary flat dollar amounts or fixed share quantities:
+
+$$\text{Shares} = \max\left(1, \min\left(\left\lfloor \frac{\text{Max Risk Dollars}}{\text{Risk Per Share}} \right\rfloor, \left\lfloor \frac{\text{Max Capital Allocation}}{\text{Entry Price}} \right\rfloor\right)\right)$$
+
+Where:
+* **Max Risk Dollars**: $\text{Portfolio Capital} \times 0.0045$ ($450 baseline risk on $100,000 account, scalable to $2,250 on $500,000).
+* **Risk Per Share**: $\max(\text{Entry Price} \times 0.02, \text{Entry Price} - \text{Stop Price})$. Enforces a minimum 2.0% risk buffer to eliminate division-by-zero on ultra-tight stops.
+* **6.0% Hard Capital Allocation Ceiling**: $\text{Portfolio Capital} \times 0.06$ ($6,000 max capital deployed per position on $100,000; $30,000 on $500,000).
+* **Institutional Benefit**: Sizing shares to a 7.0% technical stop risks exactly ~$350–$420 on a $5,000–$6,000 position. If a stock has an ultra-tight 1.5% stop, the 6.0% capital ceiling prevents the engine from recklessly allocating $30,000+ of cash to a single name.
+
+### C. Macro Regime Gating & Sector Contagion Shields
+Equity execution dynamically adjusts to broader institutional market health via the **4-Index Macro Benchmark Matrix** ($M \in [0, 4]$ across SPY, QQQ, RSP, IWM vs. 50 EMA):
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                             MACRO REGIME GATING & DYNAMIC TIER CAPS                              │
+├────────────────────┬──────────────┬──────────────────┬─────────────────┬─────────────────────────┤
+│ Macro Regime       │ Confluence M │ High-Risk Sprint │ Balanced Swing  │ Core Secular Compounder │
+├────────────────────┼──────────────┼──────────────────┼─────────────────┼─────────────────────────┤
+│ Risk-On            │ 4 / 4        │ Max 5 Slots      │ Max 5 Slots     │ Max 5 Slots             │
+│ Cautious Risk-On   │ 3 / 4        │ Max 3 Slots      │ Max 5 Slots     │ Max 5 Slots             │
+│ Mixed / Rotation   │ 2 / 4        │ Max 1 Slot       │ Max 3 Slots     │ Max 4 Slots             │
+│ Defensive / Chop   │ 1 / 4        │ 0 Slots (Locked) │ Max 1 Slot      │ Max 3 Slots             │
+│ Systemic Breakdown │ 0 / 4        │ 0 Slots (Locked) │ 0 Slots (Locked)│ Max 1 Slot (Defensive)  │
+└────────────────────┴──────────────┴──────────────────┴─────────────────┴─────────────────────────┘
+```
+
+* **Tech & Growth Contagion Shield**: In hostile or rotation regimes ($M \le 2$), institutional distribution frequently hits tech and semiconductor leaders hardest. The engine enforces an **automated sector freeze** on new common share swings in Technology, Semiconductors, and Software (`any(kw in sector for kw in ["TECH", "SEMIS", "SOFTWARE"])`), isolating the equity portfolio from Nasdaq distribution contagion.
+
+### D. Dynamic Sector Concentration Limits (30%–35% Cap)
+* **Sector Ceiling**: Hard-capped at **30%–35% of total portfolio capital** per GICS sector (~5 to 6 positions max in an 18-slot book).
+* **Sub-Industry Ceiling**: Hard-capped at **20% of total portfolio capital** per sub-industry (~3 to 4 positions max).
+* **Alpha Capture**: Eliminates the arbitrary "max 3 per sector" legacy rule, allowing the terminal to aggressively ride dominant institutional sector themes (e.g., Energy or Healthcare expansions) while preventing reckless hyper-concentration.
+
+### E. Two-Tranche Scale & Trail Execution Engine
+Every common stock recommendation generates an institutional **Two-Tranche Execution Order Ticket**:
+
+```text
+       ┌─────────────────────────────────────────────────────────────┐
+       │             TWO-TRANCHE SCALE & TRAIL EXECUTION             │
+       ├─────────────────────────────────────────────────────────────┤
+       │ 1. Tranche 1 (50% of Shares) — Target: TP1 (+2.0R to +2.5R) │
+       │    • Lock in initial gains (+12% to +18%)                   │
+       │    • Move Stop Loss on Tranche 2 to BREAKEVEN (Entry Price) │
+       │    • Transition Health Tier to Tier A: House Money          │
+       │ 2. Tranche 2 (50% of Shares) — Target: Trailing Runner      │
+       │    • Sprint: Trail 21 EMA until daily close below           │
+       │    • Balanced: Trail 50 EMA until daily close below         │
+       │    • Core: Macro Invalidation Stop at 200 SMA -3.0%         │
+       └─────────────────────────────────────────────────────────────┘
+```
+
+* **Mathematical Blending**: When Tranche 1 is harvested, the trade status updates to `TP1_SCALED`. The remaining runner is de-risked to breakeven, guaranteeing a net positive blended return regardless of subsequent market reversals.
+
+### F. Active Health Tier Auditing & Relative-Strength Eviction
+All open stock positions are audited daily during market hours via `audit_stock_positions` (`engine/stocks.py`):
+
+* **4-Tier Health Taxonomy**:
+  * **Tier A (House Money)**: Positions with TP1 hit, stop at breakeven, or de-risked gains. **Eviction-exempt (`eviction_eligible = False`)**.
+  * **Tier B (Healthy / On-Track)**: Score $\ge 60.0$, holding above 50 EMA, active days within baseline. **Eviction-exempt**.
+  * **Tier C (Stagnant)**: Score 50.0–59.9, momentum slowing, approaching calendar limits.
+  * **Tier D (Eviction Eligible)**: Score $< 55.0$ for $\ge 2$ consecutive sessions, or prolonged stagnation $\ge 18$ days with score $< 58.0$. **Flagged with `eviction_eligible = True`**.
+* **Active Replacement Protocol**:
+  * Triggers when the portfolio or sub-book is near capacity ($\ge 85\%$ or full) OR when an incumbent is flagged Tier D.
+  * Evaluates candidate vs. lowest-scoring eligible incumbent in the eviction pool.
+  * **Minimum Holding Aging**: Incumbent must have been held for at least **5 trading sessions** (`MIN_EVICTION_AGING_DAYS = 5`) to prevent day-to-day noise churn.
+  * **Hurdle Advantage ($\Delta \ge 18.0$ pts)**: Incoming candidate must outperform the incumbent by at least 18.0 Alpha points (`REPLACEMENT_HURDLE_DELTA = 18.0`).
+  * **Execution**: Incumbent is closed with `status = 'CLOSED_EVICTED'`, realizing current market P&L, logging the score delta, and opening the slot for the superior alpha candidate.
+
+### G. Persistent Stock Audit Ledger (`data/stock_trades_log.json`)
+The equity engine maintains an autonomous, persistent trade ledger independent of options:
+* **Metrics Tracked**: Win Rate %, Profit Factor, Realized Net P&L ($ and %), Average Win %, Average Loss %, Average Holding Days, and Evicted Trades count.
+* **Dedicated Dashboard (`stocks.html`)**: Real-time visualization of Open Positions, Health Badges (Tier A House Money, Tier B On-Track, Tier C Stagnant, Tier D Eviction Eligible), Trailing Stop Telemetry, Closed Performance Audits, and Interactive Position Sizing Calculators.
+
+---
+
 ## 🎯 The 3-Pronged Strategic Allocation Framework
 
 The strategy engine divides all recommendations across three distinct holding horizons, each with tailored volatility metrics, holding targets, and stagnation rules:
