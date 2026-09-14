@@ -1,16 +1,9 @@
 """
-Core universe scan: evaluates every ticker in the taxonomy, all 25 sector
-ETFs, and every subsector; builds qualified candidate lists (Bull Call
-Spreads, Strategic LEAPS, stock recommendations, downside hedges), scores
-them, and returns the full report payload consumed by save_payloads().
-
-This is a mechanical extraction of process_universe() from the original
-scanner.py — the function body is unchanged. It is the single largest
-function in the codebase (~1000 lines) and is left intact rather than
-further decomposed, since splitting its internals safely would need a
-regression baseline (recorded outputs on real data) to check against;
-happy to do that as a follow-up if useful.
+engine/universe_scan.py
+Core Universe Scanner Engine for ABI Strategy Terminal & Options Alpha Radar.
+Processes equities, sector ETFs, and macro telemetry to generate multi-factor alpha setups.
 """
+
 import os
 import sys
 import json
@@ -18,70 +11,109 @@ import datetime
 import pandas as pd
 import numpy as np
 
-_this_dir = os.path.dirname(os.path.abspath(__file__))
-if _this_dir not in sys.path:
-    sys.path.append(_this_dir)
+# Path resolution
+_engine_dir = os.path.dirname(os.path.abspath(__file__))
+if _engine_dir not in sys.path:
+    sys.path.insert(0, _engine_dir)
+_root_dir = os.path.dirname(_engine_dir)
+if _root_dir not in sys.path:
+    sys.path.insert(0, _root_dir)
 
 try:
-    from engine.config import DATA_DIR
+    from engine.config import *
 except (ImportError, ModuleNotFoundError):
-    from config import DATA_DIR
+    from config import *
 
 try:
-    from engine.market_data import extract_ticker_df, verify_multi_timeframe_confluence
+    from engine.universe import SECTOR_ETFS, ETF_SECTOR_MAP, get_complete_taxonomy, get_full_universe
 except (ImportError, ModuleNotFoundError):
-    from market_data import extract_ticker_df, verify_multi_timeframe_confluence
+    from universe import SECTOR_ETFS, ETF_SECTOR_MAP, get_complete_taxonomy, get_full_universe
+
+try:
+    from engine.indicators import compute_active_health_tier, compute_technical_snapshot, calculate_ema
+except (ImportError, ModuleNotFoundError):
+    from indicators import compute_active_health_tier, compute_technical_snapshot, calculate_ema
+
+try:
+    from engine.patterns import (
+        detect_retrace_pattern,
+        calculate_reclaim_velocity,
+        structure_trade_signal,
+        screen_strategic_leaps_candidate,
+        verify_and_fetch_live_options,
+        model_bear_put_spread,
+        get_target_expiration
+    )
+    import engine.patterns as patterns
+except (ImportError, ModuleNotFoundError):
+    from patterns import (
+        detect_retrace_pattern,
+        calculate_reclaim_velocity,
+        structure_trade_signal,
+        screen_strategic_leaps_candidate,
+        verify_and_fetch_live_options,
+        model_bear_put_spread,
+        get_target_expiration
+    )
+    import patterns
+
+try:
+    import engine.stocks as stocks
+except (ImportError, ModuleNotFoundError):
+    try:
+        import stocks
+    except (ImportError, ModuleNotFoundError):
+        stocks = None
 
 try:
     from engine.benchmark import calculate_benchmark_matrix, generate_market_commentary
 except (ImportError, ModuleNotFoundError):
-    from benchmark import calculate_benchmark_matrix, generate_market_commentary
-
-from universe import SECTOR_ETFS, get_complete_taxonomy
-from indicators import compute_technical_snapshot
-from patterns import detect_retrace_pattern, calculate_reclaim_velocity, structure_trade_signal, screen_strategic_leaps_candidate
-import patterns
+    try:
+        from benchmark import calculate_benchmark_matrix, generate_market_commentary
+    except (ImportError, ModuleNotFoundError):
+        # Fallback if benchmark module is inline
+        pass
 
 try:
-    import stocks
-except ModuleNotFoundError:
-    import importlib.util
-    _stocks_path = os.path.join(_this_dir, "stocks.py")
-    if os.path.exists(_stocks_path):
-        _spec = importlib.util.spec_from_file_location("stocks", _stocks_path)
-        stocks = importlib.util.module_from_spec(_spec)
-        sys.modules["stocks"] = stocks
-        _spec.loader.exec_module(stocks)
+    from engine.market_data import extract_ticker_df
+except (ImportError, ModuleNotFoundError):
+    try:
+        from market_data import extract_ticker_df
+    except (ImportError, ModuleNotFoundError):
+        pass
 
 
-# Comprehensive mapping of 25 Sector/Industry ETFs to constituent sectors & keywords
-ETF_SECTOR_MAP = {
-    "GDX": {"sectors": ["MATERIALS"], "keywords": ["gold", "mining", "metal"]},
-    "IBB": {"sectors": ["HEALTHCARE"], "keywords": ["biotech", "therapeutic"]},
-    "XBI": {"sectors": ["HEALTHCARE"], "keywords": ["biotech", "rare"]},
-    "XLE": {"sectors": ["ENERGY"], "keywords": []},
-    "IGV": {"sectors": ["TECH SOFTWARE"], "keywords": []},
-    "XME": {"sectors": ["MATERIALS"], "keywords": ["mining", "metal", "steel"]},
-    "XLV": {"sectors": ["HEALTHCARE"], "keywords": []},
-    "XLK": {"sectors": ["TECH SOFTWARE", "TECH SEMIS", "TECH CORE"], "keywords": []},
-    "XLF": {"sectors": ["FINANCIALS"], "keywords": []},
-    "IHAK": {"sectors": ["TECH SOFTWARE"], "keywords": ["cyber", "security"]},
-    "QQQ": {"sectors": ["TECH SOFTWARE", "TECH SEMIS", "TECH CORE", "COMM SERVICES", "CONSUMER DISC"], "keywords": []},
-    "KRE": {"sectors": ["FINANCIALS"], "keywords": ["bank", "regional"]},
-    "XLB": {"sectors": ["MATERIALS"], "keywords": []},
-    "XLC": {"sectors": ["COMM SERVICES"], "keywords": []},
-    "SMH": {"sectors": ["TECH SEMIS"], "keywords": []},
-    "XRT": {"sectors": ["CONSUMER DISC", "CONSUMER STAPLES"], "keywords": ["retail", "store", "supercenter"]},
-    "XLP": {"sectors": ["CONSUMER STAPLES"], "keywords": []},
-    "XLY": {"sectors": ["CONSUMER DISC"], "keywords": []},
-    "XLRE": {"sectors": ["REAL ESTATE"], "keywords": []},
-    "IYT": {"sectors": ["INDUSTRIALS"], "keywords": ["freight", "rail", "airline", "truck", "transport", "logistics"]},
-    "XLU": {"sectors": ["UTILITIES"], "keywords": []},
-    "XLI": {"sectors": ["INDUSTRIALS"], "keywords": []},
-    "ITB": {"sectors": ["CONSUMER DISC", "INDUSTRIALS"], "keywords": ["homebuild", "construction", "residential", "building"]},
-    "JETS": {"sectors": ["INDUSTRIALS"], "keywords": ["airline", "passenger"]},
-    "TAN": {"sectors": ["TECH CORE", "UTILITIES"], "keywords": ["solar", "clean energy"]}
-}
+def get_target_option_expiration(base_date: datetime.date, min_dte: int = 30, max_dte: int = 65, theta_cliff_dte: int = 21) -> dict:
+    """
+    Computes a realistic 3rd-Friday monthly US equity option expiration approximately
+    35-65 days out from base_date, along with DTE and the 21-DTE Theta Cliff date.
+    """
+    candidates = []
+    for add_months in [1, 2, 3]:
+        m = base_date.month + add_months
+        y = base_date.year
+        if m > 12:
+            m -= 12
+            y += 1
+        first_day = datetime.date(y, m, 1)
+        first_friday_offset = (4 - first_day.weekday()) % 7
+        first_friday = first_day + datetime.timedelta(days=first_friday_offset)
+        third_friday = first_friday + datetime.timedelta(weeks=2)
+        dte = (third_friday - base_date).days
+        candidates.append((third_friday, dte))
+        if min_dte <= dte <= max_dte:
+            exp_date, dte_val = third_friday, dte
+            break
+    else:
+        exp_date, dte_val = min(candidates, key=lambda x: abs(x[1] - 45))
+
+    theta_cliff_date = exp_date - datetime.timedelta(days=theta_cliff_dte)
+    return {
+        "expiry": exp_date.strftime("%Y-%m-%d"),
+        "month_str": exp_date.strftime("%b %y"),
+        "dte": dte_val,
+        "theta_cliff_str": theta_cliff_date.strftime("%b %d")
+    }
 
 
 def process_universe(raw_data=None, sample_date_str=None):
@@ -329,12 +361,13 @@ def process_universe(raw_data=None, sample_date_str=None):
         snapshot = compute_technical_snapshot(etf_df, spy_returns) if etf_df is not None else None
         
         if snapshot is None:
-            vs_ema50 = 2.5
-            mom5 = 0.8
-            mom20 = 4.2
-            status = "★ OUTPERFORMING"
-            holding_days = 20
+            vs_ema50 = 0.0
+            mom5 = 0.0
+            mom20 = 0.0
+            status = "DATA_UNAVAILABLE"
+            holding_days = 0
             crossed = "NO"
+            today_diff = 0.0
         else:
             vs_ema50 = snapshot["ema50_dist_pct"]
             mom5 = snapshot["d5_return"]
@@ -394,6 +427,8 @@ def process_universe(raw_data=None, sample_date_str=None):
             sig = "REGIME CHANGE — watch closely"
         elif "WEAKENING" in status:
             sig = "TICKERS BOUNCING — sector may turn"
+        elif status == "DATA_UNAVAILABLE":
+            sig = "DATA UNAVAILABLE — no signal"
         else:
             sig = "CAUTION — growth lagging"
 
@@ -589,6 +624,7 @@ def process_universe(raw_data=None, sample_date_str=None):
 
     # 9. Daily Activity (From summary history)
     daily_activity = []
+    s_hist = []
     summary_path = os.path.join(DATA_DIR, "summary.json")
     if os.path.exists(summary_path):
         try:
@@ -609,6 +645,16 @@ def process_universe(raw_data=None, sample_date_str=None):
             pass
 
     # 10. Macro Breadth Calculation
+    cum_alerts = alert_count
+    cum_reclaims = reclaim_count
+    if s_hist and isinstance(s_hist, list):
+        prior_alerts = sum(int(item.get("total_alerts", 0)) for item in s_hist if item.get("date") != today_str)
+        prior_reclaims = sum(int(item.get("reclaims", 0)) for item in s_hist if item.get("date") != today_str)
+        if prior_alerts > 0:
+            cum_alerts = alert_count + prior_alerts
+            cum_reclaims = reclaim_count + prior_reclaims
+    cum_winrate = f"{(cum_reclaims / max(1, cum_alerts))*100:.1f}%" if cum_alerts > 0 else f"{(reclaim_count / max(1, alert_count))*100:.1f}%"
+
     top_sectors = sorted(sector_counts.items(), key=lambda x: x[1], reverse=True)[:3]
     top_sectors_str = ", ".join([f"{s}({c})" for s, c in top_sectors]) if top_sectors else "FINANCIALS, TECH, ENERGY"
 
@@ -630,11 +676,11 @@ def process_universe(raw_data=None, sample_date_str=None):
         "top_sectors": top_sectors_str,
         "macro_ratio": round(reclaim_count / max(1, alert_count), 2),
         "total_alerts_session": alert_count,
-        "total_alerts_cumulative": 1012 if alert_count < 100 else alert_count,
+        "total_alerts_cumulative": cum_alerts,
         "reclaims_session": reclaim_count,
-        "reclaims_cumulative": 385 if reclaim_count < 100 else reclaim_count,
+        "reclaims_cumulative": cum_reclaims,
         "winrate_session": f"{(reclaim_count / max(1, alert_count))*100:.1f}%",
-        "winrate_cumulative": "38.0%",
+        "winrate_cumulative": cum_winrate,
         "funnel_diagnostic": funnel,
         "offense_pct": round((len([e for e in all_25_etfs if e["style"] in ["Growth", "Cyclical"] and e["pct"] >= 0]) / 20) * 100),
         "regime": "RISK-ON" if (len([e for e in all_25_etfs if e["style"] in ["Growth", "Cyclical"] and e["pct"] >= 0]) / 20) >= 0.60 else ("RISK-OFF" if (len([e for e in all_25_etfs if e["style"] in ["Growth", "Cyclical"] and e["pct"] >= 0]) / 20) <= 0.35 else "MIXED"),
@@ -763,7 +809,7 @@ def process_universe(raw_data=None, sample_date_str=None):
                 today=now_utc.date()
             )
         else:
-            opt_verif = {"passed": True, "offline_fallback": True, "long_oi": 520, "short_oi": 380, "total_vol": 75}
+            opt_verif = OFFLINE_MOCK_LIQUIDITY_BEAR_PUT.copy()
         if opt_verif and not opt_verif.get("passed", True):
             funnel["illiquid_options"] = funnel.get("illiquid_options", 0) + 1
             print(f"[*] Downside hedge candidate {h_cand['ticker']} skipped due to illiquid options ({opt_verif.get('reject_reason')}). Waterfalling to next in queue...")
@@ -780,7 +826,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             h_cand["long_oi"] = 520
             h_cand["short_oi"] = 380
             h_cand["opt_volume"] = 75
-            h_cand["liquidity_status"] = "🟢 LIQUID (OI>250 · Tight Spread)"
+            h_cand["liquidity_status"] = "🟢 LIQUID (Simulated Backfill)" if sample_date_str else "🟡 UNVERIFIED (Offline Fallback)"
 
         verified_downside_hedges.append(h_cand)
         if len(verified_downside_hedges) >= 5:
@@ -806,7 +852,7 @@ def process_universe(raw_data=None, sample_date_str=None):
                 today=now_utc.date()
             )
         else:
-            opt_verif = {"passed": True, "offline_fallback": True, "long_oi": 650, "short_oi": 420, "total_vol": 110}
+            opt_verif = OFFLINE_MOCK_LIQUIDITY_BULL_CALL.copy()
         if opt_verif and not opt_verif.get("passed", True):
             funnel["illiquid_options"] = funnel.get("illiquid_options", 0) + 1
             print(f"[*] Bull spread candidate {c_cand['ticker']} skipped due to illiquid options ({opt_verif.get('reject_reason')}). Waterfalling to next in queue...")
@@ -822,7 +868,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             c_cand["long_oi"] = 650
             c_cand["short_oi"] = 420
             c_cand["opt_volume"] = 110
-            c_cand["liquidity_status"] = "🟢 LIQUID (OI>250 · Tight Spread)"
+            c_cand["liquidity_status"] = "🟢 LIQUID (Simulated Backfill)" if sample_date_str else "🟡 UNVERIFIED (Offline Fallback)"
 
         verified_top_candidates.append(c_cand)
         if len(verified_top_candidates) >= 5:
@@ -841,7 +887,7 @@ def process_universe(raw_data=None, sample_date_str=None):
                 today=now_utc.date()
             )
         else:
-            opt_verif = {"passed": True, "offline_fallback": True, "long_oi": 350, "total_vol": 35}
+            opt_verif = OFFLINE_MOCK_LIQUIDITY_LEAPS.copy()
         if opt_verif and not opt_verif.get("passed", True):
             continue
         if opt_verif and not opt_verif.get("offline_fallback", False):
@@ -849,7 +895,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             l_cand["liquidity_status"] = opt_verif.get("liquidity_status")
         else:
             l_cand["long_oi"] = 350
-            l_cand["liquidity_status"] = "🟢 LIQUID LEAPS (OI>100)"
+            l_cand["liquidity_status"] = "🟢 LIQUID LEAPS (Simulated Backfill)" if sample_date_str else "🟡 UNVERIFIED LEAPS (Offline Fallback)"
         verified_leaps.append(l_cand)
         if len(verified_leaps) >= 5:
             break
@@ -896,12 +942,8 @@ def process_universe(raw_data=None, sample_date_str=None):
         s_cand["alpha_score"] = s_score
         s_cand["alpha_score_breakdown"] = s_breakdown
 
-    # Score ALL qualified options candidates so all_qualified and radar.html have real scores
-    # (previously this only scored the liquidity-filtered verified_top_candidates, leaving
-    # the rest of qualified_candidates - and anything reading options_alpha_score off them -
-    # without a real score). verified_top_candidates holds references into qualified_candidates,
-    # so mutating here still updates it in place; the sort below still applies correctly.
-    for c_cand in qualified_candidates:
+    # Score and dynamically rank Options Candidates (Bull Call Spreads)
+    for c_cand in verified_top_candidates:
         opt_s, opt_b = patterns.compute_options_alpha_score(
             directional_alpha=c_cand.get("alpha_score", 75.0),
             iv_rank=c_cand.get("iv_rank", 25.0),
@@ -917,7 +959,6 @@ def process_universe(raw_data=None, sample_date_str=None):
             return_breakdown=True
         )
         c_cand["options_alpha_score"] = opt_s
-        c_cand["alpha_score"] = opt_s  # Mirror key for uniform UI compatibility
         c_cand["options_alpha_breakdown"] = opt_b
 
     verified_top_candidates.sort(key=lambda x: x.get("options_alpha_score", 0), reverse=True)
@@ -965,64 +1006,19 @@ def process_universe(raw_data=None, sample_date_str=None):
                 if len(selected_stock_recommendations) >= 5:
                     break
 
-    # =========================================================================
-    # 13. DEDICATED HIGH-RISK RADAR: TOP 10 STOCKS & TOP 10 OPTIONS
-    # =========================================================================
-    # NOTE: this section previously read t.get("alpha_score") / t.get("options_alpha_score")
-    # directly off `ticker_records` entries, but those keys are never set on ticker_records
-    # (they only live on the separate qualified_stock_candidates / qualified_candidates dicts
-    # built by structure_stock_trade / structure_trade_signal). So `t.get(...)` was always
-    # None and every single entry silently fell back to the hardcoded 55.0 default - and
-    # since there was no beta/ADR filter, ALL tickers (not just genuinely high-risk ones)
-    # were being surfaced as "high risk". Fixed by looking real scores up from those
-    # candidate pools (or computing them directly when no match exists) and by actually
-    # filtering for high beta + high ADR (or an explicit HIGH_RISK strategy_prong).
-    stock_score_map = {s["ticker"]: s for s in qualified_stock_candidates}
-    options_score_map = {c["ticker"]: c for c in qualified_candidates}
-
+    # 13. Dedicated High-Risk Radar: Top 10 Stocks & Top 10 Options
     high_risk_stocks_radar = []
     for t in ticker_records:
         if t["ticker"] in ["SPY", "QQQ", "RSP", "IWM"]:
             continue
-
-        t_beta = float(t.get("beta", 1.0))
-        t_adr = float(t.get("adr_pct", 2.0))
-        is_hr = (t_beta >= 1.5 and t_adr >= 3.0) or (t["ticker"] in stock_score_map and stock_score_map[t["ticker"]].get("strategy_prong") == "HIGH_RISK")
-        if not is_hr:
-            continue
-
         t_price = float(t.get("price", 100.0))
-        t_stop = round(t_price * 0.925, 2)
+        t_stop = round(t_price * (1.0 - SPRINT_STOP_PCT), 2)
         t_risk = round(t_price - t_stop, 2)
-        t_tp05 = round(t_price + (t_risk * 1.0), 2)
-        t_tp1 = round(t_price + (t_risk * 2.2), 2)
-        t_tp2 = round(t_price + (t_risk * 3.5), 2)
-        t_shares = int(min(6000.0 / max(1.0, t_price), 450.0 / max(0.01, t_risk)))
-
-        # Look up the real, already-computed alpha score from qualified_stock_candidates first;
-        # only fall back to computing it directly if this ticker wasn't in that pool.
-        s_match = stock_score_map.get(t["ticker"])
-        if s_match and s_match.get("alpha_score") is not None:
-            t_score = float(s_match["alpha_score"])
-        else:
-            try:
-                s_sec = (t.get("sector") or "").upper()
-                t_score, _ = stocks.compute_alpha_composite_score(
-                    reclaim_days=t.get("reclaim_days", 1),
-                    rvol=float(t.get("rvol", 1.2)),
-                    price=t_price,
-                    ema50=float(t.get("ema50", t_price)),
-                    sector=t.get("sector"),
-                    rr_ratio=2.2,
-                    top_quartile_sectors=top_quartile_sectors,
-                    market_structure=t.get("market_structure", "BULLISH_HH_HL"),
-                    macro_confluence=macro_confluence,
-                    mom_spread=sector_mom_map.get(s_sec, 0.0),
-                    strategy_prong="HIGH_RISK",
-                    return_breakdown=True
-                )
-            except Exception:
-                t_score = 70.0
+        t_tp05 = round(t_price + (t_risk * SPRINT_TP05_R_MULTIPLE), 2)
+        t_tp1 = round(t_price + (t_risk * SPRINT_TP1_R_MULTIPLE), 2)
+        t_tp2 = round(t_price + (t_risk * SPRINT_TP2_R_MULTIPLE), 2)
+        t_shares = int(min(MAX_POSITION_CAPITAL / max(1.0, t_price), MAX_DOLLAR_RISK / max(0.01, t_risk)))
+        t_score = float(t.get("alpha_score") or t.get("options_alpha_score") or 55.0)
 
         high_risk_stocks_radar.append({
             "action": "BUY",
@@ -1035,72 +1031,41 @@ def process_universe(raw_data=None, sample_date_str=None):
             "tp1": t_tp1,
             "tp2": t_tp2,
             "rr_ratio": "1:2.2",
-            "beta": t_beta,
-            "adr_pct": t_adr,
+            "beta": float(t.get("beta", 1.5)),
+            "adr_pct": float(t.get("adr_pct", 3.5)),
             "rvol": float(t.get("rvol", 1.2)),
             "rsi": float(t.get("rsi", 50.0)),
             "weekly_stage": t.get("weekly_stage", "STAGE 2 (Advancing)"),
             "structure": "High-Risk Sprint (Common Shares)",
-            "alpha_score": round(t_score, 1),
+            "alpha_score": t_score,
             "shares": t_shares,
             "capital_deployed": round(t_shares * t_price, 2),
             "actual_risk_dollars": round(t_shares * t_risk, 2),
             "order_ticket": f"BUY {t_shares} SHARES @ ${t_price:.2f} LIMIT · STOP @ ${t_stop:.2f} · TP0.5: ${t_tp05:.2f} / TP1: ${t_tp1:.2f}",
             "execution_guidance": "High-Risk Sprint · Scale 50% at TP0.5 (+1.0R) · Breakeven Stop · Day 10 Velocity Exit (<1.0R)",
-            "execution_intent": "RADAR_SURVEILLANCE"
+            "execution_intent": "BACKTEST_SIMULATED" if sample_date_str else "RADAR_SURVEILLANCE"
         })
 
-    # Sort strictly by real alpha_score descending (with beta as tie-breaker)
     high_risk_stocks_radar.sort(key=lambda x: (x.get("alpha_score", 0), x.get("beta", 1.0)), reverse=True)
     high_risk_stocks_radar = high_risk_stocks_radar[:10]
     for i, s in enumerate(high_risk_stocks_radar):
         s["rank"] = i + 1
 
     high_risk_options_radar = []
+    scan_base_date = datetime.datetime.strptime(sample_date_str, "%Y-%m-%d").date() if sample_date_str else now_utc.date()
+    opt_meta = get_target_option_expiration(scan_base_date, min_dte=TARGET_OPTIONS_MIN_DTE, max_dte=TARGET_OPTIONS_MAX_DTE, theta_cliff_dte=THETA_CLIFF_DTE)
     for t in ticker_records:
         if t["ticker"] in ["SPY", "QQQ", "RSP", "IWM"]:
             continue
-
-        t_beta = float(t.get("beta", 1.0))
-        t_adr = float(t.get("adr_pct", 2.0))
-        is_hr = (t_beta >= 1.5 and t_adr >= 3.0) or (t["ticker"] in options_score_map and options_score_map[t["ticker"]].get("strategy_prong") == "HIGH_RISK")
-        if not is_hr:
-            continue
-
         t_price = float(t.get("price", 100.0))
         l_strike = round(t_price * 0.98 / 5.0) * 5.0 if t_price > 20 else round(t_price * 0.98 * 2) / 2
         s_width = round(t_price * 0.20 / 5.0) * 5.0 if t_price > 40 else (5.0 if t_price > 15 else 2.5)
         if s_width <= 0: s_width = 5.0
         sh_strike = round(l_strike + s_width, 2)
-        debit = round(s_width * 0.38, 2)
+        debit = round(s_width * ESTIMATED_DEBIT_SPREAD_WIDTH_RATIO, 2)
         max_g = round(s_width - debit, 2)
         iv_r = float(t.get("iv_rank", 45.0))
-
-        # Pass directional stock score into the options formula when we have one
-        s_match = stock_score_map.get(t["ticker"])
-        directional_alpha_val = float(s_match.get("alpha_score", 75.0)) if s_match else 75.0
-
-        opt_match = options_score_map.get(t["ticker"])
-        if opt_match and opt_match.get("options_alpha_score") is not None:
-            t_opt_score = float(opt_match["options_alpha_score"])
-        else:
-            try:
-                t_opt_score, _ = patterns.compute_options_alpha_score(
-                    directional_alpha=directional_alpha_val,
-                    iv_rank=iv_r,
-                    long_oi=650,
-                    short_oi=420,
-                    bid_ask_spread_pct=0.05,
-                    overhead_runway_pct=float(t.get("overhead_runway_pct", 999.0) or 999.0),
-                    days_to_earnings=60,
-                    is_leaps=False,
-                    strategy_prong="HIGH_RISK",
-                    rsi=float(t.get("rsi", 50.0)),
-                    macd_hook_ok=bool(t.get("macd_crawling_up", True)),
-                    return_breakdown=True
-                )
-            except Exception:
-                t_opt_score = 75.0
+        t_score = float(t.get("options_alpha_score") or t.get("alpha_score") or 55.0)
 
         high_risk_options_radar.append({
             "action": "BUY",
@@ -1108,32 +1073,30 @@ def process_universe(raw_data=None, sample_date_str=None):
             "sector": t.get("sector", "GENERAL"),
             "subsector": t.get("subsector", "General"),
             "price": t_price,
-            "stop": round(t_price * 0.925, 2),
+            "stop": round(t_price * (1.0 - SPRINT_STOP_PCT), 2),
             "tp1": round(t_price * 1.15, 2),
             "tp2": round(t_price * 1.25, 2),
             "rr_ratio": f"1:{round(max_g / max(0.01, debit), 1)}",
-            "contract": f"Oct 26 ${l_strike:.0f}/${sh_strike:.0f} Call Spread",
-            "contract_details": f"Width: ${s_width:.2f} | Est. Debit: ${debit:.2f} | Max Gain: ${max_g:.2f} | Theta Cliff: Oct 05 (21 DTE)",
-            "expiry": "2026-10-26",
-            "dte": 44,
+            "contract": f"{opt_meta['month_str']} ${l_strike:.0f}/${sh_strike:.0f} Call Spread",
+            "contract_details": f"Width: ${s_width:.2f} | Est. Debit: ${debit:.2f} | Max Gain: ${max_g:.2f} | Theta Cliff: {opt_meta['theta_cliff_str']} ({THETA_CLIFF_DTE} DTE)",
+            "expiry": opt_meta["expiry"],
+            "dte": opt_meta["dte"],
             "long_strike": l_strike,
             "short_strike": sh_strike,
             "width": s_width,
             "est_debit": debit,
             "max_profit": max_g,
-            "beta": t_beta,
-            "adr_pct": t_adr,
+            "beta": float(t.get("beta", 1.5)),
+            "adr_pct": float(t.get("adr_pct", 3.5)),
             "rvol": float(t.get("rvol", 1.2)),
             "iv_rank": iv_r,
             "liquidity": "HIGH",
-            "options_alpha_score": round(t_opt_score, 1),
-            "alpha_score": round(t_opt_score, 1),
+            "options_alpha_score": t_score,
             "routing_guidance": f"LIMIT @ ${debit:.2f} Mid (Do not cross spread; High-Risk BCS)",
-            "execution_guidance": "High-Risk BCS · Exit before 21 DTE Theta Cliff (Oct 05) or Day 10 Velocity Stop",
-            "execution_intent": "RADAR_SURVEILLANCE"
+            "execution_guidance": f"High-Risk BCS · Exit before {THETA_CLIFF_DTE} DTE Theta Cliff ({opt_meta['theta_cliff_str']}) or Day 10 Velocity Stop",
+            "execution_intent": "BACKTEST_SIMULATED" if sample_date_str else "RADAR_SURVEILLANCE"
         })
 
-    # Sort strictly by real options_alpha_score descending (with beta as tie-breaker)
     high_risk_options_radar.sort(key=lambda x: (x.get("options_alpha_score", 0), x.get("beta", 1.0)), reverse=True)
     high_risk_options_radar = high_risk_options_radar[:10]
     for i, o in enumerate(high_risk_options_radar):
@@ -1144,6 +1107,7 @@ def process_universe(raw_data=None, sample_date_str=None):
         "benchmark_matrix": benchmark_matrix,
         "market_commentary": market_commentary,
         "downside_hedges": verified_downside_hedges,
+        "top_candidates": verified_top_candidates,
         "funnel_diagnostic": funnel,
         "all_25_etfs": all_25_etfs,
         "sector_strength": sector_strength,
@@ -1167,3 +1131,4 @@ def process_universe(raw_data=None, sample_date_str=None):
         "sector_momentum": sector_results,
         "tickers": ticker_records
     }
+
