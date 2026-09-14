@@ -37,37 +37,6 @@ SECTOR_ETFS = {
 
 # Complete S&P 500 + Key NASDAQ-100 Constituent Taxonomy
 # Ticker: (Sector, Sub-Sector / Industry)
-# Comprehensive mapping of 25 Sector/Industry ETFs to constituent sectors & keywords
-ETF_SECTOR_MAP = {
-    "GDX": {"sectors": ["MATERIALS"], "keywords": ["gold", "mining", "metal"]},
-    "IBB": {"sectors": ["HEALTHCARE"], "keywords": ["biotech", "therapeutic"]},
-    "XBI": {"sectors": ["HEALTHCARE"], "keywords": ["biotech", "rare"]},
-    "XLE": {"sectors": ["ENERGY"], "keywords": []},
-    "IGV": {"sectors": ["TECH SOFTWARE"], "keywords": []},
-    "XME": {"sectors": ["MATERIALS"], "keywords": ["mining", "metal", "steel"]},
-    "XLV": {"sectors": ["HEALTHCARE"], "keywords": []},
-    "XLK": {"sectors": ["TECH SOFTWARE", "TECH SEMIS", "TECH CORE"], "keywords": []},
-    "XLF": {"sectors": ["FINANCIALS"], "keywords": []},
-    "IHAK": {"sectors": ["TECH SOFTWARE"], "keywords": ["cyber", "security"]},
-    "QQQ": {"sectors": ["TECH SOFTWARE", "TECH SEMIS", "TECH CORE", "COMM SERVICES", "CONSUMER DISC"], "keywords": []},
-    "KRE": {"sectors": ["FINANCIALS"], "keywords": ["bank", "regional"]},
-    "XLB": {"sectors": ["MATERIALS"], "keywords": []},
-    "XLC": {"sectors": ["COMM SERVICES"], "keywords": []},
-    "SMH": {"sectors": ["TECH SEMIS"], "keywords": []},
-    "XRT": {"sectors": ["CONSUMER DISC", "CONSUMER STAPLES"], "keywords": ["retail", "store", "supercenter"]},
-    "XLP": {"sectors": ["CONSUMER STAPLES"], "keywords": []},
-    "XLY": {"sectors": ["CONSUMER DISC"], "keywords": []},
-    "XLRE": {"sectors": ["REAL ESTATE"], "keywords": []},
-    "IYT": {"sectors": ["INDUSTRIALS"], "keywords": ["freight", "rail", "airline", "truck", "transport", "logistics"]},
-    "XLU": {"sectors": ["UTILITIES"], "keywords": []},
-    "XLI": {"sectors": ["INDUSTRIALS"], "keywords": []},
-    "ITB": {"sectors": ["CONSUMER DISC", "INDUSTRIALS"], "keywords": ["homebuild", "construction", "residential", "building"]},
-    "JETS": {"sectors": ["INDUSTRIALS"], "keywords": ["airline", "passenger"]},
-    "TAN": {"sectors": ["TECH CORE", "UTILITIES"], "keywords": ["solar", "clean energy"]}
-}
-
-# Complete S&P 500 + Key NASDAQ-100 Constituent Taxonomy
-# Ticker: (Sector, Sub-Sector / Industry)
 TICKER_TAXONOMY = {
     "SPY": ("INDEX", "S&P 500 Benchmark"),
     "QQQ": ("INDEX", "Nasdaq 100 Growth"),
