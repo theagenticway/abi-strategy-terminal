@@ -27,7 +27,14 @@ except (ImportError, ModuleNotFoundError):
 try:
     from engine.universe import SECTOR_ETFS, ETF_SECTOR_MAP, get_complete_taxonomy, get_full_universe
 except (ImportError, ModuleNotFoundError):
-    from universe import SECTOR_ETFS, ETF_SECTOR_MAP, get_complete_taxonomy, get_full_universe
+    try:
+        from universe import SECTOR_ETFS, ETF_SECTOR_MAP, get_complete_taxonomy, get_full_universe
+    except (ImportError, ModuleNotFoundError):
+        try:
+            from engine.universe import SECTOR_ETFS, get_complete_taxonomy, get_full_universe
+        except (ImportError, ModuleNotFoundError):
+            from universe import SECTOR_ETFS, get_complete_taxonomy, get_full_universe
+        ETF_SECTOR_MAP = None
 
 try:
     from engine.indicators import compute_active_health_tier, compute_technical_snapshot, calculate_ema
@@ -82,6 +89,64 @@ except (ImportError, ModuleNotFoundError):
     except (ImportError, ModuleNotFoundError):
         pass
 
+
+# Comprehensive mapping of 25 Sector/Industry ETFs to constituent sectors & keywords
+if ETF_SECTOR_MAP is None:
+    ETF_SECTOR_MAP = {
+        "GDX": {"sectors": ["MATERIALS"], "keywords": ["gold", "mining", "metal"]},
+        "IBB": {"sectors": ["HEALTHCARE"], "keywords": ["biotech", "therapeutic"]},
+        "XBI": {"sectors": ["HEALTHCARE"], "keywords": ["biotech", "rare"]},
+        "XLE": {"sectors": ["ENERGY"], "keywords": []},
+        "IGV": {"sectors": ["TECH SOFTWARE"], "keywords": []},
+        "XME": {"sectors": ["MATERIALS"], "keywords": ["mining", "metal", "steel"]},
+        "XLV": {"sectors": ["HEALTHCARE"], "keywords": []},
+        "XLK": {"sectors": ["TECH SOFTWARE", "TECH SEMIS", "TECH CORE"], "keywords": []},
+        "XLF": {"sectors": ["FINANCIALS"], "keywords": []},
+        "IHAK": {"sectors": ["TECH SOFTWARE"], "keywords": ["cyber", "security"]},
+        "QQQ": {"sectors": ["TECH SOFTWARE", "TECH SEMIS", "TECH CORE", "COMM SERVICES", "CONSUMER DISC"], "keywords": []},
+        "KRE": {"sectors": ["FINANCIALS"], "keywords": ["bank", "regional"]},
+        "XLB": {"sectors": ["MATERIALS"], "keywords": []},
+        "XLC": {"sectors": ["COMM SERVICES"], "keywords": []},
+        "SMH": {"sectors": ["TECH SEMIS"], "keywords": []},
+        "XRT": {"sectors": ["CONSUMER DISC", "CONSUMER STAPLES"], "keywords": ["retail", "store", "supercenter"]},
+        "XLP": {"sectors": ["CONSUMER STAPLES"], "keywords": []},
+        "XLY": {"sectors": ["CONSUMER DISC"], "keywords": []},
+        "XLRE": {"sectors": ["REAL ESTATE"], "keywords": []},
+        "IYT": {"sectors": ["INDUSTRIALS"], "keywords": ["freight", "rail", "airline", "truck", "transport", "logistics"]},
+        "XLU": {"sectors": ["UTILITIES"], "keywords": []},
+        "XLI": {"sectors": ["INDUSTRIALS"], "keywords": []},
+        "ITB": {"sectors": ["CONSUMER DISC", "INDUSTRIALS"], "keywords": ["homebuild", "construction", "residential", "building"]},
+        "JETS": {"sectors": ["INDUSTRIALS"], "keywords": ["airline", "passenger"]},
+        "TAN": {"sectors": ["TECH CORE", "UTILITIES"], "keywords": ["solar", "clean energy"]}
+    }
+# (Duplicate mapping definition removed)
+_unused_map = {
+    "GDX": {"sectors": ["MATERIALS"], "keywords": ["gold", "mining", "metal"]},
+    "IBB": {"sectors": ["HEALTHCARE"], "keywords": ["biotech", "therapeutic"]},
+    "XBI": {"sectors": ["HEALTHCARE"], "keywords": ["biotech", "rare"]},
+    "XLE": {"sectors": ["ENERGY"], "keywords": []},
+    "IGV": {"sectors": ["TECH SOFTWARE"], "keywords": []},
+    "XME": {"sectors": ["MATERIALS"], "keywords": ["mining", "metal", "steel"]},
+    "XLV": {"sectors": ["HEALTHCARE"], "keywords": []},
+    "XLK": {"sectors": ["TECH SOFTWARE", "TECH SEMIS", "TECH CORE"], "keywords": []},
+    "XLF": {"sectors": ["FINANCIALS"], "keywords": []},
+    "IHAK": {"sectors": ["TECH SOFTWARE"], "keywords": ["cyber", "security"]},
+    "QQQ": {"sectors": ["TECH SOFTWARE", "TECH SEMIS", "TECH CORE", "COMM SERVICES", "CONSUMER DISC"], "keywords": []},
+    "KRE": {"sectors": ["FINANCIALS"], "keywords": ["bank", "regional"]},
+    "XLB": {"sectors": ["MATERIALS"], "keywords": []},
+    "XLC": {"sectors": ["COMM SERVICES"], "keywords": []},
+    "SMH": {"sectors": ["TECH SEMIS"], "keywords": []},
+    "XRT": {"sectors": ["CONSUMER DISC", "CONSUMER STAPLES"], "keywords": ["retail", "store", "supercenter"]},
+    "XLP": {"sectors": ["CONSUMER STAPLES"], "keywords": []},
+    "XLY": {"sectors": ["CONSUMER DISC"], "keywords": []},
+    "XLRE": {"sectors": ["REAL ESTATE"], "keywords": []},
+    "IYT": {"sectors": ["INDUSTRIALS"], "keywords": ["freight", "rail", "airline", "truck", "transport", "logistics"]},
+    "XLU": {"sectors": ["UTILITIES"], "keywords": []},
+    "XLI": {"sectors": ["INDUSTRIALS"], "keywords": []},
+    "ITB": {"sectors": ["CONSUMER DISC", "INDUSTRIALS"], "keywords": ["homebuild", "construction", "residential", "building"]},
+    "JETS": {"sectors": ["INDUSTRIALS"], "keywords": ["airline", "passenger"]},
+    "TAN": {"sectors": ["TECH CORE", "UTILITIES"], "keywords": ["solar", "clean energy"]}
+}
 
 def get_target_option_expiration(base_date: datetime.date, min_dte: int = 30, max_dte: int = 65, theta_cliff_dte: int = 21) -> dict:
     """
