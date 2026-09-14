@@ -1,7 +1,7 @@
 [
   {
     "date": "2026-09-14",
-    "timestamp": "2026-09-14 20:22:58",
+    "timestamp": "2026-09-14 21:13:25",
     "total_alerts": 458,
     "reclaims": 152,
     "confirmed": 152,
@@ -17,11 +17,11 @@
     "top_sectors": "FINANCIALS(67), INDUSTRIALS(57), HEALTHCARE(57)",
     "macro_ratio": 0.33,
     "total_alerts_session": 458,
-    "total_alerts_cumulative": 458,
+    "total_alerts_cumulative": 114776,
     "reclaims_session": 152,
-    "reclaims_cumulative": 152,
+    "reclaims_cumulative": 41915,
     "winrate_session": "33.2%",
-    "winrate_cumulative": "38.0%",
+    "winrate_cumulative": "36.5%",
     "funnel_diagnostic": {
       "scanned": 476,
       "below_floor": 276,
