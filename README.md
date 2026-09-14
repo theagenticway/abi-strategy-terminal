@@ -353,6 +353,56 @@ on:
 
 ---
 
+## 🗂️ Engine Architecture & File Structure
+
+The Python engine lives in `engine/`. As of this refactor, the original monolithic `engine/scanner.py` (previously ~2,000 lines covering data fetching, macro regime detection, the full universe scan, trade auditing, and persistence in one file) has been split into focused modules along its natural responsibility boundaries. No trading logic changed as part of this split — every function moved verbatim, and the change was verified against the full test suite (112 tests, zero regressions) plus a byte-for-byte comparison of scanner output before and after.
+
+```text
+engine/
+├── scanner.py         Thin orchestrator: CLI args (--backfill), run_backfill(), __main__ entry
+│                       point. Also re-exports every public name the modules below own
+│                       (process_universe, audit_and_update_trades, determine_invalidation_driver,
+│                       ETF_SECTOR_MAP, the sizing/eviction constants, etc.) so existing imports
+│                       of `scanner.<name>` keep working unchanged.
+├── config.py           Shared constants: options/stock slot capacity, eviction hurdle & aging,
+│                       high-risk sizing rules (DEFAULT_PORTFOLIO_CAPITAL, MAX_CAPITAL_ALLOCATION_PCT,
+│                       DOLLAR_AT_RISK_PCT, HIGH_RISK_MIN_BETA/ADR, SPRINT_STOP_PCT), and on-disk
+│                       data paths (DATA_DIR, HISTORY_DIR, RETENTION_DAYS).
+├── market_data.py      Downloading OHLCV bars (fetch_market_data), extracting a single ticker's
+│                       DataFrame out of a batch download (extract_ticker_df), pruning history
+│                       past RETENTION_DAYS, and the 1h/4h multi-timeframe confluence check.
+├── benchmark.py        Macro regime detection (calculate_benchmark_matrix: SPY/QQQ/RSP/IWM vs.
+│                       50 EMA confluence) and the executive-summary commentary generator
+│                       (generate_market_commentary).
+├── universe_scan.py    process_universe() - the full per-ticker/per-ETF/per-subsector scan.
+│                       This is the largest module (~1,200 lines) and intentionally was not
+│                       decomposed further during the split; see "Known Follow-Ups" below.
+├── trade_audit.py      Trade lifecycle auditing: stop-outs, TP hits, expirations, post-mortem
+│                       invalidation attribution (determine_invalidation_driver), daily
+│                       re-scoring, and relative-strength eviction/throttling.
+├── persistence.py      Writing latest.json / dated history snapshots / summary.json, pruning
+│                       old history, and triggering the trades-log and 365-day archive updates
+│                       on every scan (save_payloads, ensure_ledgers_exist).
+├── indicators.py        Technical snapshot computation: EMA/SMA/RSI/MACD, IV Rank proxy
+│                       (historical-volatility percentile), active health tier classification.
+├── patterns.py          Options contract modeling (strikes, third-Friday expiration math via
+│                       get_target_expiration/get_third_friday), live options liquidity
+│                       verification, retrace/reclaim pattern detection, and trade-signal
+│                       structuring for both directional and options setups.
+├── stocks.py            Cash-equity trade structuring, the Alpha Composite Score, and the
+│                       stock-side trades log.
+├── universe.py          The 500+ ticker taxonomy and the 25 Sector/Industry ETF map.
+└── archive.py           365-day historical signal archive normalization and upsert logic.
+```
+
+**Why the split:** `scanner.py` had grown to own five unrelated concerns (data fetching, macro commentary, the full scan, trade auditing, and persistence), which made it hard to navigate and made it easy for a bug in one concern to hide among 2,000 lines of another. Splitting along those boundaries makes each piece independently readable and testable without changing behavior.
+
+**Known follow-ups, not yet done:**
+* `universe_scan.py`'s `process_universe()` is still one large function (~1,200 lines). It's the single riskiest piece of logic to refactor further, since correctness there directly drives trade recommendations - any further split should be done incrementally against recorded before/after output, not all at once.
+* Several magic numbers in `universe_scan.py` (e.g., the `0.20`/`0.38` bull-call-spread width/debit heuristics) haven't been moved into `config.py` yet, unlike the high-risk sizing constants, which now live in and are read from `config.py`.
+
+---
+
 ## 🧪 Comprehensive Testing & Verification Suite
 
 A complete verification suite of **112 automated tests** across Python and Node.js guarantees structural, mathematical, and DOM integrity:
