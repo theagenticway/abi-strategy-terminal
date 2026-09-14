@@ -1241,6 +1241,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             return_breakdown=True
         )
         c_cand["options_alpha_score"] = opt_s
+        c_cand["alpha_score"] = opt_s  # Mirror key for uniform UI compatibility
         c_cand["options_alpha_breakdown"] = opt_b
 
     verified_top_candidates.sort(key=lambda x: x.get("options_alpha_score", 0), reverse=True)
