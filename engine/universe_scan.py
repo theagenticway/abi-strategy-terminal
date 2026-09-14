@@ -23,9 +23,15 @@ if _this_dir not in sys.path:
     sys.path.append(_this_dir)
 
 try:
-    from engine.config import DATA_DIR
+    from engine.config import (
+        DATA_DIR, DEFAULT_PORTFOLIO_CAPITAL, MAX_CAPITAL_ALLOCATION_PCT,
+        DOLLAR_AT_RISK_PCT, SPRINT_STOP_PCT,
+    )
 except (ImportError, ModuleNotFoundError):
-    from config import DATA_DIR
+    from config import (
+        DATA_DIR, DEFAULT_PORTFOLIO_CAPITAL, MAX_CAPITAL_ALLOCATION_PCT,
+        DOLLAR_AT_RISK_PCT, SPRINT_STOP_PCT,
+    )
 
 try:
     from engine.market_data import extract_ticker_df, verify_multi_timeframe_confluence
@@ -38,7 +44,7 @@ except (ImportError, ModuleNotFoundError):
     from benchmark import calculate_benchmark_matrix, generate_market_commentary
 
 from universe import SECTOR_ETFS, get_complete_taxonomy
-from indicators import compute_technical_snapshot
+from indicators import compute_technical_snapshot, calculate_iv_rank
 from patterns import detect_retrace_pattern, calculate_reclaim_velocity, structure_trade_signal, screen_strategic_leaps_candidate
 import patterns
 
@@ -1031,12 +1037,18 @@ def process_universe(raw_data=None, sample_date_str=None):
             continue
 
         t_price = float(t.get("price", 100.0))
-        t_stop = round(t_price * 0.925, 2)
+        t_stop = round(t_price * (1.0 - SPRINT_STOP_PCT), 2)
         t_risk = round(t_price - t_stop, 2)
         t_tp05 = round(t_price + (t_risk * 1.0), 2)
         t_tp1 = round(t_price + (t_risk * 2.2), 2)
         t_tp2 = round(t_price + (t_risk * 3.5), 2)
-        t_shares = int(min(6000.0 / max(1.0, t_price), 450.0 / max(0.01, t_risk)))
+        # Sizing now scales off DEFAULT_PORTFOLIO_CAPITAL (config.py) instead of hardcoded
+        # $6,000/$450 figures that silently assumed a $100K account. Change
+        # DEFAULT_PORTFOLIO_CAPITAL in config.py to match your actual account size and every
+        # High-Risk Sprint recommendation resizes accordingly on the next scan.
+        max_capital_per_trade = DEFAULT_PORTFOLIO_CAPITAL * MAX_CAPITAL_ALLOCATION_PCT
+        max_risk_per_trade = DEFAULT_PORTFOLIO_CAPITAL * DOLLAR_AT_RISK_PCT
+        t_shares = int(min(max_capital_per_trade / max(1.0, t_price), max_risk_per_trade / max(0.01, t_risk)))
 
         # Look up the real, already-computed alpha score from qualified_stock_candidates first;
         # only fall back to computing it directly if this ticker wasn't in that pool.
@@ -1113,7 +1125,23 @@ def process_universe(raw_data=None, sample_date_str=None):
         sh_strike = round(l_strike + s_width, 2)
         debit = round(s_width * 0.38, 2)
         max_g = round(s_width - debit, 2)
-        iv_r = float(t.get("iv_rank", 45.0))
+
+        # Real per-ticker IV Rank instead of a flat 45.0 default. `t` here is a ticker_records
+        # entry, which never carries an "iv_rank" key at all (only the separate
+        # qualified_candidates dicts built by structure_trade_signal do) - so
+        # `t.get("iv_rank", 45.0)` always fell through to 45.0 for every single ticker, which
+        # is exactly the flat 45% IVR shown for every row on radar.html. Look up the real,
+        # already-computed IV rank when this ticker qualified into that pool; otherwise
+        # compute it directly from this ticker's own price history.
+        opt_match = options_score_map.get(t["ticker"])
+        if opt_match and opt_match.get("iv_rank") is not None:
+            iv_r = float(opt_match["iv_rank"])
+        else:
+            try:
+                _t_df = extract_ticker_df(raw_data, t["ticker"])
+                iv_r = calculate_iv_rank(_t_df["Close"]) if _t_df is not None and len(_t_df) > 20 else 45.0
+            except Exception:
+                iv_r = 45.0
 
         # Real target expiry instead of a hardcoded "Oct 26 2026" (which would keep printing
         # an expired date on every run after that month). Reuses the same 45-90 DTE monthly
@@ -1126,7 +1154,6 @@ def process_universe(raw_data=None, sample_date_str=None):
         s_match = stock_score_map.get(t["ticker"])
         directional_alpha_val = float(s_match.get("alpha_score", 75.0)) if s_match else 75.0
 
-        opt_match = options_score_map.get(t["ticker"])
         if opt_match and opt_match.get("options_alpha_score") is not None:
             t_opt_score = float(opt_match["options_alpha_score"])
         else:
@@ -1154,7 +1181,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             "sector": t.get("sector", "GENERAL"),
             "subsector": t.get("subsector", "General"),
             "price": t_price,
-            "stop": round(t_price * 0.925, 2),
+            "stop": round(t_price * (1.0 - SPRINT_STOP_PCT), 2),
             "tp1": round(t_price * 1.15, 2),
             "tp2": round(t_price * 1.25, 2),
             "rr_ratio": f"1:{round(max_g / max(0.01, debit), 1)}",
