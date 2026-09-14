@@ -329,11 +329,15 @@ def process_universe(raw_data=None, sample_date_str=None):
         snapshot = compute_technical_snapshot(etf_df, spy_returns) if etf_df is not None else None
         
         if snapshot is None:
-            vs_ema50 = 2.5
-            mom5 = 0.8
-            mom20 = 4.2
-            status = "★ OUTPERFORMING"
-            holding_days = 20
+            # Previously defaulted to an optimistic +2.5% "OUTPERFORMING" state on a failed
+            # download, which manufactured false alpha: a data-outage sector could rank into
+            # the top quartile and get scored as a leading sector for every stock in it.
+            # Neutral/unavailable values so a missing ETF can't masquerade as a strong one.
+            vs_ema50 = 0.0
+            mom5 = 0.0
+            mom20 = 0.0
+            status = "DATA_UNAVAILABLE"
+            holding_days = 0
             crossed = "NO"
         else:
             vs_ema50 = snapshot["ema50_dist_pct"]
@@ -388,7 +392,9 @@ def process_universe(raw_data=None, sample_date_str=None):
 
         reclaiming_in_sector = len([t for t in matched_tickers if any(c["ticker"] == t for c in qualified_candidates)])
 
-        if "OUTPERFORMING" in status:
+        if status == "DATA_UNAVAILABLE":
+            sig = "DATA UNAVAILABLE — sector strength unknown"
+        elif "OUTPERFORMING" in status:
             sig = f"★ HOT — ETF + {len(matched_tickers)} tickers bouncing"
         elif "GAINING" in status:
             sig = "REGIME CHANGE — watch closely"
@@ -432,7 +438,9 @@ def process_universe(raw_data=None, sample_date_str=None):
             "tickers_at_support": matched_tickers[:12]
         })
 
-        if crossed == "YES" or (holding_days <= 2 and abs(vs_ema50) <= 2.0):
+        # Don't let a data outage masquerade as a regime-change signal (holding_days=0 and
+        # vs_ema50=0.0 would otherwise satisfy the "just flipped" condition below every time).
+        if status != "DATA_UNAVAILABLE" and (crossed == "YES" or (holding_days <= 2 and abs(vs_ema50) <= 2.0)):
             regime_change_etfs.append({
                 "etf": etf,
                 "sector": meta["name"],
@@ -612,6 +620,26 @@ def process_universe(raw_data=None, sample_date_str=None):
     top_sectors = sorted(sector_counts.items(), key=lambda x: x[1], reverse=True)[:3]
     top_sectors_str = ", ".join([f"{s}({c})" for s, c in top_sectors]) if top_sectors else "FINANCIALS, TECH, ENERGY"
 
+    # Cumulative alerts/reclaims/win-rate previously used hardcoded seed values (1012, 385,
+    # "38.0%") whenever the session count was small, and winrate_cumulative was *always*
+    # fake regardless of session size. data/summary.json already accumulates one macro_breadth
+    # entry per scan day (see save_payloads), including total_alerts/reclaims - so the real
+    # cumulative figures are just a sum over that history plus today's session counts.
+    cumulative_alerts = alert_count
+    cumulative_reclaims = reclaim_count
+    try:
+        _summary_path = os.path.join(DATA_DIR, "summary.json")
+        if os.path.exists(_summary_path):
+            with open(_summary_path, "r") as _sf:
+                _hist_days = json.load(_sf)
+            for _d in _hist_days:
+                if _d.get("date") == today_str:
+                    continue  # avoid double-counting a same-day re-run
+                cumulative_alerts += int(_d.get("total_alerts", 0) or 0)
+                cumulative_reclaims += int(_d.get("reclaims", 0) or 0)
+    except Exception:
+        pass
+
     macro_breadth = {
         "date": today_str,
         "timestamp": timestamp_str,
@@ -630,11 +658,11 @@ def process_universe(raw_data=None, sample_date_str=None):
         "top_sectors": top_sectors_str,
         "macro_ratio": round(reclaim_count / max(1, alert_count), 2),
         "total_alerts_session": alert_count,
-        "total_alerts_cumulative": 1012 if alert_count < 100 else alert_count,
+        "total_alerts_cumulative": cumulative_alerts,
         "reclaims_session": reclaim_count,
-        "reclaims_cumulative": 385 if reclaim_count < 100 else reclaim_count,
+        "reclaims_cumulative": cumulative_reclaims,
         "winrate_session": f"{(reclaim_count / max(1, alert_count))*100:.1f}%",
-        "winrate_cumulative": "38.0%",
+        "winrate_cumulative": f"{(cumulative_reclaims / max(1, cumulative_alerts))*100:.1f}%",
         "funnel_diagnostic": funnel,
         "offense_pct": round((len([e for e in all_25_etfs if e["style"] in ["Growth", "Cyclical"] and e["pct"] >= 0]) / 20) * 100),
         "regime": "RISK-ON" if (len([e for e in all_25_etfs if e["style"] in ["Growth", "Cyclical"] and e["pct"] >= 0]) / 20) >= 0.60 else ("RISK-OFF" if (len([e for e in all_25_etfs if e["style"] in ["Growth", "Cyclical"] and e["pct"] >= 0]) / 20) <= 0.35 else "MIXED"),
@@ -776,11 +804,15 @@ def process_universe(raw_data=None, sample_date_str=None):
             h_cand["opt_volume"] = opt_verif.get("total_vol", 60)
             h_cand["est_debit"] = opt_verif.get("live_debit", h_cand["est_debit"])
             h_cand["liquidity_status"] = opt_verif.get("liquidity_status")
+            h_cand["is_offline_simulated"] = False
         else:
+            # Simulated liquidity (no live chain fetch during backfills). Tagged explicitly
+            # so the ledger/UI can't mistake this for a real, verified live fill.
             h_cand["long_oi"] = 520
             h_cand["short_oi"] = 380
             h_cand["opt_volume"] = 75
-            h_cand["liquidity_status"] = "🟢 LIQUID (OI>250 · Tight Spread)"
+            h_cand["liquidity_status"] = "🟢 LIQUID (Simulated — Backfill/Offline)"
+            h_cand["is_offline_simulated"] = True
 
         verified_downside_hedges.append(h_cand)
         if len(verified_downside_hedges) >= 5:
@@ -818,11 +850,13 @@ def process_universe(raw_data=None, sample_date_str=None):
             c_cand["opt_volume"] = opt_verif.get("total_vol", 85)
             c_cand["est_debit"] = opt_verif.get("live_debit", c_cand["est_debit"])
             c_cand["liquidity_status"] = opt_verif.get("liquidity_status")
+            c_cand["is_offline_simulated"] = False
         else:
             c_cand["long_oi"] = 650
             c_cand["short_oi"] = 420
             c_cand["opt_volume"] = 110
-            c_cand["liquidity_status"] = "🟢 LIQUID (OI>250 · Tight Spread)"
+            c_cand["liquidity_status"] = "🟢 LIQUID (Simulated — Backfill/Offline)"
+            c_cand["is_offline_simulated"] = True
 
         verified_top_candidates.append(c_cand)
         if len(verified_top_candidates) >= 5:
@@ -847,9 +881,11 @@ def process_universe(raw_data=None, sample_date_str=None):
         if opt_verif and not opt_verif.get("offline_fallback", False):
             l_cand["long_oi"] = opt_verif.get("long_oi", 350)
             l_cand["liquidity_status"] = opt_verif.get("liquidity_status")
+            l_cand["is_offline_simulated"] = False
         else:
             l_cand["long_oi"] = 350
-            l_cand["liquidity_status"] = "🟢 LIQUID LEAPS (OI>100)"
+            l_cand["liquidity_status"] = "🟢 LIQUID LEAPS (Simulated — Backfill/Offline)"
+            l_cand["is_offline_simulated"] = True
         verified_leaps.append(l_cand)
         if len(verified_leaps) >= 5:
             break
@@ -858,8 +894,11 @@ def process_universe(raw_data=None, sample_date_str=None):
     # DYNAMIC ALPHA COMPOSITE SCORING & SECTOR DIVERSIFICATION (RELEASE V14)
     # =========================================================================
     top_quartile_sectors = set()
-    num_tq_etfs = max(1, len(all_25_etfs) // 4 + 1)
-    for e in all_25_etfs[:num_tq_etfs]:
+    # Exclude ETFs with no real data from the leadership ranking - a neutral 0.0% fallback
+    # value shouldn't be able to earn a sector "top quartile" status it didn't actually earn.
+    _ranked_etfs = [e for e in all_25_etfs if e.get("status") != "DATA_UNAVAILABLE"]
+    num_tq_etfs = max(1, len(_ranked_etfs) // 4 + 1)
+    for e in _ranked_etfs[:num_tq_etfs]:
         if e.get("sector"):
             top_quartile_sectors.add(e["sector"].upper())
         if e.get("etf"):
@@ -1076,6 +1115,13 @@ def process_universe(raw_data=None, sample_date_str=None):
         max_g = round(s_width - debit, 2)
         iv_r = float(t.get("iv_rank", 45.0))
 
+        # Real target expiry instead of a hardcoded "Oct 26 2026" (which would keep printing
+        # an expired date on every run after that month). Reuses the same 45-90 DTE monthly
+        # third-Friday convention patterns.model_options_contract() already uses for the
+        # HIGH_RISK strategy_prong elsewhere, rather than inventing a second date algorithm.
+        _hr_expiry_date, _hr_dte = patterns.get_target_expiration(now_utc.date(), 45, 90)
+        _hr_theta_cliff = (_hr_expiry_date - datetime.timedelta(days=21)).strftime("%b %d")
+
         # Pass directional stock score into the options formula when we have one
         s_match = stock_score_map.get(t["ticker"])
         directional_alpha_val = float(s_match.get("alpha_score", 75.0)) if s_match else 75.0
@@ -1112,10 +1158,10 @@ def process_universe(raw_data=None, sample_date_str=None):
             "tp1": round(t_price * 1.15, 2),
             "tp2": round(t_price * 1.25, 2),
             "rr_ratio": f"1:{round(max_g / max(0.01, debit), 1)}",
-            "contract": f"Oct 26 ${l_strike:.0f}/${sh_strike:.0f} Call Spread",
-            "contract_details": f"Width: ${s_width:.2f} | Est. Debit: ${debit:.2f} | Max Gain: ${max_g:.2f} | Theta Cliff: Oct 05 (21 DTE)",
-            "expiry": "2026-10-26",
-            "dte": 44,
+            "contract": f"{_hr_expiry_date.strftime('%b %d')} ${l_strike:.0f}/${sh_strike:.0f} Call Spread",
+            "contract_details": f"Width: ${s_width:.2f} | Est. Debit: ${debit:.2f} | Max Gain: ${max_g:.2f} | Theta Cliff: {_hr_theta_cliff} (21 DTE)",
+            "expiry": _hr_expiry_date.strftime("%Y-%m-%d"),
+            "dte": _hr_dte,
             "long_strike": l_strike,
             "short_strike": sh_strike,
             "width": s_width,
@@ -1129,7 +1175,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             "options_alpha_score": round(t_opt_score, 1),
             "alpha_score": round(t_opt_score, 1),
             "routing_guidance": f"LIMIT @ ${debit:.2f} Mid (Do not cross spread; High-Risk BCS)",
-            "execution_guidance": "High-Risk BCS · Exit before 21 DTE Theta Cliff (Oct 05) or Day 10 Velocity Stop",
+            "execution_guidance": f"High-Risk BCS · Exit before 21 DTE Theta Cliff ({_hr_theta_cliff}) or Day 10 Velocity Stop",
             "execution_intent": "RADAR_SURVEILLANCE"
         })
 
