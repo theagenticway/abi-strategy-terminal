@@ -1,16 +1,16 @@
 [
   {
     "date": "2026-09-15",
-    "timestamp": "2026-09-15 18:01:18",
+    "timestamp": "2026-09-15 18:31:33",
     "total_alerts": 458,
     "reclaims": 128,
     "confirmed": 128,
     "below": 330,
     "dead": 0,
-    "retrace_ote": 26,
-    "retrace_db": 99,
-    "retrace_ema50": 300,
-    "retrace_ma150": 33,
+    "retrace_ote": 28,
+    "retrace_db": 100,
+    "retrace_ema50": 296,
+    "retrace_ma150": 34,
     "beta_lt_1": 336,
     "beta_1_to_1_5": 41,
     "beta_gt_1_5": 81,
@@ -30,7 +30,7 @@
       "low_runway": 4,
       "pending_eod": 0,
       "illiquid_options": 7,
-      "qualified": 69
+      "qualified": 64
     },
     "offense_pct": 30,
     "regime": "RISK-OFF",
