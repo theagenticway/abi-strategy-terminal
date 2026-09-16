@@ -13,14 +13,21 @@ try:
     from engine.indicators import compute_active_health_tier, get_regime_tier_capacities
 except ImportError:
     from indicators import compute_active_health_tier, get_regime_tier_capacities
+try:
+    from engine.config import DEFAULT_PORTFOLIO_CAPITAL, DOLLAR_AT_RISK_PCT as DEFAULT_RISK_PCT, MAX_CAPITAL_ALLOCATION_PCT as DEFAULT_MAX_ALLOC_PCT
+except (ImportError, ModuleNotFoundError):
+    try:
+        from config import DEFAULT_PORTFOLIO_CAPITAL, DOLLAR_AT_RISK_PCT as DEFAULT_RISK_PCT, MAX_CAPITAL_ALLOCATION_PCT as DEFAULT_MAX_ALLOC_PCT
+    except (ImportError, ModuleNotFoundError):
+        # config.py not on the path (e.g. stocks.py imported standalone outside the engine
+        # package) - fall back to the same values so behavior is unchanged either way.
+        DEFAULT_PORTFOLIO_CAPITAL = 100000.0
+        DEFAULT_RISK_PCT = 0.0045
+        DEFAULT_MAX_ALLOC_PCT = 0.06
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 STOCK_LOG_PATH = os.path.join(DATA_DIR, "stock_trades_log.json")
 
-# Default scalable capital parameters (Starts at $100K, scales to $500K+)
-DEFAULT_PORTFOLIO_CAPITAL = 100000.0
-DEFAULT_RISK_PCT = 0.0045      # 0.45% = $450 on $100K (risks $350-$500 per idea)
-DEFAULT_MAX_ALLOC_PCT = 0.06   # 6.0% max capital ceiling per position ($6,000 on $100K, $30K on $500K)
 MAX_STOCK_PORTFOLIO_SLOTS = 18 # 16 to 21 active positions capacity
 MAX_STOCK_SPRINT_SLOTS = 12    # Tactical Swings (High-Risk & Balanced)
 MAX_STOCK_ANCHOR_SLOTS = 6     # Core Secular Compounders

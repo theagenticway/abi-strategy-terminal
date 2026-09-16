@@ -7,6 +7,16 @@ computes Reclaim Velocity (D0-D2), and pre-structures Options Alpha setups.
 import numpy as np
 import pandas as pd
 
+try:
+    from engine.config import DEFAULT_PORTFOLIO_CAPITAL
+except (ImportError, ModuleNotFoundError):
+    try:
+        from config import DEFAULT_PORTFOLIO_CAPITAL
+    except (ImportError, ModuleNotFoundError):
+        # config.py not on the path (e.g. patterns.py imported standalone outside the
+        # engine package) - fall back to the same value so behavior is unchanged either way.
+        DEFAULT_PORTFOLIO_CAPITAL = 100000.0
+
 def detect_retrace_pattern(close, high, low, ema50, sma150) -> tuple:
     """
     Classifies the dominant retracement archetype:
@@ -668,7 +678,7 @@ def structure_trade_signal(
     regime: str,
     earnings_date=None,
     strategy_prong: str = None,
-    portfolio_capital: float = 100000.0
+    portfolio_capital: float = DEFAULT_PORTFOLIO_CAPITAL
 ) -> dict:
     """
     Constructs an asymmetric trade setup adhering strictly to Options Alpha Radar rules:
