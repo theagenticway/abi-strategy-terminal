@@ -321,6 +321,31 @@ $$\text{Options Alpha Score} = (\text{Directional Alpha} \times 0.35) + S_{\text
 | **5. Universal MACD/RSI Hook** | **10 pts** | MACD Hist Hook + $\text{RSI} \ge 45$| MACD Hist Hook + $\text{RSI} \ge 45$| Stage 2 Trend Stack |
 | **6. Earnings Blackout** | **Penalty** | $-35$ pts if inside trade DTE | $-35$ pts if inside trade DTE | $-35$ pts if inside 60 days |
 
+### C. Score Breakdown Explainability & Visual Accordions
+To ensure algorithmic transparency and eliminate opaque scoring, every candidate carries full component-level breakdown dictionaries (`alpha_score_breakdown` for equities and `options_alpha_breakdown` / `score_breakdown` for options).
+* **Interactive Expandable Rows**: Clicking any candidate row on `index.html`, `stocks.html`, or `radar.html` toggles an inline accordion drawer detailing the exact point contributions.
+* **Component Mini-Bars**: Each factor renders with a proportional progress bar and `actual / max` point indicators.
+  * **Stock Factors (100 pts max)**: Reclaim Freshness (20 pts), RVOL (20 pts), Sector RS (15 pts), Beta/Elasticity (15 pts), Momentum Hook (15 pts), Market Structure (15 pts).
+  * **Options Factors (100 pts max)**: Directional Foundation (35 pts), IV Rank Efficiency (20 pts), Contract Liquidity (20 pts), Overhead Runway (15 pts), Momentum Hook (10 pts).
+* **Subtractive Earnings Blackout Warning**: When a candidate faces an earnings date inside its holding window, the $-35.0$ pt blackout penalty renders in high-visibility red with a minus indicator.
+
+---
+
+## 📡 High-Risk Radar & Consecutive-Day Streaks (`radar.html`)
+
+A dedicated quantitative surveillance portal (`radar.html`) continuously tracks high-velocity momentum breakouts and measures institutional accumulation persistence:
+
+* **Strict Mathematical Filtering**:
+  * **Stocks Radar**: Filtered strictly for $\text{Beta} \ge 1.5$ AND $\text{ADR} \ge 3.0\%$ (or tagged `HIGH_RISK`). Automatically excludes broad market indices (`SPY`, `QQQ`, `IWM`, `RSP`).
+  * **Options Radar**: Evaluates high-velocity Sprint Calls ($45\text{--}90$ DTE) with full liquidity verification ($\text{OI} \ge 500$, spread $\le 8\%$).
+* **Consecutive-Day Streak Telemetry (`engine/radar.py`)**:
+  * Scans `data/recommendations_archive.json` to calculate `radar_streak_days`.
+  * Evaluates distinct prior scan dates in chronological descending order so market holidays and weekend closures do not break continuity.
+  * Any single-day gap terminates the streak ($0$ if absent on the prior scan session).
+* **Visual Telemetry Badges**: Tickers appearing on multiple consecutive scans are dynamically badged (e.g., `🔥 3-day streak` for $\ge 2$ days), separating sustained institutional accumulation from ephemeral single-day noise.
+
+---
+
 ---
 
 ## 🛡️ Risk & Execution Guardrails
@@ -391,6 +416,8 @@ engine/
 │                       structuring for both directional and options setups.
 ├── stocks.py            Cash-equity trade structuring, the Alpha Composite Score, and the
 │                       stock-side trades log.
+├── radar.py             High-risk stocks/options radar candidate generation, filtering,
+│                       and historical consecutive-day streak tracking (compute_radar_streak).
 ├── universe.py          The 500+ ticker taxonomy and the 25 Sector/Industry ETF map.
 └── archive.py           365-day historical signal archive normalization and upsert logic.
 ```

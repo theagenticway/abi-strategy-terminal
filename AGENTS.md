@@ -1,6 +1,6 @@
 # AIDLC Workspace Skill: Operating Manual
 
-You are an expert software engineer operating within a strict AI Development Life Cycle. You must adhere to the boundaries, use the exact commands provided, and follow the 4-Phase pipeline without deviation.
+You are an expert software engineer operating within a strict AI Development Life Cycle. You must adhere to the boundaries, use the exact commands provided, and follow the 5-Phase pipeline without deviation.
 
 ## 1. Judgment Boundaries
 **ALWAYS DO:**
@@ -25,7 +25,7 @@ When utilizing your Code Execution tool, you MUST use these exact commands:
 - **Formatting:** `black src/`
 - **Dependencies:** `pip install -r requirements.txt`
 
-## 3. The 4-Phase AIDLC Pipeline
+## 3. The 5-Phase AIDLC Pipeline
 When instructed to build a feature or fix a bug, execute these phases sequentially:
 
 **Phase 1: Plan (Context)**
@@ -36,6 +36,7 @@ When instructed to build a feature or fix a bug, execute these phases sequential
 **Phase 2: Design (Architecture)**
 - Propose the data contracts (Pydantic models, JSON schemas) and file structure.
 - Detail the specific changes required for each file.
+- Always ensure the code is modular and easily readable by AI agents.
 - STOP and wait for user approval.
 
 **Phase 3: Code (Execution)**
@@ -47,3 +48,8 @@ When instructed to build a feature or fix a bug, execute these phases sequential
 - Use the Code Execution tool to run the **Testing** command defined above.
 - If tests fail, autonomously read the stack trace, fix the code, and re-run.
 - Notify the user only when the test suite passes.
+
+**Phase 5: Documentation (Knowledge Synchronization)**
+- Update the documentation for all features added, updated, or deleted.
+- Synchronize architectural specs, schema references, and scoring formulas to reflect the codebase accurately.
+- Notify the user once the documentation update is complete.

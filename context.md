@@ -96,6 +96,7 @@ abi-strategy-terminal/
 │   │                           # dated history/, summary.json; triggers archive.py + stocks.py
 │   │                           # ledger updates on every scan).
 │   ├── stocks.py               # Common stock engine: sizing, 3-prong structuring, stock alpha score, equity audit
+│   ├── radar.py                # High-risk radar candidate filtering & streak telemetry (compute_radar_streak)
 │   ├── patterns.py             # Options engine: options chains, spreads, LEAPS, options alpha score, liquid route
 │   ├── indicators.py           # Technical telemetry: MAs, RSI, MACD hook, RVOL, Beta, Dow structure, Health Tiers
 │   ├── universe.py             # 500+ S&P/Nasdaq constituents, 25 benchmark ETFs, 4 macro indices
@@ -104,6 +105,10 @@ abi-strategy-terminal/
 │                               # Running the test suite additionally requires `pytest` and
 │                               # `beautifulsoup4`, which are NOT listed here - install them
 │                               # separately before running tests/.
+├── js/
+│   ├── index_app.js            # Modular client application controller for index.html (Options Terminal)
+│   ├── stocks_app.js           # Modular client application controller for stocks.html (Cash Equities Terminal)
+│   └── radar_app.js            # Modular client application controller for radar.html (High-Risk Radar & Streaks)
 ├── tests/
 │   ├── test_stock_engine.py    # 23 tests: equity sizing, 6% cap, macro gating, eviction, 2-tranche model
 │   ├── test_archive_module.py  # Tests: signal extraction, idempotency, 365-day pruning
@@ -187,6 +192,17 @@ e$ `"BEARISH_LH_LL"`. Rejects dead-cat bounces in structural downtrends.
 
 ### I. 70% Max-Profit Spread Harvesting
 * Vertical spreads reaching $\ge 70\%$ of max spread width or TP1 are automatically harvested, recycling portfolio slots days ahead of expiration.
+
+### J. Score Breakdown Explainability UI Contract
+* All candidates carry explicit component breakdowns (`alpha_score_breakdown` for equities, `options_alpha_breakdown` / `score_breakdown` for options) returned by `compute_alpha_composite_score()` and `compute_options_alpha_score()`.
+* Rendered via `renderScoreBreakdown()` in `js/index_app.js`, `js/stocks_app.js`, and `js/radar_app.js` inside expandable accordion rows.
+* Positive component scores render as proportional fill bars; earnings blackout penalties ($-35.0$ pts) render in red with negative indicators.
+
+### K. High-Risk Radar & Consecutive Streak Telemetry (`engine/radar.py`)
+* Evaluates dynamic criteria ($\text{Beta} \ge 1.5$, $\text{ADR} \ge 3.0\%$) and verified options liquidity ($\text{OI} \ge 500$, spread $\le 8\%$).
+* `compute_radar_streak()` calculates consecutive prior scan appearances from `data/recommendations_archive.json` walking descending unique scan dates (calendar/weekend invariant).
+* Emitted as `radar_streak_days` on payload records and rendered with fire badges (`🔥 N-day streak` for $\ge 2$ days) on `radar.html`.
+
 
 ---
 

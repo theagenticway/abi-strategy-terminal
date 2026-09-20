@@ -338,6 +338,40 @@ $$\text{Options Alpha Score} = (\text{Directional Alpha} \times 0.35) + S_{\text
       
       - For downside hedge recommendations, the engine reverses this logic: setups actively *require* BEARISH_LH_LL or overhead resistance rejections to qualify.
 
+### C. Score Breakdown Explainability Payloads
+
+To eliminate opaque "black box" scoring, both scoring functions return explicit component dictionaries alongside scalar totals (`return_breakdown=True`). These are serialized to client JSON payloads and rendered via interactive, expandable mini-bar accordions across `index.html`, `stocks.html`, and `radar.html`.
+
+#### 1. Cash Equities Alpha Breakdown (`alpha_score_breakdown`):
+```json
+{
+  "reclaim_freshness": 20.0,
+  "rvol": 16.0,
+  "sector_rs": 15.0,
+  "beta_elasticity": 15.0,
+  "momentum": 13.0,
+  "market_structure": 15.0,
+  "total": 94.0
+}
+```
+* **Weights & Ceilings**: Reclaim Freshness (20 pts max), Institutional RVOL (20 pts max), Sector RS (15 pts max), Beta/Elasticity (15 pts max), Momentum Hook (15 pts max), Market Structure (15 pts max) = **100.0 pts max**.
+
+#### 2. Derivatives Options Alpha Breakdown (`options_alpha_breakdown` / `score_breakdown`):
+```json
+{
+  "directional_foundation": 32.9,
+  "iv_rank_efficiency": 20.0,
+  "liquidity_quality": 20.0,
+  "overhead_runway": 12.0,
+  "momentum": 10.0,
+  "earnings_penalty": 0.0,
+  "total": 94.9
+}
+```
+* **Weights & Ceilings**: Directional Foundation ($0.35 \times \text{Stock Alpha}$, 35 pts max), IV Rank Efficiency (20 pts max), Liquidity Quality (20 pts max), Overhead Runway (15 pts max), Momentum Hook (10 pts max) = **100.0 pts max**.
+* **Earnings Penalty ($P_{\text{Earnings}}$)**: Subtractive risk penalty ($-35.0$ pts if earnings are within trade DTE, $-2.0$ pts if earnings date is missing/unverified, $0.0$ pts if clear or LEAPS). In the UI, positive components render as proportional green/blue fill bars, while the subtractive earnings penalty renders in high-visibility red.
+
+
 -----
 
 ## 8\. Complete Left-to-Right Architecture Mapping
@@ -683,3 +717,31 @@ The common stock portfolio maintains its own audit log independent of options tr
   ]
 }
 ```
+
+-----
+
+## 12. High-Risk Radar & Consecutive-Day Streak Telemetry (`engine/radar.py`)
+
+The High-Risk Radar operates as a dedicated surveillance portal (`radar.html`) and data pipeline subsystem designed to distinguish high-velocity momentum opportunities and separate persistent institutional accumulation from short-lived single-session noise.
+
+### A. Candidate Qualification & Mathematical Filtering
+1. **High-Risk Stocks Radar**:
+   - Filter criteria: $\text{Beta} \ge 1.5$ AND $\text{ADR} \ge 3.0\%$ (or tagged `HIGH_RISK` by the setup generator).
+   - Broad-market indices (`SPY`, `QQQ`, `IWM`, `RSP`) are automatically filtered out.
+   - Sizing: Standard Dollar-at-Risk formula governed by `config.DEFAULT_PORTFOLIO_CAPITAL`, with an 8.0% max loss bounded stop.
+2. **High-Risk Options Radar**:
+   - Models short-dated Sprint Call contracts ($45\text{--}90$ DTE).
+   - Liquidity Waterfall: requires $\text{OI} \ge 500$ and spread $\le 8.0\%$ (or transparent fallback tagging).
+   - Excludes index ETFs to isolate individual equity momentum breakouts.
+
+### B. Consecutive-Day Streak Algorithm (`compute_radar_streak`)
+To measure persistence without distorting streaks across non-trading intervals, `engine/radar.py::compute_radar_streak()` executes a chronological walk across distinct prior scan dates in `data/recommendations_archive.json`:
+
+$$\text{Streak}(T, \text{type}, D_{\text{today}}) = \max \left\{ k \in \mathbb{N} \;\middle|\; \forall i \in \{1, \dots, k\}, \; \text{Appeared}(T, \text{type}, D_{-i}) = \text{True} \right\}$$
+
+Where:
+- $D_{-1}, D_{-2}, \dots$ are the sorted, descending unique historical scan dates recorded prior to today ($D_{\text{today}}$).
+- **Holiday & Weekend Invariance**: Because the evaluation steps through recorded scan dates rather than calendar dates, standard weekend gaps (Friday $\rightarrow$ Monday) or mid-week holiday closures never break an active streak.
+- **First-Gap Termination**: The walk terminates at the very first prior scan date where the ticker was absent from the radar archive ($k=0$ if the ticker was absent yesterday).
+- **Telemetry Metric**: Expressed as `radar_streak_days: int` on candidate payloads and visually badged on `radar.html` (e.g. `🔥 3-day streak` when `radar_streak_days >= 2`).
+
