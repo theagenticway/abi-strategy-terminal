@@ -13,6 +13,12 @@ class TestStage1Allocator(unittest.TestCase):
         with open(HTML_PATH, "r", encoding="utf-8") as f:
             self.html = f.read()
         self.soup = BeautifulSoup(self.html, "html.parser")
+        js_path = os.path.join(REPO_ROOT, "js", "index_app.js")
+        if os.path.exists(js_path):
+            with open(js_path, "r", encoding="utf-8") as f:
+                self.js = f.read()
+        else:
+            self.js = self.html
         with open(LATEST_JSON, "r", encoding="utf-8") as f:
             self.latest = json.load(f)
         with open(TRADES_LOG_JSON, "r", encoding="utf-8") as f:
@@ -63,7 +69,7 @@ class TestStage1Allocator(unittest.TestCase):
             "function setDirectionalMode"
         ]
         for fn in required_functions:
-            self.assertIn(fn, self.html, f"Missing JavaScript function: {fn}")
+            self.assertTrue(fn in self.js or fn in self.html, f"Missing JavaScript function: {fn}")
 
     def test_mathematical_allocator_logic(self):
         """Simulate mathematical allocation formulas across different regimes and capital levels"""

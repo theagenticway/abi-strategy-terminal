@@ -1037,7 +1037,7 @@ def process_universe(raw_data=None, sample_date_str=None):
         macro_confluence=macro_confluence,
         sector_mom_map=sector_mom_map,
         now_utc=now_utc,
-        date_str=date_str,
+        date_str=today_str,
         archive_records=archive_records,
     )
 
