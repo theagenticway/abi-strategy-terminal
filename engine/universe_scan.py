@@ -43,6 +43,11 @@ try:
 except (ImportError, ModuleNotFoundError):
     from benchmark import calculate_benchmark_matrix, generate_market_commentary
 
+try:
+    from engine.radar import build_high_risk_radars
+except (ImportError, ModuleNotFoundError):
+    from radar import build_high_risk_radars
+
 from universe import SECTOR_ETFS, get_complete_taxonomy
 from indicators import compute_technical_snapshot, calculate_iv_rank
 from patterns import detect_retrace_pattern, calculate_reclaim_velocity, structure_trade_signal, screen_strategic_leaps_candidate
@@ -1013,211 +1018,28 @@ def process_universe(raw_data=None, sample_date_str=None):
     # =========================================================================
     # 13. DEDICATED HIGH-RISK RADAR: TOP 10 STOCKS & TOP 10 OPTIONS
     # =========================================================================
-    # NOTE: this section previously read t.get("alpha_score") / t.get("options_alpha_score")
-    # directly off `ticker_records` entries, but those keys are never set on ticker_records
-    # (they only live on the separate qualified_stock_candidates / qualified_candidates dicts
-    # built by structure_stock_trade / structure_trade_signal). So `t.get(...)` was always
-    # None and every single entry silently fell back to the hardcoded 55.0 default - and
-    # since there was no beta/ADR filter, ALL tickers (not just genuinely high-risk ones)
-    # were being surfaced as "high risk". Fixed by looking real scores up from those
-    # candidate pools (or computing them directly when no match exists) and by actually
-    # filtering for high beta + high ADR (or an explicit HIGH_RISK strategy_prong).
-    stock_score_map = {s["ticker"]: s for s in qualified_stock_candidates}
-    options_score_map = {c["ticker"]: c for c in qualified_candidates}
+    # High-Risk radar logic, scoring, and streak tracking modularized into engine/radar.py
+    archive_records = []
+    archive_file = os.path.join(DATA_DIR, "recommendations_archive.json")
+    if os.path.exists(archive_file):
+        try:
+            with open(archive_file, "r", encoding="utf-8") as f:
+                archive_records = json.load(f)
+        except Exception as e:
+            logger.warning(f"Failed to load recommendations_archive.json for streak computation: {e}")
 
-    high_risk_stocks_radar = []
-    for t in ticker_records:
-        if t["ticker"] in ["SPY", "QQQ", "RSP", "IWM"]:
-            continue
-
-        t_beta = float(t.get("beta", 1.0))
-        t_adr = float(t.get("adr_pct", 2.0))
-        is_hr = (t_beta >= 1.5 and t_adr >= 3.0) or (t["ticker"] in stock_score_map and stock_score_map[t["ticker"]].get("strategy_prong") == "HIGH_RISK")
-        if not is_hr:
-            continue
-
-        t_price = float(t.get("price", 100.0))
-        t_stop = round(t_price * (1.0 - SPRINT_STOP_PCT), 2)
-        t_risk = round(t_price - t_stop, 2)
-        t_tp05 = round(t_price + (t_risk * 1.0), 2)
-        t_tp1 = round(t_price + (t_risk * 2.2), 2)
-        t_tp2 = round(t_price + (t_risk * 3.5), 2)
-        # Sizing now scales off DEFAULT_PORTFOLIO_CAPITAL (config.py) instead of hardcoded
-        # $6,000/$450 figures that silently assumed a $100K account. Change
-        # DEFAULT_PORTFOLIO_CAPITAL in config.py to match your actual account size and every
-        # High-Risk Sprint recommendation resizes accordingly on the next scan.
-        max_capital_per_trade = DEFAULT_PORTFOLIO_CAPITAL * MAX_CAPITAL_ALLOCATION_PCT
-        max_risk_per_trade = DEFAULT_PORTFOLIO_CAPITAL * DOLLAR_AT_RISK_PCT
-        t_shares = int(min(max_capital_per_trade / max(1.0, t_price), max_risk_per_trade / max(0.01, t_risk)))
-
-        # Look up the real, already-computed alpha score (and its breakdown, for the
-        # explainability UI) from qualified_stock_candidates first; only fall back to
-        # computing it directly if this ticker wasn't in that pool.
-        s_match = stock_score_map.get(t["ticker"])
-        if s_match and s_match.get("alpha_score") is not None:
-            t_score = float(s_match["alpha_score"])
-            t_score_breakdown = s_match.get("alpha_score_breakdown", {})
-        else:
-            try:
-                s_sec = (t.get("sector") or "").upper()
-                t_score, t_score_breakdown = stocks.compute_alpha_composite_score(
-                    reclaim_days=t.get("reclaim_days", 1),
-                    rvol=float(t.get("rvol", 1.2)),
-                    price=t_price,
-                    ema50=float(t.get("ema50", t_price)),
-                    sector=t.get("sector"),
-                    rr_ratio=2.2,
-                    top_quartile_sectors=top_quartile_sectors,
-                    market_structure=t.get("market_structure", "BULLISH_HH_HL"),
-                    macro_confluence=macro_confluence,
-                    mom_spread=sector_mom_map.get(s_sec, 0.0),
-                    strategy_prong="HIGH_RISK",
-                    return_breakdown=True
-                )
-            except Exception:
-                t_score = 70.0
-                t_score_breakdown = {}
-
-        high_risk_stocks_radar.append({
-            "action": "BUY",
-            "ticker": t["ticker"],
-            "sector": t.get("sector", "GENERAL"),
-            "subsector": t.get("subsector", "General"),
-            "price": t_price,
-            "stop": t_stop,
-            "tp0_5": t_tp05,
-            "tp1": t_tp1,
-            "tp2": t_tp2,
-            "rr_ratio": "1:2.2",
-            "beta": t_beta,
-            "adr_pct": t_adr,
-            "rvol": float(t.get("rvol", 1.2)),
-            "rsi": float(t.get("rsi", 50.0)),
-            "weekly_stage": t.get("weekly_stage", "STAGE 2 (Advancing)"),
-            "structure": "High-Risk Sprint (Common Shares)",
-            "alpha_score": round(t_score, 1),
-            "alpha_score_breakdown": t_score_breakdown,
-            "shares": t_shares,
-            "capital_deployed": round(t_shares * t_price, 2),
-            "actual_risk_dollars": round(t_shares * t_risk, 2),
-            "order_ticket": f"BUY {t_shares} SHARES @ ${t_price:.2f} LIMIT · STOP @ ${t_stop:.2f} · TP0.5: ${t_tp05:.2f} / TP1: ${t_tp1:.2f}",
-            "execution_guidance": "High-Risk Sprint · Scale 50% at TP0.5 (+1.0R) · Breakeven Stop · Day 10 Velocity Exit (<1.0R)",
-            "execution_intent": "RADAR_SURVEILLANCE"
-        })
-
-    # Sort strictly by real alpha_score descending (with beta as tie-breaker)
-    high_risk_stocks_radar.sort(key=lambda x: (x.get("alpha_score", 0), x.get("beta", 1.0)), reverse=True)
-    high_risk_stocks_radar = high_risk_stocks_radar[:10]
-    for i, s in enumerate(high_risk_stocks_radar):
-        s["rank"] = i + 1
-
-    high_risk_options_radar = []
-    for t in ticker_records:
-        if t["ticker"] in ["SPY", "QQQ", "RSP", "IWM"]:
-            continue
-
-        t_beta = float(t.get("beta", 1.0))
-        t_adr = float(t.get("adr_pct", 2.0))
-        is_hr = (t_beta >= 1.5 and t_adr >= 3.0) or (t["ticker"] in options_score_map and options_score_map[t["ticker"]].get("strategy_prong") == "HIGH_RISK")
-        if not is_hr:
-            continue
-
-        t_price = float(t.get("price", 100.0))
-        l_strike = round(t_price * 0.98 / 5.0) * 5.0 if t_price > 20 else round(t_price * 0.98 * 2) / 2
-        s_width = round(t_price * 0.20 / 5.0) * 5.0 if t_price > 40 else (5.0 if t_price > 15 else 2.5)
-        if s_width <= 0: s_width = 5.0
-        sh_strike = round(l_strike + s_width, 2)
-        debit = round(s_width * 0.38, 2)
-        max_g = round(s_width - debit, 2)
-
-        # Real per-ticker IV Rank instead of a flat 45.0 default. `t` here is a ticker_records
-        # entry, which never carries an "iv_rank" key at all (only the separate
-        # qualified_candidates dicts built by structure_trade_signal do) - so
-        # `t.get("iv_rank", 45.0)` always fell through to 45.0 for every single ticker, which
-        # is exactly the flat 45% IVR shown for every row on radar.html. Look up the real,
-        # already-computed IV rank when this ticker qualified into that pool; otherwise
-        # compute it directly from this ticker's own price history.
-        opt_match = options_score_map.get(t["ticker"])
-        if opt_match and opt_match.get("iv_rank") is not None:
-            iv_r = float(opt_match["iv_rank"])
-        else:
-            try:
-                _t_df = extract_ticker_df(raw_data, t["ticker"])
-                iv_r = calculate_iv_rank(_t_df["Close"]) if _t_df is not None and len(_t_df) > 20 else 45.0
-            except Exception:
-                iv_r = 45.0
-
-        # Real target expiry instead of a hardcoded "Oct 26 2026" (which would keep printing
-        # an expired date on every run after that month). Reuses the same 45-90 DTE monthly
-        # third-Friday convention patterns.model_options_contract() already uses for the
-        # HIGH_RISK strategy_prong elsewhere, rather than inventing a second date algorithm.
-        _hr_expiry_date, _hr_dte = patterns.get_target_expiration(now_utc.date(), 45, 90)
-        _hr_theta_cliff = (_hr_expiry_date - datetime.timedelta(days=21)).strftime("%b %d")
-
-        # Pass directional stock score into the options formula when we have one
-        s_match = stock_score_map.get(t["ticker"])
-        directional_alpha_val = float(s_match.get("alpha_score", 75.0)) if s_match else 75.0
-
-        if opt_match and opt_match.get("options_alpha_score") is not None:
-            t_opt_score = float(opt_match["options_alpha_score"])
-            t_opt_breakdown = opt_match.get("options_alpha_breakdown", {})
-        else:
-            try:
-                t_opt_score, t_opt_breakdown = patterns.compute_options_alpha_score(
-                    directional_alpha=directional_alpha_val,
-                    iv_rank=iv_r,
-                    long_oi=650,
-                    short_oi=420,
-                    bid_ask_spread_pct=0.05,
-                    overhead_runway_pct=float(t.get("overhead_runway_pct", 999.0) or 999.0),
-                    days_to_earnings=60,
-                    is_leaps=False,
-                    strategy_prong="HIGH_RISK",
-                    rsi=float(t.get("rsi", 50.0)),
-                    macd_hook_ok=bool(t.get("macd_crawling_up", True)),
-                    return_breakdown=True
-                )
-            except Exception:
-                t_opt_score = 75.0
-                t_opt_breakdown = {}
-
-        high_risk_options_radar.append({
-            "action": "BUY",
-            "ticker": t["ticker"],
-            "sector": t.get("sector", "GENERAL"),
-            "subsector": t.get("subsector", "General"),
-            "price": t_price,
-            "stop": round(t_price * (1.0 - SPRINT_STOP_PCT), 2),
-            "tp1": round(t_price * 1.15, 2),
-            "tp2": round(t_price * 1.25, 2),
-            "rr_ratio": f"1:{round(max_g / max(0.01, debit), 1)}",
-            "contract": f"{_hr_expiry_date.strftime('%b %d')} ${l_strike:.0f}/${sh_strike:.0f} Call Spread",
-            "contract_details": f"Width: ${s_width:.2f} | Est. Debit: ${debit:.2f} | Max Gain: ${max_g:.2f} | Theta Cliff: {_hr_theta_cliff} (21 DTE)",
-            "expiry": _hr_expiry_date.strftime("%Y-%m-%d"),
-            "dte": _hr_dte,
-            "long_strike": l_strike,
-            "short_strike": sh_strike,
-            "width": s_width,
-            "est_debit": debit,
-            "max_profit": max_g,
-            "beta": t_beta,
-            "adr_pct": t_adr,
-            "rvol": float(t.get("rvol", 1.2)),
-            "iv_rank": iv_r,
-            "liquidity": "HIGH",
-            "options_alpha_score": round(t_opt_score, 1),
-            "options_alpha_breakdown": t_opt_breakdown,
-            "alpha_score": round(t_opt_score, 1),
-            "routing_guidance": f"LIMIT @ ${debit:.2f} Mid (Do not cross spread; High-Risk BCS)",
-            "execution_guidance": f"High-Risk BCS · Exit before 21 DTE Theta Cliff ({_hr_theta_cliff}) or Day 10 Velocity Stop",
-            "execution_intent": "RADAR_SURVEILLANCE"
-        })
-
-    # Sort strictly by real options_alpha_score descending (with beta as tie-breaker)
-    high_risk_options_radar.sort(key=lambda x: (x.get("options_alpha_score", 0), x.get("beta", 1.0)), reverse=True)
-    high_risk_options_radar = high_risk_options_radar[:10]
-    for i, o in enumerate(high_risk_options_radar):
-        o["rank"] = i + 1
+    high_risk_stocks_radar, high_risk_options_radar = build_high_risk_radars(
+        ticker_records=ticker_records,
+        qualified_stock_candidates=qualified_stock_candidates,
+        qualified_candidates=qualified_candidates,
+        raw_data=raw_data,
+        top_quartile_sectors=top_quartile_sectors,
+        macro_confluence=macro_confluence,
+        sector_mom_map=sector_mom_map,
+        now_utc=now_utc,
+        date_str=date_str,
+        archive_records=archive_records,
+    )
 
     return {
         "macro_breadth": macro_breadth,

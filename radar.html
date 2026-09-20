@@ -482,6 +482,9 @@
             document.getElementById('stocks-count-tag').textContent = `${stocks.length} candidates`;
             tbody.innerHTML = stocks.map((s, idx) => {
                 const rowId = `hrstock-${s.ticker}-${idx}`;
+                const streakBadge = (s.radar_streak_days && s.radar_streak_days >= 2)
+                    ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">🔥 ${s.radar_streak_days}d streak</span>`
+                    : '';
                 return `
                 <tr class="hover:bg-slate-800/40 transition">
                     <td class="p-2.5">
@@ -490,7 +493,10 @@
                                 ${s.rank || '#'}
                             </span>
                             <div>
-                                <span class="font-bold text-white text-xs">${s.ticker}</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-bold text-white text-xs">${s.ticker}</span>
+                                    ${streakBadge}
+                                </div>
                                 <span class="text-[10px] text-slate-400 block">${s.sector || 'General'}</span>
                             </div>
                         </div>
@@ -529,6 +535,9 @@
             document.getElementById('options-count-tag').textContent = `${options.length} candidates`;
             tbody.innerHTML = options.map((o, idx) => {
                 const rowId = `hropt-${o.ticker}-${idx}`;
+                const streakBadge = (o.radar_streak_days && o.radar_streak_days >= 2)
+                    ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">🔥 ${o.radar_streak_days}d streak</span>`
+                    : '';
                 return `
                 <tr class="hover:bg-slate-800/40 transition">
                     <td class="p-2.5">
@@ -537,7 +546,10 @@
                                 ${o.rank || '#'}
                             </span>
                             <div>
-                                <span class="font-bold text-white text-xs">${o.ticker}</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-bold text-white text-xs">${o.ticker}</span>
+                                    ${streakBadge}
+                                </div>
                                 <span class="text-[10px] text-slate-400 block">${o.sector || 'General'}</span>
                             </div>
                         </div>

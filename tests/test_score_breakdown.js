@@ -1,17 +1,26 @@
-const fs = require('fs');
-const path = require('path');
-const assert = require('assert');
-const vm = require('vm');
+import fs from 'fs';
+import path from 'path';
+import assert from 'assert';
+import vm from 'vm';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log("=== Running Score Breakdown Explainability Test (Feature 1) ===");
 
-function extractScripts(htmlPath) {
+function extractScripts(pageName) {
+    if (pageName === 'index.html') {
+        const jsPath = path.join(__dirname, '..', 'js', 'index_app.js');
+        if (fs.existsSync(jsPath)) return fs.readFileSync(jsPath, 'utf8');
+    } else if (pageName === 'stocks.html') {
+        const jsPath = path.join(__dirname, '..', 'js', 'stocks_app.js');
+        if (fs.existsSync(jsPath)) return fs.readFileSync(jsPath, 'utf8');
+    }
+    const htmlPath = path.join(__dirname, '..', pageName);
     const htmlContent = fs.readFileSync(htmlPath, 'utf8');
     const matches = [...htmlContent.matchAll(/<script>([\s\S]*?)<\/script>/g)];
     assert(matches.length > 0, `Must find script blocks in ${htmlPath}`);
-    // Match the existing test convention (test_stocks_page_node.js): the last inline
-    // <script> block holds the app logic; earlier ones are just library config
-    // (e.g. index.html's first block configures the Tailwind CDN global).
     return matches[matches.length - 1][1];
 }
 
@@ -68,8 +77,7 @@ const OPTIONS_BREAKDOWN_WITH_PENALTY = {
 };
 
 ['index.html', 'stocks.html', 'radar.html'].forEach(pageName => {
-    const pagePath = path.join(__dirname, '..', pageName);
-    const jsCode = extractScripts(pagePath);
+    const jsCode = extractScripts(pageName);
     const context = makeContext(['dummy']);
     vm.runInContext(jsCode, context);
 

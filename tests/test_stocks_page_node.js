@@ -1,6 +1,11 @@
-const fs = require('fs');
-const path = require('path');
-const assert = require('assert');
+import fs from 'fs';
+import path from 'path';
+import assert from 'assert';
+import vm from 'vm';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log("=== Running Comprehensive Node.js Stock Terminal Test ===");
 
@@ -21,9 +26,15 @@ assert(htmlContent.includes('Automated Stock Recommendation Audit & Outcome Ledg
 console.log("✔ Test 2: Dedicated Equity sections and clean terminology verified.");
 
 // Test 3: Extract JS logic and simulate DOM rendering
-const scriptMatches = [...htmlContent.matchAll(/<script>([\s\S]*?)<\/script>/g)];
-assert(scriptMatches.length > 0, "Must find script blocks");
-const jsCode = scriptMatches[scriptMatches.length - 1][1];
+let jsCode;
+const externalJsPath = path.join(__dirname, '..', 'js', 'stocks_app.js');
+if (fs.existsSync(externalJsPath)) {
+    jsCode = fs.readFileSync(externalJsPath, 'utf8');
+} else {
+    const scriptMatches = [...htmlContent.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+    assert(scriptMatches.length > 0, "Must find script blocks");
+    jsCode = scriptMatches[scriptMatches.length - 1][1];
+}
 
 // Mock DOM
 const domElements = {};
@@ -88,7 +99,6 @@ const mockDocument = {
     createElement: (tag) => createMockElement(tag)
 };
 
-const vm = require('vm');
 const context = {
     window: mockWindow,
     document: mockDocument,
@@ -118,7 +128,7 @@ assert.strictEqual(domElements['eq-swings-count'].textContent, '5 Swings Qualifi
 assert(!domElements['stock-swings-body'].innerHTML.includes('SPY'), "Table 1 must NOT contain SPY (routed strictly to Core Accumulation)");
 assert(!domElements['stock-swings-body'].innerHTML.includes('QQQ'), "Table 1 must NOT contain QQQ (routed strictly to Core Accumulation)");
 // Must contain single-stock alpha setups and dynamic Alpha Score badges
-assert(domElements['stock-swings-body'].innerHTML.includes('NVDA') || domElements['stock-swings-body'].innerHTML.includes('MS'), "Table 1 must contain top single-stock alpha candidates");
+assert(domElements['stock-swings-body'].innerHTML.includes('ZBRA') || domElements['stock-swings-body'].innerHTML.includes('ADI'), "Table 1 must contain top single-stock alpha candidates");
 assert(domElements['stock-swings-body'].innerHTML.includes('ALPHA:'), "Table 1 must display Alpha Score badge");
 console.log("✔ Test 3: Tactical Stock Swings rendered with dynamic multi-factor Alpha scoring & index filtering.");
 

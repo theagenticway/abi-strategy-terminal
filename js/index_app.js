@@ -1,38 +1,15 @@
-
-        var currentPayload = null;
-        var activeAssetClass = 'OPTIONS'; // 'OPTIONS' or 'STOCKS'
-        var activeLedgerBook = 'OPTIONS'; // 'OPTIONS' or 'STOCKS'
+var currentPayload = null;
+        var activeAssetClass = 'OPTIONS'; // Strictly Options Alpha Terminal
         var activeDirectionalMode = 'LONG';
+        var activeOptionsProng = 'ALL';
 
-        function switchAssetClass(type) {
-            activeAssetClass = type;
-            const btnOpt = document.getElementById('btn-asset-options');
-            const btnStk = document.getElementById('btn-asset-stocks');
-            const explainer = document.getElementById('asset-class-explainer');
-            if (type === 'STOCKS') {
-                if (btnOpt) btnOpt.className = 'px-3 py-1 rounded text-xs font-medium transition text-slate-400 hover:text-white';
-                if (btnStk) btnStk.className = 'px-3 py-1 rounded text-xs font-bold transition bg-blue-600 text-white shadow';
-                if (explainer) explainer.textContent = 'Active Book: Cash Equities, Fixed Dollar-at-Risk Sizing & 50 EMA Trailing Stops.';
-            } else {
-                if (btnOpt) btnOpt.className = 'px-3 py-1 rounded text-xs font-bold transition bg-emerald-600 text-white shadow';
-                if (btnStk) btnStk.className = 'px-3 py-1 rounded text-xs font-medium transition text-slate-400 hover:text-white';
-                if (explainer) explainer.textContent = 'Active Book: Defined-risk Options Spreads & Delta-neutral LEAPS.';
-            }
-            if (currentPayload) renderRecsView(currentPayload);
-        }
-
-        function switchLedgerBook(book) {
-            activeLedgerBook = book;
-            const btnOpt = document.getElementById('btn-lbook-options');
-            const btnStk = document.getElementById('btn-lbook-stocks');
-            if (book === 'STOCKS') {
-                if (btnOpt) btnOpt.className = 'px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white';
-                if (btnStk) btnStk.className = 'px-2.5 py-0.5 rounded font-bold bg-blue-600 text-white';
-            } else {
-                if (btnOpt) btnOpt.className = 'px-2.5 py-0.5 rounded font-bold bg-emerald-600 text-white';
-                if (btnStk) btnStk.className = 'px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white';
-            }
-            loadPerformanceData();
+        function setOptionsProngFilter(prong) {
+            activeOptionsProng = prong;
+            document.querySelectorAll('.opt-prong-btn').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+            if (prong === 'ALL') document.getElementById('btn-opt-prong-all')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (prong === 'HIGH_RISK') document.getElementById('btn-opt-prong-hr')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (prong === 'BALANCED') document.getElementById('btn-opt-prong-bal')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (window.currentPayload) renderRecsView(window.currentPayload);
         }
 
         function setDirectionalMode(mode) {
@@ -61,7 +38,7 @@
         var allTickersData = [];
         var activeGlobalSector = '';
         var activeTimeHorizon = 'session';
-        var deployCapital = 50000;
+        var deployCapital = 100000;
         var allocArchitectureMode = 'balanced';
         var allocCashReserveMode = 'auto_regime';
 
@@ -168,13 +145,15 @@
             if (amt === 25000) document.getElementById('btn-dcap-25k')?.classList.add('active', 'bg-blue-600', 'text-white');
             if (amt === 50000) document.getElementById('btn-dcap-50k')?.classList.add('active', 'bg-blue-600', 'text-white');
             if (amt === 100000) document.getElementById('btn-dcap-100k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 250000) document.getElementById('btn-dcap-250k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 500000) document.getElementById('btn-dcap-500k')?.classList.add('active', 'bg-blue-600', 'text-white');
             const inp = document.getElementById('deploy-custom-capital');
             if (inp) inp.value = amt;
             updateAllocationPlan();
         }
 
         function resetAllocator() {
-            setDeployCapital(50000);
+            setDeployCapital(100000);
             const arch = document.getElementById('alloc-architecture-mode');
             if (arch) arch.value = 'balanced';
             const cash = document.getElementById('alloc-cash-reserve-mode');
@@ -238,7 +217,7 @@
 
         async function loadPerformanceData() {
             try {
-                const file = (activeLedgerBook === 'STOCKS') ? 'stock_trades_log.json' : 'trades_log.json';
+                const file = 'trades_log.json';
                 const res = await fetch(`./data/${file}?t=` + Date.now());
                 if (!res.ok) throw new Error(`No ${file} found`);
                 const logData = await res.json();
@@ -260,18 +239,20 @@
         // ==========================================
         // PORTFOLIO CAPITAL & TIMEFRAME SIMULATOR
         // ==========================================
-        var simStartingCapital = 50000;
+        var simStartingCapital = 100000;
         var simStartDate = 'all';
-        var simSizingMode = 'risk_2pct';
+        var simSizingMode = 'dollar_at_risk';
 
         function setSimCapital(amt) {
-            if (isNaN(amt) || amt <= 0) amt = 50000;
+            if (isNaN(amt) || amt <= 0) amt = 100000;
             simStartingCapital = amt;
             document.querySelectorAll('.sim-cap-btn').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
             if (amt === 10000) document.getElementById('btn-scap-10k')?.classList.add('active', 'bg-blue-600', 'text-white');
             if (amt === 25000) document.getElementById('btn-scap-25k')?.classList.add('active', 'bg-blue-600', 'text-white');
             if (amt === 50000) document.getElementById('btn-scap-50k')?.classList.add('active', 'bg-blue-600', 'text-white');
             if (amt === 100000) document.getElementById('btn-scap-100k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 250000) document.getElementById('btn-scap-250k')?.classList.add('active', 'bg-blue-600', 'text-white');
+            if (amt === 500000) document.getElementById('btn-scap-500k')?.classList.add('active', 'bg-blue-600', 'text-white');
             const inp = document.getElementById('sim-custom-capital');
             if (inp) inp.value = amt;
             runPortfolioSimulation();
@@ -289,10 +270,10 @@
         }
 
         function resetSimulator() {
-            setSimCapital(50000);
+            setSimCapital(100000);
             setSimDate('all');
             const sMode = document.getElementById('sim-sizing-mode');
-            if (sMode) sMode.value = 'risk_2pct';
+            if (sMode) sMode.value = 'dollar_at_risk';
             runPortfolioSimulation();
         }
 
@@ -315,11 +296,16 @@
             trades.forEach(t => {
                 const pnlPct = (t.pnl_pct || 0) / 100;
                 let posSize = 1000;
-                if (simSizingMode === 'risk_2pct') {
-                    const maxRiskDollars = Math.max(200, (cash + realizedDollars) * 0.02);
-                    posSize = Math.min(maxRiskDollars / 0.08, (cash + realizedDollars) * 0.20);
-                } else if (simSizingMode === 'alloc_10pct') {
-                    posSize = Math.max(500, (cash + realizedDollars) * 0.10);
+                const currentEq = cash + realizedDollars;
+                if (simSizingMode === 'dollar_at_risk') {
+                    const scaleFactor = Math.max(0.1, currentEq / 100000.0);
+                    posSize = Math.min(1000 * scaleFactor, currentEq * 0.06);
+                } else if (simSizingMode === 'risk_1pct') {
+                    posSize = Math.min(currentEq * 0.01 / 0.15, currentEq * 0.06);
+                } else if (simSizingMode === 'risk_2pct') {
+                    posSize = Math.min(currentEq * 0.02 / 0.15, currentEq * 0.10);
+                } else if (simSizingMode === 'alloc_5pct') {
+                    posSize = Math.max(500, currentEq * 0.05);
                 } else {
                     posSize = 1000;
                 }
@@ -383,6 +369,12 @@
             document.getElementById('perf-profitfactor').textContent = (sum.profit_factor !== undefined ? sum.profit_factor : 0.0) + 'x';
             document.getElementById('perf-total').textContent = (sum.total_recommendations !== undefined ? sum.total_recommendations : allTradesLog.length);
             document.getElementById('perf-open').textContent = (sum.active_open !== undefined ? sum.active_open : 0);
+            const sprintCount = sum.sprint_open !== undefined ? sum.sprint_open : (allTradesLog.filter(t => (t.status === 'OPEN' || t.status === 'TP1_HIT') && !t.structure?.includes('LEAPS')).length);
+            const anchorCount = sum.anchor_open !== undefined ? sum.anchor_open : (allTradesLog.filter(t => (t.status === 'OPEN' || t.status === 'TP1_HIT') && t.structure?.includes('LEAPS')).length);
+            const decoupledEl = document.getElementById('perf-decoupled-books');
+            if (decoupledEl) {
+                decoupledEl.textContent = `Sprint: ${sprintCount}/12 · Anchor: ${anchorCount}/6`;
+            }
             document.getElementById('perf-avgwin').textContent = (sum.avg_winner_pct > 0 ? '+' : '') + (sum.avg_winner_pct !== undefined ? sum.avg_winner_pct : 0.0) + '%';
             document.getElementById('perf-avgloss').textContent = (sum.avg_loser_pct !== undefined ? sum.avg_loser_pct : 0.0) + '%';
             document.getElementById('perf-holding').textContent = (sum.avg_holding_days !== undefined ? sum.avg_holding_days : 0.0) + 'd';
@@ -409,11 +401,15 @@
             chronological.forEach(t => {
                 const pnlPct = (t.pnl_pct || 0) / 100;
                 let posSize = 1000;
-                if (simSizingMode === 'risk_2pct') {
-                    const maxRiskDollars = Math.max(200, runningEquity * 0.02);
-                    posSize = Math.min(maxRiskDollars / 0.08, runningEquity * 0.20);
-                } else if (simSizingMode === 'alloc_10pct') {
-                    posSize = Math.max(500, runningEquity * 0.10);
+                if (simSizingMode === 'dollar_at_risk') {
+                    const scaleFactor = Math.max(0.1, runningEquity / 100000.0);
+                    posSize = Math.min(1000 * scaleFactor, runningEquity * 0.06);
+                } else if (simSizingMode === 'risk_1pct') {
+                    posSize = Math.min(runningEquity * 0.01 / 0.15, runningEquity * 0.06);
+                } else if (simSizingMode === 'risk_2pct') {
+                    posSize = Math.min(runningEquity * 0.02 / 0.15, runningEquity * 0.10);
+                } else if (simSizingMode === 'alloc_5pct') {
+                    posSize = Math.max(500, runningEquity * 0.05);
                 } else {
                     posSize = 1000;
                 }
@@ -467,6 +463,10 @@
                     statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">★ TP2 HIT</span>';
                 } else if (t.status === 'STOPPED_OUT') {
                     statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-500/30">✕ STOPPED</span>';
+                } else if (t.status === 'CLOSED_EVICTED') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950/60 text-purple-400 border border-purple-500/40">● EVICTED</span>';
+                } else if (t.status === 'CLOSED_BREAKEVEN') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950/60 text-blue-400 border border-blue-500/40">● BREAKEVEN</span>';
                 }
 
                 let driverBadge = '';
@@ -481,8 +481,22 @@
                     driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/70 text-rose-400 border border-rose-500/40">⚡ EARNINGS GAP</span>';
                 } else if (driver === 'STAGNATION EXIT') {
                     driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">● STAGNATION</span>';
-                } else if (t.status === 'OPEN') {
-                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-950/70 text-sky-400 border border-sky-500/30">● ACTIVE POSITION</span>';
+                } else if (driver === 'RELATIVE_STRENGTH_EVICTION') {
+                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950/70 text-purple-400 border border-purple-500/40">⚡ RS EVICTION</span>';
+                } else if (driver === 'BREAKEVEN EXIT') {
+                    driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950/70 text-blue-400 border border-blue-500/40">● BREAKEVEN</span>';
+                } else if (t.status === 'OPEN' || t.status === 'TP1_HIT') {
+                    if (t.active_health_tier === 'TIER_A_HOUSE_MONEY') {
+                        driverBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950/80 text-blue-300 border border-blue-500/40">🔵 HOUSE MONEY${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span>`;
+                    } else if (t.active_health_tier === 'TIER_D_EVICTION_CANDIDATE') {
+                        driverBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/80 text-rose-300 border border-rose-500/40 animate-pulse">🔴 EVICTION CANDIDATE${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span>`;
+                    } else if (t.active_health_tier === 'TIER_C_STAGNANT') {
+                        driverBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-500/40">🟡 STAGNANT${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span>`;
+                    } else if (t.active_health_tier === 'TIER_B_ON_TRACK' || t.current_alpha_score) {
+                        driverBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">🟢 ON-TRACK${t.current_alpha_score ? ' (' + t.current_alpha_score + ')' : ''}</span>`;
+                    } else {
+                        driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-950/70 text-sky-400 border border-sky-500/30">● ACTIVE POSITION</span>';
+                    }
                 } else {
                     driverBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">★ TARGET HIT</span>';
                 }
@@ -495,7 +509,11 @@
 
                 tr.innerHTML = `
                     <td class="py-2.5 px-2.5 font-mono text-slate-400 text-[11px]">${t.entry_date}</td>
-                    <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">${t.ticker}</td>
+                    <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">
+                        <div>${t.ticker}</div>
+                        ${t.strategy_prong ? `<div class="mt-0.5"><span class="px-1 py-0.2 rounded text-[8px] font-black ${t.strategy_prong === 'HIGH_RISK' ? 'bg-amber-950/80 text-amber-300 border border-amber-500/30' : 'bg-sky-950/80 text-sky-300 border border-sky-500/30'}">${t.strategy_prong === 'HIGH_RISK' ? '🚀 SPRINT' : '⚖️ SWING'}</span></div>` : ''}
+                        ${t.structure_badge ? `<div class="mt-0.5"><span class="px-1 py-0.2 rounded text-[8px] font-black ${t.structure_badge.includes('HH/HL') ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/30' : 'bg-amber-950/80 text-amber-300 border border-amber-500/30'}">${t.structure_badge}</span></div>` : ''}
+                    </td>
                     <td class="py-2.5 px-2.5 text-slate-400">${t.sector}</td>
                     <td class="py-2.5 px-2.5"><div class="font-bold text-slate-200 text-[11px]">${contractLabel}</div></td>
                     <td class="py-2.5 px-2.5 font-mono text-slate-200">$${parseFloat(t.entry_price).toFixed(2)}</td>
@@ -505,7 +523,7 @@
                     <td class="py-2.5 px-2.5 font-mono font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${pnl.toFixed(2)}%</td>
                     <td class="py-2.5 px-2.5 font-mono text-slate-300 font-semibold">$${(simInfo.posSize || 1000).toLocaleString()}</td>
                     <td class="py-2.5 px-2.5 font-mono font-bold ${(simInfo.dollarPnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(simInfo.dollarPnl || 0) >= 0 ? '+$' : '-$'}${Math.abs(simInfo.dollarPnl || 0).toLocaleString()}</td>
-                    <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${(simInfo.equityAfter || 50000).toLocaleString()}</td>
+                    <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${(simInfo.equityAfter || 100000).toLocaleString()}</td>
                     <td class="py-2.5 px-2.5 font-mono text-slate-400">${t.days_active}d</td>
                     <td class="py-2.5 px-2.5">${statusBadge}</td>
                     <td class="py-2.5 px-2.5">${driverBadge}</td>
@@ -583,6 +601,15 @@
 
             loadData('./data/latest.json');
 
+            // Route from ?tab= URL parameter
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const reqTab = urlParams.get('tab');
+                if (reqTab && ['macro', 'recs', 'perf'].includes(reqTab)) {
+                    switchTab(reqTab);
+                }
+            } catch (err) {}
+
             document.getElementById('date-select').addEventListener('change', (e) => {
                 const val = e.target.value;
                 if (val === 'latest') {
@@ -617,11 +644,21 @@
         async function loadData(url, isBackground = false) {
             try {
                 const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
-                if (!res.ok) throw new Error('Failed to load JSON');
-                currentPayload = await res.json();
+                if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load ${url}`);
+                const textData = await res.text();
+                if (!textData || textData.trim() === '' || textData.trim() === '{}') {
+                    throw new Error(`Empty JSON payload received from ${url}`);
+                }
+                currentPayload = JSON.parse(textData);
                 renderUI(currentPayload);
             } catch (e) {
-                if (!isBackground) console.error(e);
+                if (!isBackground) {
+                    console.error('loadData error:', e);
+                    const tsEl = document.getElementById('header-timestamp');
+                    if (tsEl) {
+                        tsEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-rose-950/80 text-rose-400 border border-rose-500/40 text-xs">⚠️ Data Unavailable (${e.message}) — Run standard scan or check Actions</span>`;
+                    }
+                }
             }
         }
 
@@ -634,12 +671,103 @@
         }
 
         function renderUI(data) {
+            if (!data) {
+                console.warn('renderUI called with empty data payload.');
+                return;
+            }
             const m = data.macro_breadth || {};
-            document.getElementById('header-timestamp').textContent = `• data ${m.timestamp || m.date || '9/4/2026'}`;
+            const tsEl = document.getElementById('header-timestamp');
+            if (tsEl) tsEl.textContent = `• data ${m.timestamp || m.date || '9/4/2026'}`;
 
-            renderSectorNavPills();
-            renderRecsView(data);
-            renderMacroBoard(data);
+            try { renderSectorNavPills(); } catch(e) { console.error('Error in renderSectorNavPills:', e); }
+            try { renderRecsView(data); } catch(e) { console.error('Error in renderRecsView:', e); }
+            try { renderMacroBoard(data); } catch(e) { console.error('Error in renderMacroBoard:', e); }
+        }
+
+        // ---------------------------------------------------------------
+        // Score Breakdown Explainability (Feature 1)
+        // Renders the per-component point breakdown (`alpha_score_breakdown` for
+        // stock/High-Risk-Sprint candidates, `options_alpha_breakdown` for options/
+        // LEAPS candidates) that the backend already computes but previously never
+        // surfaced anywhere. Max-points-per-component below is taken directly from
+        // engine/stocks.py::compute_alpha_composite_score() and
+        // engine/patterns.py::compute_options_alpha_score() - NOT from
+        // DATA_METRICS_AND_SCORING_ARCHITECTURE.md, which was found this session to
+        // disagree with the code on stock component weights in at least one place.
+        // ---------------------------------------------------------------
+        const SCORE_COMPONENT_CONFIG = {
+            stock: [
+                { key: 'reclaim_freshness', label: 'Reclaim Freshness', max: 20 },
+                { key: 'rvol', label: 'Volume (RVOL)', max: 20 },
+                { key: 'sector_rs', label: 'Sector Relative Strength', max: 15 },
+                { key: 'beta_elasticity', label: 'Beta Elasticity', max: 15 },
+                { key: 'momentum', label: 'Momentum (RSI/MACD)', max: 15 },
+                { key: 'market_structure', label: 'Market Structure', max: 15 }
+            ],
+            options: [
+                { key: 'directional_foundation', label: 'Directional Foundation', max: 35 },
+                { key: 'iv_rank_efficiency', label: 'IV Rank Efficiency', max: 20 },
+                { key: 'liquidity_quality', label: 'Liquidity Quality', max: 20 },
+                { key: 'overhead_runway', label: 'Overhead Runway', max: 15 },
+                { key: 'momentum', label: 'Momentum Hook', max: 10 },
+                { key: 'earnings_penalty', label: 'Earnings Blackout Penalty', max: 0, penalty: true }
+            ]
+        };
+
+        // Renders one mini horizontal bar per score component. `type` is 'stock' or 'options'.
+        function renderScoreBreakdownBars(breakdown, type) {
+            const config = SCORE_COMPONENT_CONFIG[type] || [];
+            if (!breakdown || Object.keys(breakdown).length === 0) {
+                return `<div class="text-[10px] text-slate-500 italic py-1">Breakdown unavailable for this recommendation.</div>`;
+            }
+            return config.map(c => {
+                const val = breakdown[c.key];
+                if (val === undefined || val === null) return '';
+                if (c.penalty) {
+                    // Penalty components are subtractive, not a 0-to-max score - render distinctly.
+                    if (val >= 0) return '';
+                    return `
+                        <div class="flex items-center gap-2 py-0.5">
+                            <div class="w-36 text-[10px] text-slate-400 shrink-0">${c.label}</div>
+                            <div class="flex-1 text-[10px] font-mono font-bold text-rose-400">${val.toFixed(1)} pts</div>
+                        </div>`;
+                }
+                const pct = Math.max(0, Math.min(100, (val / c.max) * 100));
+                const barColor = pct >= 75 ? 'bg-emerald-500' : (pct >= 45 ? 'bg-amber-500' : 'bg-rose-500');
+                return `
+                    <div class="flex items-center gap-2 py-0.5">
+                        <div class="w-36 text-[10px] text-slate-400 shrink-0">${c.label}</div>
+                        <div class="flex-1 h-2 rounded bg-slate-800 overflow-hidden">
+                            <div class="h-full ${barColor}" style="width:${pct}%"></div>
+                        </div>
+                        <div class="w-16 text-right text-[10px] font-mono text-slate-300 shrink-0">${val.toFixed(1)}/${c.max}</div>
+                    </div>`;
+            }).join('');
+        }
+
+        // Builds the toggle button placed inline in a candidate row, plus the (initially
+        // hidden) detail row appended right after it. `colspan` must match the number of
+        // <td> columns in that specific table so the detail row spans the full width.
+        function buildBreakdownToggle(rowId) {
+            return `<button onclick="toggleBreakdownRow('${rowId}')" id="${rowId}-btn" class="text-[9px] font-mono text-sky-400 hover:text-sky-300 underline decoration-dotted">▼ Score Breakdown</button>`;
+        }
+        function buildBreakdownRow(rowId, colspan, breakdown, type, totalScore) {
+            const tr = document.createElement('tr');
+            tr.id = `${rowId}-detail`;
+            tr.className = 'hidden bg-slate-950/60';
+            tr.innerHTML = `<td colspan="${colspan}" class="py-2 px-4">
+                <div class="text-[10px] font-bold text-slate-400 mb-1">Alpha Score Breakdown — ${totalScore}/100 total</div>
+                ${renderScoreBreakdownBars(breakdown, type)}
+            </td>`;
+            return tr;
+        }
+        function toggleBreakdownRow(rowId) {
+            const row = document.getElementById(`${rowId}-detail`);
+            const btn = document.getElementById(`${rowId}-btn`);
+            if (!row) return;
+            const isHidden = row.classList.contains('hidden');
+            row.classList.toggle('hidden');
+            if (btn) btn.textContent = isHidden ? '▲ Score Breakdown' : '▼ Score Breakdown';
         }
 
         function renderSectorNavPills() {
@@ -755,20 +883,18 @@
             const candBody = document.getElementById('candidates-body');
             candBody.innerHTML = '';
 
-            const t1Title = document.getElementById('table1-title');
-            const t2Title = document.getElementById('table2-title');
+            const t1Title = document.getElementById('table1-header-title');
+            const t2Title = document.getElementById('table2-header-title');
 
-            if (activeAssetClass === 'STOCKS') {
-                if (t1Title) t1Title.innerHTML = '<span class="text-sky-400">⚡</span> Table 1: Tactical Equity Swings (50 EMA Reclaims — 1:2.5+ R:R)';
-                if (t2Title) t2Title.innerHTML = '<span class="text-emerald-400">🏛️</span> Table 2: Strategic Core Growth Accumulation (Common Shares)';
-            } else {
-                if (t1Title) t1Title.innerHTML = '<span class="text-sky-400">⚡</span> Table 1: Tactical Swings (Bull Call Spreads — 45-60 DTE)';
-                if (t2Title) t2Title.innerHTML = '<span class="text-emerald-400">🏛️</span> Table 2: Strategic Core Accumulation (Deep-ITM Call LEAPS — Jan 2028 Expiry)';
-            }
+            if (t1Title) t1Title.textContent = (activeDirectionalMode === 'HEDGE') ? 'Downside Hedges (Options Alpha Radar — Bear Put Spreads 30–45 DTE)' : 'Tactical Swings (Options Alpha Radar — Bull Call Spreads 45–60 DTE)';
+            if (t2Title) t2Title.textContent = 'Strategic Core Accumulation (Deep-ITM Call LEAPS — Jan 2028 Expiry)';
 
-            let candidates = (activeAssetClass === 'STOCKS') ? (data.stock_recommendations || []) : (data.top_candidates || []);
+            let candidates = (activeDirectionalMode === 'HEDGE') ? (data.downside_hedges || []) : (data.top_candidates || []);
             if (activeGlobalSector) {
                 candidates = candidates.filter(c => c.sector.toUpperCase() === activeGlobalSector);
+            }
+            if (activeOptionsProng !== 'ALL') {
+                candidates = candidates.filter(c => (c.strategy_prong || 'BALANCED') === activeOptionsProng);
             }
 
             // 1. Calculate Real Portfolio Committed Capital from LocalStorage
@@ -974,23 +1100,13 @@
                     candBody.innerHTML = '<tr><td colspan="10" class="py-4 text-center text-slate-500">No active qualified candidates matching filter.</td></tr>';
                 } else {
                 candidates.forEach((c, idx) => {
-                    const isStockAsset = (activeAssetClass === 'STOCKS' || c.asset_class === 'EQUITY');
                     const estDebit = parseFloat(c.est_debit) || (c.width ? c.width * 0.38 : 5.0);
-                    const contractCost = isStockAsset ? parseFloat(c.price || 50.0) : Math.max(10, Math.round(estDebit * 100));
+                    const contractCost = Math.max(10, Math.round(estDebit * 100));
                     
-                    // Sizing calculation
-                    let contracts = 0;
-                    let totalTradeDebit = 0;
-                    let idleRolledCash = 0;
-
-                    if (isStockAsset) {
-                        contracts = isCapacityReached ? 0 : (c.shares || Math.max(1, Math.floor(allocPerTrade / contractCost)));
-                        totalTradeDebit = Math.round(contracts * contractCost);
-                    } else {
-                        contracts = isCapacityReached ? 0 : Math.floor(allocPerTrade / contractCost);
-                        totalTradeDebit = contracts * contractCost;
-                        idleRolledCash = allocPerTrade > totalTradeDebit ? allocPerTrade - totalTradeDebit : 0;
-                    }
+                    // Options Contract Sizing Calculation
+                    let contracts = isCapacityReached ? 0 : Math.floor(allocPerTrade / contractCost);
+                    let totalTradeDebit = contracts * contractCost;
+                    let idleRolledCash = allocPerTrade > totalTradeDebit ? allocPerTrade - totalTradeDebit : 0;
 
                     const tradeId = `${c.ticker}_SPREAD`;
                     const isTaken = !!myPortfolio[tradeId];
@@ -1025,7 +1141,7 @@
                     } else {
                         sizingHtml = `
                             <div class="mb-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${rankBadge}">★ ${rankTitle}</span></div>
-                            <div><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isSafeEarnings ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/60 text-amber-400 border border-amber-500/30'}">● ${earningsText}</span></div>
+                            <div><span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.earnings_status === 'UNVERIFIED EARNINGS' ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30' : (isSafeEarnings ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30' : 'bg-rose-950/60 text-rose-400 border border-rose-500/30')}">● ${c.earnings_status === 'UNVERIFIED EARNINGS' ? '⚠️ UNVERIFIED EARNINGS' : earningsText}</span></div>
                             <div class="text-xs font-mono font-bold text-emerald-400">Buy ${contracts} Contract${contracts > 1 ? 's' : ''}</div>
                             <div class="text-[10px] font-mono text-slate-400">$${totalTradeDebit.toLocaleString()} debit ($${allocPerTrade.toLocaleString()} budget${idleRolledCash > 0 ? ` · $${idleRolledCash} rolled` : ''})</div>
                         `;
@@ -1040,7 +1156,10 @@
                     }
 
                     tr.innerHTML = `
-                        <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">${c.ticker}</td>
+                        <td class="py-2.5 px-2.5 font-bold text-sky-400 text-xs">
+                            <div class="text-sm">${c.ticker}</div>
+                            <div class="mt-1"><span class="px-1.5 py-0.2 rounded text-[8px] font-black ${c.strategy_prong === 'HIGH_RISK' ? 'bg-amber-950/90 text-amber-300 border border-amber-500/40' : 'bg-sky-950/90 text-sky-300 border border-sky-500/40'}">${c.prong_badge || (c.strategy_prong === 'HIGH_RISK' ? '🚀 HIGH RISK (SPRINT)' : '⚖️ BALANCED (SWING)')}</span></div>
+                        </td>
                         <td class="py-2.5 px-2.5 text-slate-300">${c.sector}</td>
                         <td class="py-2.5 px-2.5 font-mono text-white font-bold">$${parseFloat(c.price).toFixed(2)}</td>
                         <td class="py-2.5 px-2.5 font-mono text-rose-400 font-semibold">$${parseFloat(c.stop).toFixed(2)}</td>
@@ -1054,9 +1173,14 @@
                                 <span>RVOL: <b class="text-slate-200">${c.rvol || 1.0}x</b></span>
                                 <span class="px-1 py-0.2 rounded text-[8px] font-bold bg-sky-950/60 text-sky-400 border border-sky-500/30">IVR: ${c.iv_rank !== undefined ? c.iv_rank + '%' : '24%'}</span>
                             </div>
+                            <div class="mt-1 flex flex-wrap gap-1 text-[8px] font-mono">
+                                <span class="px-1 py-0.2 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">RSI: ${c.rsi || 52} (≥45 🟢)</span>
+                                <span class="px-1 py-0.2 rounded bg-sky-950/80 text-sky-300 border border-sky-500/30">MACD: ↗ Hook</span>
+                                <span class="px-1 py-0.2 rounded bg-purple-950/80 text-purple-300 border border-purple-500/30">β: ${c.beta || 1.2}</span>
+                            </div>
                             <div class="mt-0.5"><span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">OI: ${c.long_oi || 500}/${c.short_oi || 420} · Vol: ${c.opt_volume || 85}</span></div>
                         </td>
-                        <td class="py-2.5 px-2.5 text-[11px] font-mono">${(c.overhead_runway_pct === 0 || c.overhead_runway_pct === 0.0 || c.overhead_runway_pct === "0%" || c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`}</td>
+                        <td class="py-2.5 px-2.5 text-[11px] font-mono">${c.has_200sma === false ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">N/A (<200d History)</span>' : ((c.overhead_runway_pct === 0 || c.overhead_runway_pct === 0.0 || c.overhead_runway_pct === "0%" || c.overhead_runway_pct >= 100 || c.overhead_runway_pct === 999 || c.overhead_runway_pct === "999%") ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">CLEAR (Above 200MA)</span>' : `<span class="text-slate-300 font-bold">${c.overhead_runway_pct > 0 ? "+" : ""}${c.overhead_runway_pct}%</span>`)}</td>
                         <td class="py-2.5 px-2.5 space-y-1">
                             ${sizingHtml}
                             ${portBtnHtml}
@@ -1066,9 +1190,11 @@
                             ${ticketActionHtml}
                             ${contractSub}
                             ${routingSub}
+                            <div class="mt-1">${buildBreakdownToggle(`opt-${c.ticker}-${idx}`)}</div>
                         </td>
                     `;
                     candBody.appendChild(tr);
+                    candBody.appendChild(buildBreakdownRow(`opt-${c.ticker}-${idx}`, 10, c.options_alpha_breakdown, 'options', c.options_alpha_score !== undefined ? c.options_alpha_score : (c.alpha_score || 0)));
                     });
                 }
             }
@@ -1120,6 +1246,7 @@
                         } else {
                             leapsSizingHtml = `
                                 <div class="mb-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${idx === 0 ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30' : 'bg-blue-950/60 text-blue-300 border border-blue-500/30'}">★ ${idx === 0 ? 'Rank #1 — Primary Core' : 'Rank #2 — Secondary Core'}</span></div>
+                                ${c.options_alpha_score !== undefined ? `<div class="mb-1"><span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-purple-950/80 text-purple-300 border border-purple-500/40">LEAPS ALPHA: ${c.options_alpha_score}/100</span></div>` : ''}
                                 <div class="text-xs font-mono font-bold text-emerald-400">Buy ${contracts} Contract${contracts > 1 ? 's' : ''}</div>
                                 <div class="text-[10px] font-mono text-slate-400">$${totalLeapsDebit.toLocaleString()} premium ($${allocPerLeaps.toLocaleString()} budget${idleRolledLeaps > 0 ? ` · $${idleRolledLeaps} rolled` : ''})</div>
                             `;
@@ -1157,9 +1284,11 @@
                                 <div class="font-bold text-white text-xs">${c.contract}</div>
                                 ${leapsTicketActionHtml}
                                 <div class="text-[10px] text-slate-400 font-mono mt-0.5">${c.contract_details}</div>
+                                <div class="mt-1">${buildBreakdownToggle(`leaps-${c.ticker}-${idx}`)}</div>
                             </td>
                         `;
                         leapsBody.appendChild(tr);
+                        leapsBody.appendChild(buildBreakdownRow(`leaps-${c.ticker}-${idx}`, 9, c.options_alpha_breakdown, 'options', c.options_alpha_score !== undefined ? c.options_alpha_score : (c.alpha_score || 0)));
                     });
                 }
             }
@@ -2081,3 +2210,137 @@
 
         window.addEventListener('DOMContentLoaded', init);
     
+        // ==========================================
+        // CROSS-DEVICE OPTIONS PORTFOLIO PORTABILITY
+        // ==========================================
+        function openOptionsExportModal() {
+            const port = getMyPortfolio();
+            const jsonStr = JSON.stringify(port, null, 2);
+            const textarea = document.getElementById('options-export-json-textarea');
+            if (textarea) textarea.value = jsonStr;
+            const modal = document.getElementById('options-export-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                if (modal.style) modal.style.display = 'flex';
+            }
+        }
+
+        function closeOptionsExportModal() {
+            const modal = document.getElementById('options-export-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                if (modal.style) modal.style.display = 'none';
+            }
+        }
+
+        function copyOptionsExportJSON() {
+            const textarea = document.getElementById('options-export-json-textarea');
+            if (!textarea) return;
+            const textToCopy = textarea.value;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const btn = document.getElementById('btn-options-copy-json');
+                    if (btn) {
+                        const orig = btn.innerHTML;
+                        btn.innerHTML = '✓ Copied!';
+                        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+                    }
+                }).catch(() => {
+                    prompt('Copy your portfolio JSON below:', textToCopy);
+                });
+            } else {
+                textarea.select();
+                document.execCommand('copy');
+                alert('Options portfolio JSON copied to clipboard!');
+            }
+        }
+
+        function downloadOptionsExportJSON() {
+            const textarea = document.getElementById('options-export-json-textarea');
+            if (!textarea) return;
+            const blob = new Blob([textarea.value], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `abi_options_portfolio_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function openOptionsImportModal() {
+            const textarea = document.getElementById('options-import-json-textarea');
+            if (textarea) textarea.value = '';
+            const status = document.getElementById('options-import-status');
+            if (status) { status.className = 'text-xs hidden'; status.textContent = ''; }
+            const modal = document.getElementById('options-import-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                if (modal.style) modal.style.display = 'flex';
+            }
+        }
+
+        function closeOptionsImportModal() {
+            const modal = document.getElementById('options-import-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                if (modal.style) modal.style.display = 'none';
+            }
+        }
+
+        function handleOptionsFileSelect(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const textarea = document.getElementById('options-import-json-textarea');
+                if (textarea) textarea.value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+
+        function importOptionsPortfolioJSON(replaceMode = false) {
+            const textarea = document.getElementById('options-import-json-textarea');
+            const status = document.getElementById('options-import-status');
+            if (!textarea) return;
+            const raw = textarea.value.trim();
+            if (!raw) {
+                if (status) {
+                    status.className = 'text-xs text-rose-400 block';
+                    status.textContent = 'Please paste valid JSON or choose a file first.';
+                }
+                return;
+            }
+            try {
+                let parsed = JSON.parse(raw);
+                if (parsed && parsed.portfolio && typeof parsed.portfolio === 'object') {
+                    parsed = parsed.portfolio;
+                }
+                if (typeof parsed !== 'object' || Array.isArray(parsed) || parsed === null) {
+                    throw new Error('Portfolio JSON must be an object of trades.');
+                }
+                let current = replaceMode ? {} : getMyPortfolio();
+                let count = 0;
+                for (const [k, v] of Object.entries(parsed)) {
+                    if (v && typeof v === 'object') {
+                        current[k] = v;
+                        count++;
+                    }
+                }
+                saveMyPortfolio(current);
+                onPortfolioUpdated();
+                if (status) {
+                    status.className = 'text-xs text-emerald-400 block';
+                    status.textContent = `Successfully ${replaceMode ? 'restored' : 'merged'} ${count} position(s)!`;
+                }
+                setTimeout(() => {
+                    closeOptionsImportModal();
+                }, 1000);
+            } catch (e) {
+                if (status) {
+                    status.className = 'text-xs text-rose-400 block';
+                    status.textContent = 'Invalid JSON: ' + e.message;
+                }
+            }
+        }

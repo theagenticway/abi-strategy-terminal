@@ -296,35 +296,33 @@ Before any ticker is submitted to the mathematical scoring engines (Composite Al
 
 Calculated in engine/stocks.py (compute_alpha_composite_score).
 
-$$\text{Stock Alpha Score} = S_{\text{Retrace}} + S_{\text{RVOL}} + S_{\text{Proximity}} + S_{\text{Momentum}} + S_{\text{Structure}} + S_{\text{RR}}$$
+$$\text{Stock Alpha Score} = S_{\text{Reclaim}} + S_{\text{RVOL}} + S_{\text{SectorRS}} + S_{\text{BetaElasticity}} + S_{\text{Momentum}} + S_{\text{Structure}}$$
 
-|  |  |  |  |  |
-| :-: | :-: | :-: | :-: | :-: |
-| **Component** | **Weight** | **High-Risk Metric** | **Balanced Metric** | **Core Metric** |
-| **1. Reclaim Velocity & Freshness** | **25 pts** | Day 0–1 Reclaim (25 pts) | Day 0–2 Reclaim (25 pts) | Stage 2 Stack (25 pts) |
-| **2. Volume & Institutional RVOL** | **20 pts** | $\text{RVOL} \ge 2.0\times$ (20 pts) | $\text{RVOL} \ge 1.3\times$ (20 pts) | Steady Volume (15 pts) |
-| **3. Support Retest Proximity** | **15 pts** | $\le 1.5%$ from 50 EMA (15 pts) | $\le 2.5%$ from 50 EMA (15 pts) | Near 50/150 Support (15 pts) |
-| **4. Universal Momentum (RSI + MACD)** | **15 pts** | $\text{RSI} \ge 50$ + MACD Hist Hook | $\text{RSI} \ge 45$ + MACD Hist Hook | $\text{RSI} \ge 45$ + Bullish Stack |
-| **5. Dow Theory Market Structure** | **15 pts** | Confirmed HH/HL (15 pts) | Emerging Base / HH (15 pts) | Multi-Month Base (15 pts) |
-| **6. Reward-to-Risk Geometry** | **10 pts** | $\text{R:R} \ge 2.0:1$ (10 pts) | $\text{R:R} \ge 2.5:1$ (10 pts) | $\text{R:R} \ge 3.0:1$ (10 pts) |
+| Component | Weight | High-Risk Sprint Metric | Balanced Swing Metric | Core Compounder Metric |
+| :--- | :---: | :--- | :--- | :--- |
+| **1. Reclaim Freshness** | **20 pts** | Day 0–1 Reclaim (20 pts), Day 2 (12 pts) | Day 0–2 Reclaim (20 pts), Day 3 (10 pts) | Stage 2 Alignment (20 pts) |
+| **2. Institutional RVOL** | **20 pts** | $\text{RVOL} \ge 2.0\times$ (20 pts), $\ge 1.5\times$ (16 pts) | $\text{RVOL} \ge 1.8\times$ (20 pts), $\ge 1.3\times$ (16 pts) | $\text{RVOL} \ge 0.9\times$ (15 pts) |
+| **3. Sector Relative Strength** | **15 pts** | Top-Quartile Sector + Mom Pos (15 pts) | Top-Quartile Sector + Mom Pos (15 pts) | Top-Quartile Sector + Mom Pos (15 pts) |
+| **4. Beta & Price Elasticity** | **15 pts** | $\text{Beta} \ge 1.8, \text{ADR} \ge 3.5\%$ (15 pts) | $1.0 \le \text{Beta} \le 1.6, 2.0 \le \text{ADR} \le 3.6\%$ (15 pts) | $\text{Beta} \le 1.0$ Low-Vol Stability (15 pts) |
+| **5. Universal Momentum** | **15 pts** | $\text{RSI} \ge 50$ + MACD Hist Hook (15 pts) | $\text{RSI} \ge 50$ + MACD Hist Hook (15 pts) | $\text{RSI} \ge 45$ Floor + Hook (13 pts) |
+| **6. Market Structure** | **15 pts** | Confirmed BULLISH_HH_HL (15 pts) | Confirmed BULLISH_HH_HL (15 pts) | Multi-Month Base Consolidation (11–15 pts) |
 
 -----
 
 ### B. Derivatives Options Alpha Radar Score (0 to 100)
 
-Calculated in engine/patterns.py (compute_options_alpha_score).
+Calculated in `engine/patterns.py` (`compute_options_alpha_score`).
 
 $$\text{Options Alpha Score} = (\text{Directional Alpha} \times 0.35) + S_{\text{IV}} + S_{\text{Liquidity}} + S_{\text{Runway}} + S_{\text{Momentum}} + P_{\text{Earnings}}$$
 
-|  |  |  |  |  |
-| :-: | :-: | :-: | :-: | :-: |
-| **Component** | **Weight** | **High-Risk Sprint (45–90 DTE)** | **Balanced Swing (60–120 DTE)** | **Core LEAPS (Jan 2028)** |
+| Component | Weight | High-Risk Sprint (45–90 DTE) | Balanced Swing (60–120 DTE) | Core LEAPS (Jan 2028) |
+| :--- | :---: | :--- | :--- | :--- |
 | **1. Directional Foundation** | **35 pts** | $0.35 \times \text{Stock Alpha}$ | $0.35 \times \text{Stock Alpha}$ | $0.35 \times \text{Stock Alpha}$ |
-| **2. IV Rank Behavior** | **20 pts** | **High IV (60–85+) = 20 pts** | **Sweet Spot (35–65) = 20 pts** | **Low IV (< 35) = 20 pts** |
-| **3. Contract Liquidity** | **20 pts** | $\text{OI} \ge 1000$, $\text{Spread} \le 5%$ | $\text{OI} \ge 500$, $\text{Spread} \le 8%$ | $\text{OI} \ge 250$, $\text{Spread} \le 10%$ |
-| **4. 200 SMA Clearance Runway** | **15 pts** | Runway $\ge 8%$ or Blue Sky | Runway $\ge 5%$ or Blue Sky | Above 200 SMA Mandatory |
-| **5. Universal MACD/RSI Hook** | **10 pts** | MACD Hist Hook + $\text{RSI} \ge 45$ | MACD Hist Hook + $\text{RSI} \ge 45$ | Stage 2 Trend Stack |
-| **6. Earnings Blackout** | **Penalty** | $-35$ pts if inside trade DTE | $-35$ pts if inside trade DTE | $-35$ pts if inside 60 days |
+| **2. IV Rank Behavior** | **20 pts** | $\text{IV} \ge 60$ (20 pts), $\ge 45$ (15 pts), $\ge 30$ (8 pts) | $35 \le \text{IV} \le 65$ (20 pts), $25 \le \text{IV} < 35$ or $65 < \text{IV} \le 75$ (14 pts) | $\text{IV} < 35$ (20 pts), $< 50$ (12 pts), else 4 pts |
+| **3. Contract Liquidity** | **20 pts** | $\text{OI} \ge 500 \text{ \& Spread} \le 8\%$ (20 pts), $\text{OI} \ge 250 \text{ \& Spread} \le 15\%$ (14 pts), $\text{OI} \ge 100$ (8 pts), else 3 pts | Same universal liquidity tiers | Same universal liquidity tiers |
+| **4. 200 SMA Clearance Runway** | **15 pts** | Runway $\ge 900\%$ or Blue Sky (15 pts), $\ge 8\%$ (12 pts), $\ge 5\%$ (8 pts), else 2 pts | Same universal clearance tiers | Same universal clearance tiers |
+| **5. Universal MACD/RSI Hook** | **10 pts** | $\text{RSI} \ge 50 \text{ + Hook}$ (10 pts), $\text{RSI} \ge 45 \text{ + Hook}$ (8 pts), $\text{RSI} \ge 45$ (5 pts) | Same universal momentum tiers | Same universal momentum tiers |
+| **6. Earnings Blackout** | **Penalty** | $-35$ pts if $0 \le \text{DTE}_{\text{earnings}} \le 45$ | $-35$ pts if $0 \le \text{DTE}_{\text{earnings}} \le 45$ | LEAPS exempt ($0$ pts penalty) |
 
 #### Dow Theory Market Structure in Options Logic:
 
