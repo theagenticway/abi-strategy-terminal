@@ -1,0 +1,6 @@
+{
+  "name": "EMA50 Scanner Terminal | ABI Strategy Dashboard",
+  "description": "Institutional-grade quantitative market telemetry, multi-index benchmark confluence engine, and options & equity execution terminal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
