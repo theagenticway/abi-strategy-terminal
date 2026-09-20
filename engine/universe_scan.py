@@ -1050,15 +1050,17 @@ def process_universe(raw_data=None, sample_date_str=None):
         max_risk_per_trade = DEFAULT_PORTFOLIO_CAPITAL * DOLLAR_AT_RISK_PCT
         t_shares = int(min(max_capital_per_trade / max(1.0, t_price), max_risk_per_trade / max(0.01, t_risk)))
 
-        # Look up the real, already-computed alpha score from qualified_stock_candidates first;
-        # only fall back to computing it directly if this ticker wasn't in that pool.
+        # Look up the real, already-computed alpha score (and its breakdown, for the
+        # explainability UI) from qualified_stock_candidates first; only fall back to
+        # computing it directly if this ticker wasn't in that pool.
         s_match = stock_score_map.get(t["ticker"])
         if s_match and s_match.get("alpha_score") is not None:
             t_score = float(s_match["alpha_score"])
+            t_score_breakdown = s_match.get("alpha_score_breakdown", {})
         else:
             try:
                 s_sec = (t.get("sector") or "").upper()
-                t_score, _ = stocks.compute_alpha_composite_score(
+                t_score, t_score_breakdown = stocks.compute_alpha_composite_score(
                     reclaim_days=t.get("reclaim_days", 1),
                     rvol=float(t.get("rvol", 1.2)),
                     price=t_price,
@@ -1074,6 +1076,7 @@ def process_universe(raw_data=None, sample_date_str=None):
                 )
             except Exception:
                 t_score = 70.0
+                t_score_breakdown = {}
 
         high_risk_stocks_radar.append({
             "action": "BUY",
@@ -1093,6 +1096,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             "weekly_stage": t.get("weekly_stage", "STAGE 2 (Advancing)"),
             "structure": "High-Risk Sprint (Common Shares)",
             "alpha_score": round(t_score, 1),
+            "alpha_score_breakdown": t_score_breakdown,
             "shares": t_shares,
             "capital_deployed": round(t_shares * t_price, 2),
             "actual_risk_dollars": round(t_shares * t_risk, 2),
@@ -1156,9 +1160,10 @@ def process_universe(raw_data=None, sample_date_str=None):
 
         if opt_match and opt_match.get("options_alpha_score") is not None:
             t_opt_score = float(opt_match["options_alpha_score"])
+            t_opt_breakdown = opt_match.get("options_alpha_breakdown", {})
         else:
             try:
-                t_opt_score, _ = patterns.compute_options_alpha_score(
+                t_opt_score, t_opt_breakdown = patterns.compute_options_alpha_score(
                     directional_alpha=directional_alpha_val,
                     iv_rank=iv_r,
                     long_oi=650,
@@ -1174,6 +1179,7 @@ def process_universe(raw_data=None, sample_date_str=None):
                 )
             except Exception:
                 t_opt_score = 75.0
+                t_opt_breakdown = {}
 
         high_risk_options_radar.append({
             "action": "BUY",
@@ -1200,6 +1206,7 @@ def process_universe(raw_data=None, sample_date_str=None):
             "iv_rank": iv_r,
             "liquidity": "HIGH",
             "options_alpha_score": round(t_opt_score, 1),
+            "options_alpha_breakdown": t_opt_breakdown,
             "alpha_score": round(t_opt_score, 1),
             "routing_guidance": f"LIMIT @ ${debit:.2f} Mid (Do not cross spread; High-Risk BCS)",
             "execution_guidance": f"High-Risk BCS · Exit before 21 DTE Theta Cliff ({_hr_theta_cliff}) or Day 10 Velocity Stop",

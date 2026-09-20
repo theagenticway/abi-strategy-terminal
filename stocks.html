@@ -918,6 +918,78 @@
         // ==========================================
         // RENDER TABLE 1: TACTICAL EQUITY SWINGS
         // ==========================================
+        // ---------------------------------------------------------------
+        // Score Breakdown Explainability (Feature 1) - see index.html for the
+        // matching options-side implementation and full rationale comment.
+        // ---------------------------------------------------------------
+        const SCORE_COMPONENT_CONFIG = {
+            stock: [
+                { key: 'reclaim_freshness', label: 'Reclaim Freshness', max: 20 },
+                { key: 'rvol', label: 'Volume (RVOL)', max: 20 },
+                { key: 'sector_rs', label: 'Sector Relative Strength', max: 15 },
+                { key: 'beta_elasticity', label: 'Beta Elasticity', max: 15 },
+                { key: 'momentum', label: 'Momentum (RSI/MACD)', max: 15 },
+                { key: 'market_structure', label: 'Market Structure', max: 15 }
+            ],
+            options: [
+                { key: 'directional_foundation', label: 'Directional Foundation', max: 35 },
+                { key: 'iv_rank_efficiency', label: 'IV Rank Efficiency', max: 20 },
+                { key: 'liquidity_quality', label: 'Liquidity Quality', max: 20 },
+                { key: 'overhead_runway', label: 'Overhead Runway', max: 15 },
+                { key: 'momentum', label: 'Momentum Hook', max: 10 },
+                { key: 'earnings_penalty', label: 'Earnings Blackout Penalty', max: 0, penalty: true }
+            ]
+        };
+        function renderScoreBreakdownBars(breakdown, type) {
+            const config = SCORE_COMPONENT_CONFIG[type] || [];
+            if (!breakdown || Object.keys(breakdown).length === 0) {
+                return `<div class="text-[10px] text-slate-500 italic py-1">Breakdown unavailable for this recommendation.</div>`;
+            }
+            return config.map(c => {
+                const val = breakdown[c.key];
+                if (val === undefined || val === null) return '';
+                if (c.penalty) {
+                    if (val >= 0) return '';
+                    return `
+                        <div class="flex items-center gap-2 py-0.5">
+                            <div class="w-36 text-[10px] text-slate-400 shrink-0">${c.label}</div>
+                            <div class="flex-1 text-[10px] font-mono font-bold text-rose-400">${val.toFixed(1)} pts</div>
+                        </div>`;
+                }
+                const pct = Math.max(0, Math.min(100, (val / c.max) * 100));
+                const barColor = pct >= 75 ? 'bg-emerald-500' : (pct >= 45 ? 'bg-amber-500' : 'bg-rose-500');
+                return `
+                    <div class="flex items-center gap-2 py-0.5">
+                        <div class="w-36 text-[10px] text-slate-400 shrink-0">${c.label}</div>
+                        <div class="flex-1 h-2 rounded bg-slate-800 overflow-hidden">
+                            <div class="h-full ${barColor}" style="width:${pct}%"></div>
+                        </div>
+                        <div class="w-16 text-right text-[10px] font-mono text-slate-300 shrink-0">${val.toFixed(1)}/${c.max}</div>
+                    </div>`;
+            }).join('');
+        }
+        function buildBreakdownToggle(rowId) {
+            return `<button onclick="toggleBreakdownRow('${rowId}')" id="${rowId}-btn" class="text-[9px] font-mono text-sky-400 hover:text-sky-300 underline decoration-dotted">▼ Score Breakdown</button>`;
+        }
+        function buildBreakdownRow(rowId, colspan, breakdown, type, totalScore) {
+            const tr = document.createElement('tr');
+            tr.id = `${rowId}-detail`;
+            tr.className = 'hidden bg-slate-950/60';
+            tr.innerHTML = `<td colspan="${colspan}" class="py-2 px-4">
+                <div class="text-[10px] font-bold text-slate-400 mb-1">Alpha Score Breakdown — ${totalScore}/100 total</div>
+                ${renderScoreBreakdownBars(breakdown, type)}
+            </td>`;
+            return tr;
+        }
+        function toggleBreakdownRow(rowId) {
+            const row = document.getElementById(`${rowId}-detail`);
+            const btn = document.getElementById(`${rowId}-btn`);
+            if (!row) return;
+            const isHidden = row.classList.contains('hidden');
+            row.classList.toggle('hidden');
+            if (btn) btn.textContent = isHidden ? '▲ Score Breakdown' : '▼ Score Breakdown';
+        }
+
         function renderStockSwings() {
             const tbody = document.getElementById('stock-swings-body');
             if (!tbody) return;
@@ -1016,9 +1088,11 @@
                         <div class="font-mono font-bold text-emerald-400 text-xs">BUY ${dynamicShares} SHARES @ $${parseFloat(item.price).toFixed(2)} LIMIT · STOP @ $${parseFloat(item.stop).toFixed(2)}</div>
                         <div class="text-[10px] text-slate-300 font-mono mt-0.5">Scale 50% at TP1 ($${parseFloat(item.tp1).toFixed(2)}) · Move Stop to Breakeven · Trail on 50 EMA</div>
                         <div class="text-[10px] text-sky-400 font-mono mt-0.5">↳ Common stock cash swing · Direct equity ownership · No expiration or theta decay</div>
+                        <div class="mt-1">${buildBreakdownToggle(`stockswing-${item.ticker}-${idx}`)}</div>
                     </td>
                 `;
                 tbody.appendChild(tr);
+                tbody.appendChild(buildBreakdownRow(`stockswing-${item.ticker}-${idx}`, 10, item.alpha_score_breakdown, 'stock', item.alpha_score !== undefined ? item.alpha_score : 0));
             });
         }
 
@@ -1093,9 +1167,11 @@
                     <td class="py-2.5 px-2.5">
                         <div class="font-mono font-bold text-sky-300 text-xs">BUY ${shares} SHARES @ $${parseFloat(item.price).toFixed(2)} LIMIT · MACRO STOP @ $${parseFloat(item.macro_stop).toFixed(2)}</div>
                         <div class="text-[10px] text-slate-300 font-mono mt-0.5">${item.execution_guidance || 'Secular Core Hold · Macro Trailing Stop on 200 SMA · Quarterly Rebalance'}</div>
+                        <div class="mt-1">${buildBreakdownToggle(`stockcore-${item.ticker}-${idx}`)}</div>
                     </td>
                 `;
                 tbody.appendChild(tr);
+                tbody.appendChild(buildBreakdownRow(`stockcore-${item.ticker}-${idx}`, 9, item.alpha_score_breakdown, 'stock', item.alpha_score !== undefined ? item.alpha_score : 0));
             });
         }
 

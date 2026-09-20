@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EMA50 Scanner Terminal | ABI Strategy Dashboard</title>
-    <meta name="description" content="Institutional-grade quantitative market telemetry, multi-index benchmark confluence engine, and options &amp; equity execution terminal.">
-    <meta property="og:title" content="EMA50 Scanner Terminal | ABI Strategy Dashboard">
-    <meta property="og:description" content="Institutional-grade quantitative market telemetry, multi-index benchmark confluence engine, and options &amp; equity execution terminal.">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN with annotation plugin for Momentum Quadrant -->
@@ -1931,6 +1928,92 @@
             try { renderMacroBoard(data); } catch(e) { console.error('Error in renderMacroBoard:', e); }
         }
 
+        // ---------------------------------------------------------------
+        // Score Breakdown Explainability (Feature 1)
+        // Renders the per-component point breakdown (`alpha_score_breakdown` for
+        // stock/High-Risk-Sprint candidates, `options_alpha_breakdown` for options/
+        // LEAPS candidates) that the backend already computes but previously never
+        // surfaced anywhere. Max-points-per-component below is taken directly from
+        // engine/stocks.py::compute_alpha_composite_score() and
+        // engine/patterns.py::compute_options_alpha_score() - NOT from
+        // DATA_METRICS_AND_SCORING_ARCHITECTURE.md, which was found this session to
+        // disagree with the code on stock component weights in at least one place.
+        // ---------------------------------------------------------------
+        const SCORE_COMPONENT_CONFIG = {
+            stock: [
+                { key: 'reclaim_freshness', label: 'Reclaim Freshness', max: 20 },
+                { key: 'rvol', label: 'Volume (RVOL)', max: 20 },
+                { key: 'sector_rs', label: 'Sector Relative Strength', max: 15 },
+                { key: 'beta_elasticity', label: 'Beta Elasticity', max: 15 },
+                { key: 'momentum', label: 'Momentum (RSI/MACD)', max: 15 },
+                { key: 'market_structure', label: 'Market Structure', max: 15 }
+            ],
+            options: [
+                { key: 'directional_foundation', label: 'Directional Foundation', max: 35 },
+                { key: 'iv_rank_efficiency', label: 'IV Rank Efficiency', max: 20 },
+                { key: 'liquidity_quality', label: 'Liquidity Quality', max: 20 },
+                { key: 'overhead_runway', label: 'Overhead Runway', max: 15 },
+                { key: 'momentum', label: 'Momentum Hook', max: 10 },
+                { key: 'earnings_penalty', label: 'Earnings Blackout Penalty', max: 0, penalty: true }
+            ]
+        };
+
+        // Renders one mini horizontal bar per score component. `type` is 'stock' or 'options'.
+        function renderScoreBreakdownBars(breakdown, type) {
+            const config = SCORE_COMPONENT_CONFIG[type] || [];
+            if (!breakdown || Object.keys(breakdown).length === 0) {
+                return `<div class="text-[10px] text-slate-500 italic py-1">Breakdown unavailable for this recommendation.</div>`;
+            }
+            return config.map(c => {
+                const val = breakdown[c.key];
+                if (val === undefined || val === null) return '';
+                if (c.penalty) {
+                    // Penalty components are subtractive, not a 0-to-max score - render distinctly.
+                    if (val >= 0) return '';
+                    return `
+                        <div class="flex items-center gap-2 py-0.5">
+                            <div class="w-36 text-[10px] text-slate-400 shrink-0">${c.label}</div>
+                            <div class="flex-1 text-[10px] font-mono font-bold text-rose-400">${val.toFixed(1)} pts</div>
+                        </div>`;
+                }
+                const pct = Math.max(0, Math.min(100, (val / c.max) * 100));
+                const barColor = pct >= 75 ? 'bg-emerald-500' : (pct >= 45 ? 'bg-amber-500' : 'bg-rose-500');
+                return `
+                    <div class="flex items-center gap-2 py-0.5">
+                        <div class="w-36 text-[10px] text-slate-400 shrink-0">${c.label}</div>
+                        <div class="flex-1 h-2 rounded bg-slate-800 overflow-hidden">
+                            <div class="h-full ${barColor}" style="width:${pct}%"></div>
+                        </div>
+                        <div class="w-16 text-right text-[10px] font-mono text-slate-300 shrink-0">${val.toFixed(1)}/${c.max}</div>
+                    </div>`;
+            }).join('');
+        }
+
+        // Builds the toggle button placed inline in a candidate row, plus the (initially
+        // hidden) detail row appended right after it. `colspan` must match the number of
+        // <td> columns in that specific table so the detail row spans the full width.
+        function buildBreakdownToggle(rowId) {
+            return `<button onclick="toggleBreakdownRow('${rowId}')" id="${rowId}-btn" class="text-[9px] font-mono text-sky-400 hover:text-sky-300 underline decoration-dotted">▼ Score Breakdown</button>`;
+        }
+        function buildBreakdownRow(rowId, colspan, breakdown, type, totalScore) {
+            const tr = document.createElement('tr');
+            tr.id = `${rowId}-detail`;
+            tr.className = 'hidden bg-slate-950/60';
+            tr.innerHTML = `<td colspan="${colspan}" class="py-2 px-4">
+                <div class="text-[10px] font-bold text-slate-400 mb-1">Alpha Score Breakdown — ${totalScore}/100 total</div>
+                ${renderScoreBreakdownBars(breakdown, type)}
+            </td>`;
+            return tr;
+        }
+        function toggleBreakdownRow(rowId) {
+            const row = document.getElementById(`${rowId}-detail`);
+            const btn = document.getElementById(`${rowId}-btn`);
+            if (!row) return;
+            const isHidden = row.classList.contains('hidden');
+            row.classList.toggle('hidden');
+            if (btn) btn.textContent = isHidden ? '▲ Score Breakdown' : '▼ Score Breakdown';
+        }
+
         function renderSectorNavPills() {
             const sectors = [
                 'ENERGY', 'TECH SOFTWARE', 'FINANCIALS', 'HEALTHCARE', 'TECH CORE', 'ETF', 
@@ -2351,9 +2434,11 @@
                             ${ticketActionHtml}
                             ${contractSub}
                             ${routingSub}
+                            <div class="mt-1">${buildBreakdownToggle(`opt-${c.ticker}-${idx}`)}</div>
                         </td>
                     `;
                     candBody.appendChild(tr);
+                    candBody.appendChild(buildBreakdownRow(`opt-${c.ticker}-${idx}`, 10, c.options_alpha_breakdown, 'options', c.options_alpha_score !== undefined ? c.options_alpha_score : (c.alpha_score || 0)));
                     });
                 }
             }
@@ -2443,9 +2528,11 @@
                                 <div class="font-bold text-white text-xs">${c.contract}</div>
                                 ${leapsTicketActionHtml}
                                 <div class="text-[10px] text-slate-400 font-mono mt-0.5">${c.contract_details}</div>
+                                <div class="mt-1">${buildBreakdownToggle(`leaps-${c.ticker}-${idx}`)}</div>
                             </td>
                         `;
                         leapsBody.appendChild(tr);
+                        leapsBody.appendChild(buildBreakdownRow(`leaps-${c.ticker}-${idx}`, 9, c.options_alpha_breakdown, 'options', c.options_alpha_score !== undefined ? c.options_alpha_score : (c.alpha_score || 0)));
                     });
                 }
             }

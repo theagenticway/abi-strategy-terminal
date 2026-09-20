@@ -406,6 +406,73 @@
             }
         }
 
+        // ---------------------------------------------------------------
+        // Score Breakdown Explainability (Feature 1) - see index.html for the
+        // matching implementation and full rationale comment.
+        // ---------------------------------------------------------------
+        const SCORE_COMPONENT_CONFIG = {
+            stock: [
+                { key: 'reclaim_freshness', label: 'Reclaim Freshness', max: 20 },
+                { key: 'rvol', label: 'Volume (RVOL)', max: 20 },
+                { key: 'sector_rs', label: 'Sector Relative Strength', max: 15 },
+                { key: 'beta_elasticity', label: 'Beta Elasticity', max: 15 },
+                { key: 'momentum', label: 'Momentum (RSI/MACD)', max: 15 },
+                { key: 'market_structure', label: 'Market Structure', max: 15 }
+            ],
+            options: [
+                { key: 'directional_foundation', label: 'Directional Foundation', max: 35 },
+                { key: 'iv_rank_efficiency', label: 'IV Rank Efficiency', max: 20 },
+                { key: 'liquidity_quality', label: 'Liquidity Quality', max: 20 },
+                { key: 'overhead_runway', label: 'Overhead Runway', max: 15 },
+                { key: 'momentum', label: 'Momentum Hook', max: 10 },
+                { key: 'earnings_penalty', label: 'Earnings Blackout Penalty', max: 0, penalty: true }
+            ]
+        };
+        function renderScoreBreakdownBars(breakdown, type) {
+            const config = SCORE_COMPONENT_CONFIG[type] || [];
+            if (!breakdown || Object.keys(breakdown).length === 0) {
+                return `<div class="text-[10px] text-slate-500 italic py-1">Breakdown unavailable for this recommendation.</div>`;
+            }
+            return config.map(c => {
+                const val = breakdown[c.key];
+                if (val === undefined || val === null) return '';
+                if (c.penalty) {
+                    if (val >= 0) return '';
+                    return `
+                        <div class="flex items-center gap-2 py-0.5">
+                            <div class="w-36 text-[10px] text-slate-400 shrink-0">${c.label}</div>
+                            <div class="flex-1 text-[10px] font-mono font-bold text-rose-400">${val.toFixed(1)} pts</div>
+                        </div>`;
+                }
+                const pct = Math.max(0, Math.min(100, (val / c.max) * 100));
+                const barColor = pct >= 75 ? 'bg-emerald-500' : (pct >= 45 ? 'bg-amber-500' : 'bg-rose-500');
+                return `
+                    <div class="flex items-center gap-2 py-0.5">
+                        <div class="w-36 text-[10px] text-slate-400 shrink-0">${c.label}</div>
+                        <div class="flex-1 h-2 rounded bg-slate-800 overflow-hidden">
+                            <div class="h-full ${barColor}" style="width:${pct}%"></div>
+                        </div>
+                        <div class="w-16 text-right text-[10px] font-mono text-slate-300 shrink-0">${val.toFixed(1)}/${c.max}</div>
+                    </div>`;
+            }).join('');
+        }
+        function buildBreakdownRowHtml(rowId, colspan, breakdown, type, totalScore) {
+            return `<tr id="${rowId}-detail" class="hidden bg-slate-950/60">
+                <td colspan="${colspan}" class="py-2 px-4">
+                    <div class="text-[10px] font-bold text-slate-400 mb-1">Alpha Score Breakdown — ${totalScore}/100 total</div>
+                    ${renderScoreBreakdownBars(breakdown, type)}
+                </td>
+            </tr>`;
+        }
+        function toggleBreakdownRow(rowId) {
+            const row = document.getElementById(`${rowId}-detail`);
+            const btn = document.getElementById(`${rowId}-btn`);
+            if (!row) return;
+            const isHidden = row.classList.contains('hidden');
+            row.classList.toggle('hidden');
+            if (btn) btn.textContent = isHidden ? '▲ Breakdown' : '▼ Breakdown';
+        }
+
         function renderTodayStocks(stocks) {
             const tbody = document.getElementById('today-stocks-tbody');
             if (!stocks || stocks.length === 0) {
@@ -413,7 +480,9 @@
                 return;
             }
             document.getElementById('stocks-count-tag').textContent = `${stocks.length} candidates`;
-            tbody.innerHTML = stocks.map(s => `
+            tbody.innerHTML = stocks.map((s, idx) => {
+                const rowId = `hrstock-${s.ticker}-${idx}`;
+                return `
                 <tr class="hover:bg-slate-800/40 transition">
                     <td class="p-2.5">
                         <div class="flex items-center gap-1.5">
@@ -439,13 +508,16 @@
                         <span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
                             ${(s.alpha_score || 60).toFixed(1)}
                         </span>
+                        <button onclick="toggleBreakdownRow('${rowId}')" id="${rowId}-btn" class="block mt-0.5 text-[9px] font-mono text-sky-400 hover:text-sky-300 underline decoration-dotted">▼ Breakdown</button>
                     </td>
                     <td class="p-2.5 text-[11px] text-slate-300 max-w-xs">
                         <div class="truncate text-slate-200 font-mono">${s.order_ticket || `BUY ${s.shares || 50} SHARES @ $${(s.price || 0).toFixed(2)}`}</div>
                         <div class="text-[10px] text-slate-400 truncate">${s.execution_guidance || 'High-Risk Sprint'}</div>
                     </td>
                 </tr>
-            `).join('');
+                ${buildBreakdownRowHtml(rowId, 9, s.alpha_score_breakdown, 'stock', s.alpha_score || 0)}
+            `;
+            }).join('');
         }
 
         function renderTodayOptions(options) {
@@ -455,7 +527,9 @@
                 return;
             }
             document.getElementById('options-count-tag').textContent = `${options.length} candidates`;
-            tbody.innerHTML = options.map(o => `
+            tbody.innerHTML = options.map((o, idx) => {
+                const rowId = `hropt-${o.ticker}-${idx}`;
+                return `
                 <tr class="hover:bg-slate-800/40 transition">
                     <td class="p-2.5">
                         <div class="flex items-center gap-1.5">
@@ -470,10 +544,10 @@
                     </td>
                     <td class="p-2.5 font-mono text-white font-semibold">$${(o.price || 0).toFixed(2)}</td>
                     <td class="p-2.5">
-                        <span class="font-bold text-amber-300 font-mono text-xs">${o.contract || 'Oct 26 Call Spread'}</span>
+                        <span class="font-bold text-amber-300 font-mono text-xs">${o.contract || 'Call Spread'}</span>
                         <span class="text-[10px] text-slate-400 block font-mono">Width: $${(o.width || 0).toFixed(2)}</span>
                     </td>
-                    <td class="p-2.5 font-mono text-slate-300">${o.dte || 45}d (${o.expiry || 'Oct 26'})</td>
+                    <td class="p-2.5 font-mono text-slate-300">${o.dte || 45}d (${o.expiry || 'N/A'})</td>
                     <td class="p-2.5 font-mono text-rose-300 font-semibold">$${(o.est_debit || 0).toFixed(2)}</td>
                     <td class="p-2.5">
                         <span class="font-mono text-emerald-400 font-bold">+$${(o.max_profit || 0).toFixed(2)}</span>
@@ -487,13 +561,16 @@
                         <span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/30">
                             ${(o.options_alpha_score || 55).toFixed(1)}
                         </span>
+                        <button onclick="toggleBreakdownRow('${rowId}')" id="${rowId}-btn" class="block mt-0.5 text-[9px] font-mono text-sky-400 hover:text-sky-300 underline decoration-dotted">▼ Breakdown</button>
                     </td>
                     <td class="p-2.5 text-[11px] text-slate-300 max-w-xs">
                         <div class="truncate text-slate-200 font-mono">${o.routing_guidance || `LIMIT @ $${(o.est_debit || 0).toFixed(2)} Mid`}</div>
-                        <div class="text-[10px] text-amber-400 truncate">Cliff: Oct 05 (21 DTE)</div>
+                        <div class="text-[10px] text-amber-400 truncate">${o.execution_guidance || ''}</div>
                     </td>
                 </tr>
-            `).join('');
+                ${buildBreakdownRowHtml(rowId, 9, o.options_alpha_breakdown, 'options', o.options_alpha_score || 0)}
+            `;
+            }).join('');
         }
 
         function switchRadarView(view) {

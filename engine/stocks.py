@@ -1048,7 +1048,7 @@ def update_stock_trades_log(
                 "capital_deployed": s_rec.get("capital_deployed", 4500.0),
                 "actual_risk_dollars": s_rec.get("actual_risk_dollars", 450.0),
                 "current_alpha_score": round(float(s_rec.get("alpha_score", 75.0)), 1),
-                "score_breakdown": s_rec.get("score_breakdown", {}),
+                "score_breakdown": s_rec.get("alpha_score_breakdown", s_rec.get("score_breakdown", {})),
                 "active_health_tier": "TIER_B_ON_TRACK",
                 "health_badge": "🟢 TIER B (ON-TRACK)",
                 "consecutive_low_score_days": 0,
