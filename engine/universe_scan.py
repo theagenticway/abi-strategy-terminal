@@ -44,9 +44,9 @@ except (ImportError, ModuleNotFoundError):
     from benchmark import calculate_benchmark_matrix, generate_market_commentary
 
 try:
-    from engine.radar import build_high_risk_radars
+    from engine.radar import build_high_risk_radars, evaluate_gatekeepers, build_near_miss_candidates
 except (ImportError, ModuleNotFoundError):
-    from radar import build_high_risk_radars
+    from radar import build_high_risk_radars, evaluate_gatekeepers, build_near_miss_candidates
 
 from universe import SECTOR_ETFS, get_complete_taxonomy
 from indicators import compute_technical_snapshot, calculate_iv_rank
@@ -204,20 +204,9 @@ def process_universe(raw_data=None, sample_date_str=None):
         rsi_floor_ok = bool(rsi_val >= 45.0)
         macd_ok = bool(snapshot.get("macd_hook_ok", snapshot.get("macd_crawling_up", True)))
 
-        # Dow Theory Market Structure Gate for Bullish Options & Equities:
-        # Rejects BEARISH_LH_LL (Lower Highs & Lower Lows) to prevent buying into dead-cat bounces / bear traps
-        ms_regime = snapshot.get("market_structure", {}).get("regime", "NEUTRAL")
-        dow_structure_ok = (ms_regime != "BEARISH_LH_LL")
-
-        is_qualified = (
-            snapshot["price"] >= snapshot["ema50"] and
-            reclaim_days <= 3 and
-            retrace_type in ["EMA50", "DB", "OTE"] and
-            overhead_ok and
-            rsi_floor_ok and
-            macd_ok and
-            dow_structure_ok
-        )
+        # Evaluate gatekeepers (modularized contract supporting near-miss detection)
+        gate_results = evaluate_gatekeepers(snapshot, reclaim_days, retrace_type)
+        is_qualified = all(g.get("pass") for g in gate_results.values())
 
         ret_val = snapshot.get("d1_return", 0.0)
 
@@ -249,7 +238,8 @@ def process_universe(raw_data=None, sample_date_str=None):
             "reclaim_date": timestamp_str,
             "reclaim_days": reclaim_days,
             "state": "RECLAIMED" if snapshot["ema50_dist_pct"] >= 0 else "BELOW",
-            "qualified": "YES" if is_qualified else "NO"
+            "qualified": "YES" if is_qualified else "NO",
+            "gate_results": gate_results
         }
         ticker_records.append(record)
 
@@ -1041,6 +1031,13 @@ def process_universe(raw_data=None, sample_date_str=None):
         archive_records=archive_records,
     )
 
+    # Feature 4: Near-Miss Watchlist (Candidates that failed exactly 1 gatekeeper filter)
+    near_miss_candidates = build_near_miss_candidates(
+        ticker_records=ticker_records,
+        qualified_candidates=qualified_candidates,
+        qualified_stock_candidates=qualified_stock_candidates,
+    )
+
     return {
         "macro_breadth": macro_breadth,
         "benchmark_matrix": benchmark_matrix,
@@ -1061,6 +1058,7 @@ def process_universe(raw_data=None, sample_date_str=None):
         "top_candidates": verified_top_candidates[:5],
         "high_risk_stocks_radar": high_risk_stocks_radar,
         "high_risk_options_radar": high_risk_options_radar,
+        "near_miss_candidates": near_miss_candidates,
         "stock_recommendations": selected_stock_recommendations[:5],
         "all_qualified_stocks": qualified_stock_candidates,
         "core_stocks": core_stock_candidates[:5],

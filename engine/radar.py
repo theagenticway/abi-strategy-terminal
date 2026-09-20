@@ -74,6 +74,182 @@ def compute_radar_streak(
     return streak
 
 
+def evaluate_gatekeepers(
+    snapshot: Dict[str, Any],
+    reclaim_days: int,
+    retrace_type: str,
+) -> Dict[str, Any]:
+    """
+    Evaluates the 6 fundamental gatekeeper conditions for a ticker snapshot.
+    Returns a dictionary of individual gate evaluation details (pass, type, current, target, margin).
+    """
+    price = float(snapshot.get("price", 0.0))
+    ema50 = float(snapshot.get("ema50", price))
+    
+    # 1. Price >= EMA50
+    p_above_ema50 = bool(price >= ema50)
+    ema50_margin = round(price - ema50, 2)
+    ema50_margin_pct = round((price - ema50) / ema50 * 100, 2) if ema50 > 0 else 0.0
+
+    # 2. Reclaim freshness (reclaim_days <= 3)
+    reclaim_ok = bool(reclaim_days <= 3)
+    reclaim_margin = 3 - reclaim_days
+
+    # 3. Retrace taxonomy in ["EMA50", "DB", "OTE"]
+    retrace_ok = bool(retrace_type in ["EMA50", "DB", "OTE"])
+
+    # 4. Overhead runway (has_200, is_above_200 or runway >= 5.0%)
+    has_200 = bool(snapshot.get("has_200sma", True) and snapshot.get("sma200") is not None)
+    is_above_200 = bool(price >= snapshot["sma200"]) if has_200 else True
+    runway_val = 0.0 if is_above_200 else float(snapshot.get("overhead_runway_pct") or 0.0)
+    overhead_ok = bool(not has_200 or is_above_200 or (runway_val and runway_val >= 5.0))
+    overhead_margin = 0.0 if is_above_200 else round(runway_val - 5.0, 1)
+
+    # 5. RSI floor (RSI >= 45.0)
+    rsi_val = float(snapshot.get("rsi", 50.0))
+    rsi_floor_ok = bool(rsi_val >= 45.0)
+    rsi_margin = round(rsi_val - 45.0, 1)
+
+    # 6. MACD momentum hook
+    macd_ok = bool(snapshot.get("macd_hook_ok", snapshot.get("macd_crawling_up", True)))
+
+    # 7. Dow Theory Market Structure (not BEARISH_LH_LL)
+    ms_regime = snapshot.get("market_structure", {}).get("regime", "NEUTRAL") if isinstance(snapshot.get("market_structure"), dict) else "NEUTRAL"
+    dow_structure_ok = bool(ms_regime != "BEARISH_LH_LL")
+
+    gate_results = {
+        "price_above_ema50": {
+            "pass": p_above_ema50,
+            "label": "50 EMA Floor",
+            "type": "CONTINUOUS",
+            "current": round(price, 2),
+            "target": round(ema50, 2),
+            "margin": ema50_margin,
+            "margin_pct": ema50_margin_pct,
+            "detail": f"${price:.2f} vs 50 EMA ${ema50:.2f} ({ema50_margin_pct:+.1f}%)"
+        },
+        "reclaim_freshness": {
+            "pass": reclaim_ok,
+            "label": "Reclaim Freshness",
+            "type": "CONTINUOUS",
+            "current": reclaim_days,
+            "target": 3,
+            "margin": reclaim_margin,
+            "detail": f"Day {reclaim_days} reclaim (needs ≤ 3)"
+        },
+        "retrace_taxonomy": {
+            "pass": retrace_ok,
+            "label": "Retrace Structure",
+            "type": "CATEGORICAL",
+            "current": retrace_type,
+            "target": ["EMA50", "DB", "OTE"],
+            "margin": 0,
+            "detail": f"Pattern: {retrace_type} (needs EMA50, DB, or OTE)"
+        },
+        "overhead_200sma_runway": {
+            "pass": overhead_ok,
+            "label": "200 SMA Runway",
+            "type": "CONTINUOUS",
+            "current": round(runway_val, 1) if not is_above_200 else 999.0,
+            "target": 5.0,
+            "margin": overhead_margin,
+            "detail": "Clear above 200 SMA" if is_above_200 else f"Runway {runway_val:.1f}% (needs ≥ 5.0%)"
+        },
+        "rsi_floor": {
+            "pass": rsi_floor_ok,
+            "label": "RSI(14) Floor",
+            "type": "CONTINUOUS",
+            "current": round(rsi_val, 1),
+            "target": 45.0,
+            "margin": rsi_margin,
+            "detail": f"RSI {rsi_val:.1f} (needs ≥ 45.0, margin: {rsi_margin:+.1f})"
+        },
+        "macd_hook": {
+            "pass": macd_ok,
+            "label": "MACD Momentum Hook",
+            "type": "BOOLEAN",
+            "current": macd_ok,
+            "target": True,
+            "margin": 0 if macd_ok else -1,
+            "detail": "Momentum accelerating (Hist_t > Hist_t-1)" if macd_ok else "MACD decelerating / no hook"
+        },
+        "dow_market_structure": {
+            "pass": dow_structure_ok,
+            "label": "Dow Market Structure",
+            "type": "CATEGORICAL",
+            "current": ms_regime,
+            "target": "NOT BEARISH_LH_LL",
+            "margin": 0 if dow_structure_ok else -1,
+            "detail": f"Regime: {ms_regime}"
+        }
+    }
+
+    return gate_results
+
+
+def build_near_miss_candidates(
+    ticker_records: List[Dict[str, Any]],
+    qualified_candidates: List[Dict[str, Any]],
+    qualified_stock_candidates: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """
+    Identifies tickers that failed exactly 1 gatekeeper filter, building a
+    prioritized 'Near-Miss Watchlist' ranked by proximity and Alpha potential.
+    """
+    qualified_tickers = {
+        str(c.get("ticker", "")).upper()
+        for c in (qualified_candidates or []) + (qualified_stock_candidates or [])
+    }
+
+    near_misses = []
+    for r in ticker_records:
+        ticker = str(r.get("ticker", "")).upper()
+        if ticker in qualified_tickers:
+            continue
+        # Exclude broad market index ETFs
+        if ticker in ("SPY", "QQQ", "IWM", "RSP"):
+            continue
+
+        gate_results = r.get("gate_results")
+        if not gate_results:
+            continue
+
+        failed_gates = [k for k, v in gate_results.items() if not v.get("pass")]
+        if len(failed_gates) == 1:
+            failed_key = failed_gates[0]
+            failed_info = gate_results[failed_key]
+            
+            near_misses.append({
+                "ticker": ticker,
+                "sector": r.get("sector", "GENERAL"),
+                "subsector": r.get("subsector", "General"),
+                "price": float(r.get("price", 0.0)),
+                "ema50": float(r.get("ema50", 0.0)),
+                "rsi": float(r.get("rsi", 50.0)),
+                "beta": float(r.get("beta", 1.0)),
+                "adr_pct": float(r.get("adr_pct", 2.0)),
+                "alpha_score": float(r.get("alpha_score", 65.0)),
+                "failed_gate": failed_key,
+                "failed_gate_label": failed_info.get("label", failed_key),
+                "failed_reason": failed_info.get("detail", ""),
+                "margin_to_pass": failed_info.get("margin", 0.0),
+                "margin_pct": failed_info.get("margin_pct", 0.0),
+                "gate_type": failed_info.get("type", "CONTINUOUS"),
+                "gate_details": gate_results,
+                "reclaim_days": r.get("reclaim_days", 1),
+                "retrace": r.get("retrace", "EMA50"),
+                "trend": r.get("trend", "NEAR MISS"),
+                "execution_intent": "WATCHLIST_NEAR_MISS"
+            })
+
+    # Sort near-miss candidates by alpha potential and margin proximity
+    near_misses.sort(
+        key=lambda x: (x.get("alpha_score", 0), x.get("beta", 1.0)),
+        reverse=True
+    )
+    return near_misses
+
+
 def build_high_risk_radars(
     ticker_records: List[Dict[str, Any]],
     qualified_stock_candidates: List[Dict[str, Any]],

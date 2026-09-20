@@ -155,8 +155,12 @@
             <button id="view-options-btn" class="toggle-radar-btn px-4 py-2 rounded text-xs font-bold border border-slate-700 bg-slate-900 text-slate-400 hover:text-white flex items-center gap-2" onclick="switchRadarView('OPTIONS')">
                 <span>⚡</span> Today's Top 10 High-Risk Options
             </button>
+            <button id="view-nearmiss-btn" class="toggle-radar-btn px-4 py-2 rounded text-xs font-bold border border-slate-700 bg-slate-900 text-slate-400 hover:text-white flex items-center gap-2" onclick="switchRadarView('NEARMISS')">
+                <span>🎯</span> Near-Miss Watchlist (1 Filter Away)
+                <span id="near-miss-badge" class="px-1.5 py-0.2 rounded text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30">0</span>
+            </button>
             <button id="view-both-btn" class="toggle-radar-btn px-4 py-2 rounded text-xs font-bold border border-slate-700 bg-slate-900 text-slate-400 hover:text-white flex items-center gap-2" onclick="switchRadarView('BOTH')">
-                <span>📑</span> Side-by-Side Split View
+                <span>📑</span> All Panels View
             </button>
         </div>
         <div class="text-xs text-slate-400 flex items-center gap-2">
@@ -234,6 +238,44 @@
                     </thead>
                     <tbody id="today-options-tbody" class="divide-y divide-slate-800/60 text-slate-200">
                         <tr><td colspan="9" class="p-6 text-center text-slate-500">Loading today's high-risk options signals...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Near-Miss Watchlist Panel (Feature 4) -->
+        <div id="panel-nearmiss-radar" class="terminal-panel overflow-hidden" style="display: none;">
+            <div class="p-3.5 bg-slate-900/90 border-b border-slate-800 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-white flex items-center gap-2">
+                        <span>🎯</span> "Almost Qualified" Near-Miss Watchlist (Failed Exactly 1 Filter)
+                    </span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                        Proximity Surveillance · Early Setup Alert
+                    </span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono" id="nearmiss-count-tag">0 candidates</span>
+            </div>
+            <div class="p-2.5 bg-slate-950/40 border-b border-slate-800 text-xs text-slate-400 flex items-center gap-2">
+                <span class="text-amber-400 font-bold">ℹ️ Note:</span>
+                <span>These setups met 5 of the 6 fundamental gatekeepers. They are NOT approved trades, but high-priority surveillance candidates nearing qualification.</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900/60 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                            <th class="p-2.5">Ticker & Sector</th>
+                            <th class="p-2.5">Price & 50 EMA</th>
+                            <th class="p-2.5">Failed Gatekeeper</th>
+                            <th class="p-2.5">Missing Margin / Proximity</th>
+                            <th class="p-2.5">Momentum & Structure</th>
+                            <th class="p-2.5">Elasticity (&beta; / ADR)</th>
+                            <th class="p-2.5">Score</th>
+                            <th class="p-2.5">Status & Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="today-nearmiss-tbody" class="divide-y divide-slate-800/60 text-slate-200">
+                        <tr><td colspan="8" class="p-6 text-center text-slate-500">Evaluating near-miss candidates...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -377,10 +419,12 @@
 
                 renderTodayStocks(latestData.high_risk_stocks_radar || []);
                 renderTodayOptions(latestData.high_risk_options_radar || []);
+                renderNearMissWatchlist(latestData.near_miss_candidates || []);
             } catch (err) {
                 console.warn('Could not load latest.json:', err);
                 document.getElementById('today-stocks-tbody').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-amber-400">Could not load live latest.json</td></tr>`;
                 document.getElementById('today-options-tbody').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-amber-400">Could not load live latest.json</td></tr>`;
+                document.getElementById('today-nearmiss-tbody').innerHTML = `<tr><td colspan="8" class="p-4 text-center text-amber-400">Could not load live latest.json</td></tr>`;
             }
         }
 
@@ -585,33 +629,111 @@
             }).join('');
         }
 
+        function renderNearMissWatchlist(candidates) {
+            const tbody = document.getElementById('today-nearmiss-tbody');
+            const countTag = document.getElementById('nearmiss-count-tag');
+            const badge = document.getElementById('near-miss-badge');
+            
+            countTag.textContent = `${candidates.length} candidates`;
+            if (badge) badge.textContent = candidates.length;
+
+            if (!candidates || candidates.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500">No near-miss candidates today — all universe candidates either passed all 6 gates or failed multiple filters.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = candidates.map(c => {
+                const distEma50 = c.ema50 ? ((c.price - c.ema50) / c.ema50 * 100).toFixed(1) : '0.0';
+                const distSign = parseFloat(distEma50) >= 0 ? '+' : '';
+                const rsi = (c.rsi || 50).toFixed(1);
+                const score = (c.alpha_score || 0).toFixed(1);
+                const failedLabel = c.failed_gate_label || c.failed_gate || 'Filter';
+                const failedReason = c.failed_reason || '';
+                
+                return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="p-2.5">
+                            <div class="font-bold text-white text-xs flex items-center gap-1.5">
+                                <span>${c.ticker}</span>
+                                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">1 GATE AWAY</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 block">${c.sector || 'General'} · ${c.subsector || ''}</span>
+                        </td>
+                        <td class="p-2.5 font-mono">
+                            <div class="text-white font-semibold">$${(c.price || 0).toFixed(2)}</div>
+                            <div class="text-[10px] ${parseFloat(distEma50) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">50 EMA: $${(c.ema50 || 0).toFixed(2)} (${distSign}${distEma50}%)</div>
+                        </td>
+                        <td class="p-2.5">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                ❌ ${failedLabel}
+                            </span>
+                        </td>
+                        <td class="p-2.5 text-xs">
+                            <div class="font-mono text-amber-300 font-semibold">${failedReason}</div>
+                            <div class="text-[10px] text-slate-400">Passed 5 other gates</div>
+                        </td>
+                        <td class="p-2.5">
+                            <div class="font-mono text-slate-200">RSI: ${rsi}</div>
+                            <div class="text-[10px] text-slate-400">${c.trend || 'PULLBACK'}</div>
+                        </td>
+                        <td class="p-2.5 font-mono">
+                            <div class="text-purple-400">&beta; ${(c.beta || 1.0).toFixed(2)}</div>
+                            <div class="text-[10px] text-slate-400">ADR: ${(c.adr_pct || 2.0).toFixed(1)}%</div>
+                        </td>
+                        <td class="p-2.5 font-mono">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-slate-800 text-slate-200 border border-slate-700">
+                                ${score}
+                            </span>
+                        </td>
+                        <td class="p-2.5">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                👀 WATCHLIST ONLY
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
         function switchRadarView(view) {
             const pStocks = document.getElementById('panel-stocks-radar');
             const pOptions = document.getElementById('panel-options-radar');
+            const pNearMiss = document.getElementById('panel-nearmiss-radar');
             const bStocks = document.getElementById('view-stocks-btn');
             const bOptions = document.getElementById('view-options-btn');
+            const bNearMiss = document.getElementById('view-nearmiss-btn');
             const bBoth = document.getElementById('view-both-btn');
 
-            bStocks.classList.remove('active', 'bg-blue-600', 'text-white');
-            bOptions.classList.remove('active', 'bg-blue-600', 'text-white');
-            bBoth.classList.remove('active', 'bg-blue-600', 'text-white');
-            bStocks.classList.add('bg-slate-900', 'text-slate-400');
-            bOptions.classList.add('bg-slate-900', 'text-slate-400');
-            bBoth.classList.add('bg-slate-900', 'text-slate-400');
+            const allBtns = [bStocks, bOptions, bNearMiss, bBoth];
+            allBtns.forEach(b => {
+                if (b) {
+                    b.classList.remove('active', 'bg-blue-600', 'text-white');
+                    b.classList.add('bg-slate-900', 'text-slate-400');
+                }
+            });
 
             if (view === 'STOCKS') {
                 pStocks.style.display = 'block';
                 pOptions.style.display = 'none';
+                if (pNearMiss) pNearMiss.style.display = 'none';
                 bStocks.classList.add('active', 'bg-blue-600', 'text-white');
                 bStocks.classList.remove('bg-slate-900', 'text-slate-400');
             } else if (view === 'OPTIONS') {
                 pStocks.style.display = 'none';
                 pOptions.style.display = 'block';
+                if (pNearMiss) pNearMiss.style.display = 'none';
                 bOptions.classList.add('active', 'bg-blue-600', 'text-white');
                 bOptions.classList.remove('bg-slate-900', 'text-slate-400');
+            } else if (view === 'NEARMISS') {
+                pStocks.style.display = 'none';
+                pOptions.style.display = 'none';
+                if (pNearMiss) pNearMiss.style.display = 'block';
+                bNearMiss.classList.add('active', 'bg-blue-600', 'text-white');
+                bNearMiss.classList.remove('bg-slate-900', 'text-slate-400');
             } else {
                 pStocks.style.display = 'block';
                 pOptions.style.display = 'block';
+                if (pNearMiss) pNearMiss.style.display = 'block';
                 bBoth.classList.add('active', 'bg-blue-600', 'text-white');
                 bBoth.classList.remove('bg-slate-900', 'text-slate-400');
             }

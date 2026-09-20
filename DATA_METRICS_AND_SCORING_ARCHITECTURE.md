@@ -745,3 +745,36 @@ Where:
 - **First-Gap Termination**: The walk terminates at the very first prior scan date where the ticker was absent from the radar archive ($k=0$ if the ticker was absent yesterday).
 - **Telemetry Metric**: Expressed as `radar_streak_days: int` on candidate payloads and visually badged on `radar.html` (e.g. `🔥 3-day streak` when `radar_streak_days >= 2`).
 
+-----
+
+## 13. "Almost Qualified" Near-Miss Watchlist Telemetry (`engine/radar.py`)
+
+The Near-Miss Watchlist subsystem identifies high-velocity tickers that failed exactly 1 of the 6 fundamental gatekeeper filters. These candidates represent emerging setups nearing qualification and are surfaced in a dedicated surveillance panel on `radar.html`.
+
+### A. Evaluated Gatekeepers (`evaluate_gatekeepers`)
+Every universe candidate is evaluated across a standardized dictionary contract (`gate_results`):
+
+| Gate Key | Filter Name | Metric / Rule | Evaluation Type | Margin Formula |
+| :--- | :--- | :--- | :--- | :--- |
+| `price_above_ema50` | 50 EMA Floor | $\text{Price} \ge \text{EMA}_{50}$ | `CONTINUOUS` | $\text{Price} - \text{EMA}_{50}$ |
+| `reclaim_freshness` | Reclaim Freshness | $\text{Reclaim Days} \le 3$ | `CONTINUOUS` | $3 - \text{Reclaim Days}$ |
+| `retrace_taxonomy` | Retrace Structure | $\text{Retrace} \in \{\text{EMA50}, \text{DB}, \text{OTE}\}$ | `CATEGORICAL` | $0 \text{ if valid else } -1$ |
+| `overhead_200sma_runway` | 200 SMA Runway | $\text{Above 200 SMA or Runway} \ge 5.0\%$ | `CONTINUOUS` | $\text{Runway} - 5.0\%$ |
+| `rsi_floor` | RSI(14) Floor | $\text{RSI} \ge 45.0$ | `CONTINUOUS` | $\text{RSI} - 45.0$ |
+| `macd_hook` | MACD Hook | $\text{Hist}_t > \text{Hist}_{t-1}$ or Hook True | `BOOLEAN` | $0 \text{ if True else } -1$ |
+| `dow_market_structure` | Dow Structure | $\text{Regime} \ne \text{BEARISH\_LH\_LL}$ | `CATEGORICAL` | $0 \text{ if valid else } -1$ |
+
+### B. Near-Miss Selection Logic (`build_near_miss_candidates`)
+1. **Exclusions**: Tickers that fully qualify for stock or option execution are excluded. Broad market index ETFs (`SPY`, `QQQ`, `IWM`, `RSP`) are excluded.
+2. **Failure Count Filtering**: The ticker must have $\sum \mathbf{1}_{\{\text{gate.pass} = \text{False}\}} = 1$. Tickers failing 2 or more filters are rejected.
+3. **Telemetry & Proximity Payload**:
+   - `failed_gate`: Exact gate identifier (e.g., `price_above_ema50`, `reclaim_freshness`).
+   - `failed_gate_label`: Human-readable label (e.g., `50 EMA Floor`).
+   - `failed_reason`: Specific margin description (e.g., `$105.20 vs 50 EMA $106.00 (-0.8%)`).
+   - `margin_to_pass`: Distance to the passing threshold.
+   - `alpha_score` & `beta`: Used to rank near-miss candidates by alpha potential.
+4. **UI Presentation (`radar.html`)**:
+   - Rendered in a dedicated "Near-Miss Watchlist (1 Filter Away)" panel with interactive toggle view.
+   - Distinctive badge indicating setup proximity and exact missing margin.
+   - Strict `👀 WATCHLIST ONLY` execution badge to prevent premature entry.
+
