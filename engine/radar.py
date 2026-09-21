@@ -9,12 +9,20 @@ from datetime import datetime, timedelta
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from engine.config import (
-    DEFAULT_PORTFOLIO_CAPITAL,
-    DOLLAR_AT_RISK_PCT,
-    MAX_CAPITAL_ALLOCATION_PCT,
-    SPRINT_STOP_PCT,
-)
+try:
+    from engine.config import (
+        DEFAULT_PORTFOLIO_CAPITAL,
+        DOLLAR_AT_RISK_PCT,
+        MAX_CAPITAL_ALLOCATION_PCT,
+        SPRINT_STOP_PCT,
+    )
+except (ImportError, ModuleNotFoundError):
+    from config import (
+        DEFAULT_PORTFOLIO_CAPITAL,
+        DOLLAR_AT_RISK_PCT,
+        MAX_CAPITAL_ALLOCATION_PCT,
+        SPRINT_STOP_PCT,
+    )
 
 logger = logging.getLogger("radar")
 
@@ -302,7 +310,10 @@ def build_high_risk_radars(
             t_score_breakdown = s_match.get("alpha_score_breakdown", {})
         else:
             try:
-                from engine import stocks
+                try:
+                    from engine import stocks
+                except (ImportError, ModuleNotFoundError):
+                    import stocks
                 s_sec = (t.get("sector") or "").upper()
                 t_score, t_score_breakdown = stocks.compute_alpha_composite_score(
                     reclaim_days=t.get("reclaim_days", 1),
@@ -383,15 +394,22 @@ def build_high_risk_radars(
             iv_r = float(opt_match["iv_rank"])
         else:
             try:
-                from engine.indicators import calculate_iv_rank
-                from engine.market_data import extract_ticker_df
+                try:
+                    from engine.indicators import calculate_iv_rank
+                    from engine.market_data import extract_ticker_df
+                except (ImportError, ModuleNotFoundError):
+                    from indicators import calculate_iv_rank
+                    from market_data import extract_ticker_df
                 _t_df = extract_ticker_df(raw_data, t["ticker"])
                 iv_r = calculate_iv_rank(_t_df["Close"]) if _t_df is not None and len(_t_df) > 20 else 45.0
             except Exception:
                 iv_r = 45.0
 
         try:
-            from engine import patterns
+            try:
+                from engine import patterns
+            except (ImportError, ModuleNotFoundError):
+                import patterns
             _hr_expiry_date, _hr_dte = patterns.get_target_expiration(now_utc.date(), 45, 90)
             _hr_theta_cliff = (_hr_expiry_date - timedelta(days=21)).strftime("%b %d")
         except Exception:
@@ -407,7 +425,10 @@ def build_high_risk_radars(
             t_opt_breakdown = opt_match.get("options_alpha_breakdown", {})
         else:
             try:
-                from engine import patterns
+                try:
+                    from engine import patterns
+                except (ImportError, ModuleNotFoundError):
+                    import patterns
                 t_opt_score, t_opt_breakdown = patterns.compute_options_alpha_score(
                     directional_alpha=directional_alpha_val,
                     iv_rank=iv_r,

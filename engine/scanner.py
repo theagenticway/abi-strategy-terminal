@@ -22,8 +22,11 @@ import sys
 import argparse
 
 _engine_dir = os.path.dirname(os.path.abspath(__file__))
+_repo_root = os.path.dirname(_engine_dir)
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
 if _engine_dir not in sys.path:
-    sys.path.append(_engine_dir)
+    sys.path.insert(0, _engine_dir)
 
 from universe import SECTOR_ETFS, get_complete_taxonomy, get_full_universe
 from indicators import compute_technical_snapshot
