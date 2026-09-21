@@ -772,7 +772,15 @@ Every universe candidate is evaluated across a standardized dictionary contract 
    - `failed_gate_label`: Human-readable label (e.g., `50 EMA Floor`).
    - `failed_reason`: Specific margin description (e.g., `$105.20 vs 50 EMA $106.00 (-0.8%)`).
    - `margin_to_pass`: Distance to the passing threshold.
-   - `alpha_score` & `beta`: Used to rank near-miss candidates by alpha potential.
+   - `reclaim_days` & `reclaim_date`: Day count and timestamp of the EMA 50 reclaim.
+   - `alpha_score` & `beta`: Quantitative alpha score and market elasticity.
+4. **Ranking & Prioritization**:
+   - **Primary Backend Ordering**: Candidates are sorted primarily by **Reclaim Freshness** (`reclaim_days` ascending: Day 1 $\rightarrow$ Day 2 $\rightarrow$ Day 3+), secondary tie-breaker on Alpha Score descending.
+   - **Interactive UI Capabilities (`radar.html`)**:
+     - Multi-dimensional sorting: *⚡ Freshest Reclaim (Day 1 First)*, *🏆 Highest Alpha Score*, *🎯 Closest to Passing (Margin)*, *🚀 Highest Beta Elasticity*.
+     - Quick filter chips by failed gate: *ALL*, *50 EMA Floor*, *Freshness / Stale Reclaim*, *MACD Momentum Hook*, *RSI Floor*, *200 SMA Runway*, *Retrace Pattern*.
+     - Interactive search filtering across tickers and sectors.
+     - Freshness badges (`⚡ Day 1 Reclaim`, `Day 2 Reclaim`, `Stale: Day 4+`) with trigger dates.
 4. **UI Presentation (`radar.html`)**:
    - Rendered in a dedicated "Near-Miss Watchlist (1 Filter Away)" panel with interactive toggle view.
    - Distinctive badge indicating setup proximity and exact missing margin.

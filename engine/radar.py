@@ -245,15 +245,21 @@ def build_near_miss_candidates(
                 "gate_type": failed_info.get("type", "CONTINUOUS"),
                 "gate_details": gate_results,
                 "reclaim_days": r.get("reclaim_days", 1),
+                "reclaim_date": r.get("reclaim_date") or r.get("date") or "",
+                "date": r.get("date") or "",
+                "time": r.get("time") or "",
                 "retrace": r.get("retrace", "EMA50"),
                 "trend": r.get("trend", "NEAR MISS"),
                 "execution_intent": "WATCHLIST_NEAR_MISS"
             })
 
-    # Sort near-miss candidates by alpha potential and margin proximity
+    # Sort near-miss candidates primarily by reclaim freshness (Day 1 reclaim first), then alpha potential
     near_misses.sort(
-        key=lambda x: (x.get("alpha_score", 0), x.get("beta", 1.0)),
-        reverse=True
+        key=lambda x: (
+            int(x.get("reclaim_days", 99)),
+            -float(x.get("alpha_score", 0)),
+            -float(x.get("beta", 1.0))
+        )
     )
     return near_misses
 

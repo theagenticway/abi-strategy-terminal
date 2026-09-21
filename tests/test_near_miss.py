@@ -147,6 +147,45 @@ class TestNearMissWatchlist(unittest.TestCase):
         self.assertEqual(near_misses[0]["failed_gate_label"], "Reclaim Freshness")
         self.assertIn("Day 4 reclaim", near_misses[0]["failed_reason"])
 
+    def test_build_near_miss_candidates_freshness_sorting(self):
+        # Two candidates: one Day 1 reclaim with lower score, one Day 3 reclaim with higher score
+        gates1 = evaluate_gatekeepers(self.base_snapshot, reclaim_days=1, retrace_type="OTHER")
+        gates2 = evaluate_gatekeepers(self.base_snapshot, reclaim_days=3, retrace_type="OTHER")
+
+        rec_day1 = {
+            "ticker": "DAY1",
+            "price": 105.0,
+            "ema50": 100.0,
+            "alpha_score": 60.0,
+            "reclaim_days": 1,
+            "reclaim_date": "2026-09-20",
+            "gate_results": gates1
+        }
+        rec_day3 = {
+            "ticker": "DAY3",
+            "price": 105.0,
+            "ema50": 100.0,
+            "alpha_score": 90.0,
+            "reclaim_days": 3,
+            "reclaim_date": "2026-09-18",
+            "gate_results": gates2
+        }
+
+        # Submit in reverse order
+        near_misses = build_near_miss_candidates(
+            ticker_records=[rec_day3, rec_day1],
+            qualified_candidates=[],
+            qualified_stock_candidates=[]
+        )
+
+        self.assertEqual(len(near_misses), 2)
+        # Freshness first: Day 1 should be at index 0
+        self.assertEqual(near_misses[0]["ticker"], "DAY1")
+        self.assertEqual(near_misses[0]["reclaim_days"], 1)
+        self.assertEqual(near_misses[0]["reclaim_date"], "2026-09-20")
+        self.assertEqual(near_misses[1]["ticker"], "DAY3")
+        self.assertEqual(near_misses[1]["reclaim_days"], 3)
+
 
 if __name__ == "__main__":
     unittest.main()
