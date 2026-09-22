@@ -6,8 +6,6 @@ on:
     - cron: '0 15 * * 1-5'
     # 12:30 PM ET (16:30 UTC) Mon-Fri
     - cron: '30 16 * * 1-5'
-    # 2:00 PM ET (18:00 UTC) Mon-Fri
-    - cron: '0 18 * * 1-5'
   workflow_dispatch:
     inputs:
       backfill_days:
