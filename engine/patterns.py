@@ -85,7 +85,7 @@ def calculate_reclaim_velocity(close: pd.Series, ema50: pd.Series) -> tuple:
             
     if not found_dip:
         reclaim_days = 15
-        bounce_state = "EXTENDED_ABOVE" if cur_above else "BELOW"
+        bounce_state = "ABOVE" if cur_above else "BELOW"
         is_confirmed = False
     else:
         bounce_state = "BOUNCED" if (cur_above and reclaim_days <= 3) else ("ABOVE" if cur_above else "BELOW")

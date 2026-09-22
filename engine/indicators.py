@@ -168,11 +168,10 @@ def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, 
 
     # Higher Low detection:
     # 1. Swing low sl2 >= sl1 (ascending swing lows), OR
-    # 2. Recent support floor is holding above sl1 or sl2
+    # 2. Recent support floor is holding above sl1
     has_higher_low = bool(
         (sl2 >= sl1 * 0.99) or
-        (cur_support_floor >= sl1 * 0.99) or
-        (cur_support_floor >= sl2 * 0.99)
+        (cur_support_floor >= sl1 * 0.99)
     )
 
     overhead_targets = [sh for sh in [sh1, sh2] if sh > current_price]

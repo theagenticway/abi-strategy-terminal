@@ -155,7 +155,7 @@ Measures capital commitment on support reclaims and breakouts: $$\text{RVOL} = \
       - Day 1: Confirmed daily close above 50 EMA with follow-through (Prime velocity entry, ⚡ Day 1 Reclaim).
       - Day 2–3: Secondary confirmation test (Day 2/3 Reclaim).
       - Day > 3: Stale reclaim; penalized or excluded from fresh entry qualification.
-      - Day ≥ 15 (Extended Above): Price has held continuously above the 50 EMA for 15+ trading sessions without dipping below it. Classified as `bounce_state = "EXTENDED_ABOVE"` with badge `Extended (>15d)` to prevent false "Day 2 Reclaim" classifications on mature runaway trends.
+      - Day ≥ 15 (Extended Above): Price has held continuously above the 50 EMA for 15+ trading sessions without dipping below it. Classified as `bounce_state = "ABOVE"` with badge `Extended (>15d)` to prevent false "Day 2 Reclaim" classifications on mature runaway trends.
 
 ### 6\. Dow Theory Market Structure Engine & Hard Disqualification Gate
 
@@ -168,7 +168,7 @@ Derived via engine/indicators.py::analyze_market_structure() by evaluating 5-day
       - BEARISH_LH_LL: Series of Lower Highs and Lower Lows below the 50 EMA. Confirms an active Stage 4 institutional distribution trend.
   - **Breakout Recognition & Ascending Swing Lows**:
       - If current price or recent 3-day closes break above prior swing highs (`sh2` or `sh1`), `has_higher_high` is confirmed.
-      - If recent 5-day support floor holds above prior swing lows (`sl1` or `sl2`), `has_higher_low` is confirmed.
+      - If recent 5-day support floor or swing low 2 (`sl2`) holds above the prior swing low baseline (`sl1`), `has_higher_low` is confirmed.
   - **50 EMA Bullish Guardrail**:
       - If a stock is trading firmly above its 50 EMA (`Price >= EMA50 * 0.995`), it is mathematically guarded against false `BEARISH_LH_LL` classification. If no new high has formed yet, it is classified as `CONSOLIDATION_BASE` (Base Building) rather than a bearish downtrend.
   - **Universal Hard Qualification Filter for Long Plays (****dow_structure_ok****)**:

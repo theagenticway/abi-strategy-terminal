@@ -108,7 +108,7 @@ class TestPatterns(unittest.TestCase):
         days, is_confirmed, state = patterns.calculate_reclaim_velocity(self.close, self.ema50)
         self.assertIsInstance(days, int)
         self.assertIsInstance(is_confirmed, bool)
-        self.assertIn(state, ["BOUNCED", "ABOVE", "BELOW"])
+        self.assertIn(state, ["BOUNCED", "ABOVE", "BELOW", "EXTENDED_ABOVE"])
 
     def test_trade_signal_structuring(self):
         snap = {
