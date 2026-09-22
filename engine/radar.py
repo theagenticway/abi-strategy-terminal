@@ -427,7 +427,32 @@ def build_high_risk_radars(
             _hr_theta_cliff = (_hr_expiry_date - timedelta(days=21)).strftime("%b %d")
 
         s_match = stock_score_map.get(t["ticker"])
-        directional_alpha_val = float(s_match.get("alpha_score", 75.0)) if s_match else 75.0
+        if s_match and s_match.get("alpha_score") is not None:
+            directional_alpha_val = float(s_match["alpha_score"])
+        else:
+            try:
+                try:
+                    from engine import stocks
+                except (ImportError, ModuleNotFoundError):
+                    import stocks
+                s_sec = (t.get("sector") or "").upper()
+                directional_alpha_val, _ = stocks.compute_alpha_composite_score(
+                    reclaim_days=t.get("reclaim_days", 1),
+                    rvol=float(t.get("rvol", 1.2)),
+                    price=t_price,
+                    ema50=float(t.get("ema50", t_price)),
+                    sector=t.get("sector"),
+                    rr_ratio=2.2,
+                    top_quartile_sectors=top_quartile_sectors,
+                    market_structure=t.get("market_structure", "BULLISH_HH_HL"),
+                    macro_confluence=macro_confluence,
+                    mom_spread=sector_mom_map.get(s_sec, 0.0),
+                    strategy_prong="HIGH_RISK",
+                    return_breakdown=False
+                )
+            except Exception as ex:
+                logger.debug(f"Fallback to default directional alpha for {t.get('ticker')}: {ex}")
+                directional_alpha_val = 75.0
 
         if opt_match and opt_match.get("options_alpha_score") is not None:
             t_opt_score = float(opt_match["options_alpha_score"])
@@ -452,7 +477,8 @@ def build_high_risk_radars(
                     macd_hook_ok=bool(t.get("macd_crawling_up", True)),
                     return_breakdown=True
                 )
-            except Exception:
+            except Exception as ex:
+                logger.warning(f"Could not compute options alpha score for {t.get('ticker')}: {ex}")
                 t_opt_score = 75.0
                 t_opt_breakdown = {}
 
@@ -462,6 +488,12 @@ def build_high_risk_radars(
             "sector": t.get("sector", "GENERAL"),
             "subsector": t.get("subsector", "General"),
             "price": t_price,
+            "ema50": float(t.get("ema50", t_price)),
+            "rsi": float(t.get("rsi", 50.0)),
+            "macd_hist": float(t.get("macd_hist", 0.0)),
+            "retrace": t.get("retrace") or t.get("retrace_type", "EMA50"),
+            "reclaim_days": int(t.get("reclaim_days", 1)),
+            "market_structure": t.get("market_structure", "BULLISH_HH_HL"),
             "stop": round(t_price * (1.0 - SPRINT_STOP_PCT), 2),
             "tp1": round(t_price * 1.15, 2),
             "tp2": round(t_price * 1.25, 2),

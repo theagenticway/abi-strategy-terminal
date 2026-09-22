@@ -8,11 +8,88 @@ and persistent stock audit ledger tracking.
 
 import os
 import json
-import numpy as np
+import logging
+import math
+
+try:
+    import numpy as np
+    _isnan = np.isnan
+except (ImportError, ModuleNotFoundError):
+    np = None
+    _isnan = math.isnan
+
+logger = logging.getLogger(__name__)
 try:
     from engine.indicators import compute_active_health_tier, get_regime_tier_capacities
-except ImportError:
-    from indicators import compute_active_health_tier, get_regime_tier_capacities
+except (ImportError, ModuleNotFoundError):
+    try:
+        from indicators import compute_active_health_tier, get_regime_tier_capacities
+    except (ImportError, ModuleNotFoundError):
+        def get_regime_tier_capacities(confluence_score: int = 4) -> dict:
+            caps = {
+                4: {"HIGH_RISK": 5, "BALANCED": 5, "CORE": 5, "regime": "RISK-ON (BROAD EXPANSION)"},
+                3: {"HIGH_RISK": 3, "BALANCED": 5, "CORE": 5, "regime": "CAUTIOUS RISK-ON"},
+                2: {"HIGH_RISK": 1, "BALANCED": 3, "CORE": 4, "regime": "MIXED / SECTOR ROTATION"},
+                1: {"HIGH_RISK": 0, "BALANCED": 1, "CORE": 2, "regime": "DEFENSIVE / CHOP"},
+                0: {"HIGH_RISK": 0, "BALANCED": 0, "CORE": 0, "regime": "SYSTEMIC LIQUIDATION"}
+            }
+            try:
+                score = max(0, min(4, int(confluence_score if confluence_score is not None else 4)))
+            except (ValueError, TypeError):
+                score = 4
+            return caps.get(score, caps[4])
+
+        def compute_active_health_tier(
+            status: str = "OPEN",
+            stop_price: float = None,
+            entry_price: float = None,
+            current_alpha_score: float = 65.0,
+            days_active: int = 1,
+            strategy_prong: str = "BALANCED",
+            prev_consecutive_low: int = 0,
+            sector_weakness: bool = False,
+            **kwargs
+        ) -> dict:
+            is_de_risked = (status in ["TP1_HIT", "TP1_SCALED"]) or (
+                stop_price is not None and entry_price is not None and stop_price >= entry_price
+            )
+            if is_de_risked:
+                return {
+                    "tier": "TIER_A_HOUSE_MONEY",
+                    "badge": "🔵 TIER A (HOUSE MONEY)",
+                    "consecutive_low_score_days": 0,
+                    "eviction_eligible": False
+                }
+
+            score_val = float(current_alpha_score) if current_alpha_score is not None else 65.0
+            is_low = bool(score_val < 55.0 or sector_weakness)
+            consecutive_low = (int(prev_consecutive_low or 0) + 1) if is_low else 0
+            days_act = int(days_active or 1)
+
+            if (consecutive_low >= 2 and days_act >= 5) or (score_val < 58.0 and days_act >= 18):
+                return {
+                    "tier": "TIER_D_EVICTION_CANDIDATE",
+                    "badge": "🔴 TIER D (EVICTION CANDIDATE)",
+                    "consecutive_low_score_days": consecutive_low,
+                    "eviction_eligible": True
+                }
+
+            prong_upper = (strategy_prong or "BALANCED").upper()
+            is_stagnant_time = (days_act >= 15 if "HIGH" in prong_upper else days_act >= 25)
+            if is_stagnant_time or score_val < 62.0:
+                return {
+                    "tier": "TIER_C_STAGNANT",
+                    "badge": "🟡 TIER C (STAGNANT)",
+                    "consecutive_low_score_days": consecutive_low,
+                    "eviction_eligible": False
+                }
+
+            return {
+                "tier": "TIER_B_ON_TRACK",
+                "badge": "🟢 TIER B (ON-TRACK)",
+                "consecutive_low_score_days": consecutive_low,
+                "eviction_eligible": False
+            }
 try:
     from engine.config import DEFAULT_PORTFOLIO_CAPITAL, DOLLAR_AT_RISK_PCT as DEFAULT_RISK_PCT, MAX_CAPITAL_ALLOCATION_PCT as DEFAULT_MAX_ALLOC_PCT
 except (ImportError, ModuleNotFoundError):
@@ -49,7 +126,7 @@ def calculate_stock_position_size(
     - If risk_pct or max_alloc_pct are explicitly provided (e.g., in unit tests), uses them.
     - Returns integer share counts, actual dollars at risk, and total capital deployed.
     """
-    if entry_price is None or np.isnan(entry_price) or entry_price <= 0:
+    if entry_price is None or _isnan(entry_price) or entry_price <= 0:
         return {
             "shares": 0,
             "capital_deployed": 0.0,
@@ -231,8 +308,12 @@ def compute_alpha_composite_score(
         macro_pts = 0.0
         if macro_confluence is not None:
             try:
-                c_score = int(macro_confluence.get("score", 2)) if isinstance(macro_confluence, dict) else int(macro_confluence)
-            except (ValueError, TypeError):
+                if isinstance(macro_confluence, dict):
+                    c_score = int(macro_confluence.get("composite_score", macro_confluence.get("score", 2)))
+                else:
+                    c_score = int(macro_confluence)
+            except (ValueError, TypeError) as ex:
+                logger.warning(f"Could not parse macro_confluence '{macro_confluence}': {ex}")
                 c_score = 2
             if c_score == 4: macro_pts += 5.0
             elif c_score == 3: macro_pts += 2.0
@@ -244,8 +325,8 @@ def compute_alpha_composite_score(
                 m_val = float(mom_spread)
                 if m_val > 0: accel_pts += 3.0
                 elif m_val < -2.0: accel_pts -= 2.0
-            except (ValueError, TypeError):
-                pass
+            except (ValueError, TypeError) as ex:
+                logger.debug(f"Could not parse mom_spread '{mom_spread}': {ex}")
 
         if market_structure is None and macro_confluence is None and mom_spread is None:
             total = round(base_score, 1)
@@ -280,8 +361,8 @@ def compute_alpha_composite_score(
         e_num = float(ema50_val) if ema50_val is not None else 100.0
         if p_num < e_num:
             rec_days_int = 999
-    except Exception:
-        pass
+    except (ValueError, TypeError) as ex:
+        logger.debug(f"Could not compare price_val '{price_val}' to ema50_val '{ema50_val}': {ex}")
 
     if strategy_prong == "HIGH_RISK":
         if rec_days_int <= 1: reclaim_pts = 20.0
@@ -419,7 +500,7 @@ def structure_high_risk_stock_trade(
     """
     price = snapshot.get("price")
     ema50 = snapshot.get("ema50")
-    if price is None or ema50 is None or np.isnan(price) or price <= 0:
+    if price is None or ema50 is None or _isnan(price) or price <= 0:
         return None
 
     # Anchor stop tightly: maximum 8.0% loss from entry to prevent runaway drawdowns
@@ -520,7 +601,7 @@ def structure_balanced_stock_trade(
     """
     price = snapshot.get("price")
     ema50 = snapshot.get("ema50")
-    if price is None or ema50 is None or np.isnan(price) or price <= 0:
+    if price is None or ema50 is None or _isnan(price) or price <= 0:
         return None
 
     # Anchor stop tightly: maximum 9.5% risk from entry
@@ -641,7 +722,7 @@ def structure_core_stock_accumulation(
     - Low beta drag (<= 1.2) and positive cash-flow profile.
     """
     price = snapshot.get("price")
-    if price is None or np.isnan(price) or price <= 0:
+    if price is None or _isnan(price) or price <= 0:
         return None
     sma200 = snapshot.get("sma200") or (price * 0.85)
     macro_stop = round(sma200 * 0.97, 2)
@@ -713,16 +794,16 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
                 continue
 
             close_p = float(bar.get("Close", t["entry_price"]))
-            if np.isnan(close_p) or close_p <= 0:
+            if _isnan(close_p) or close_p <= 0:
                 continue
             high_p = float(bar.get("High", close_p))
-            if np.isnan(high_p): high_p = close_p
+            if _isnan(high_p): high_p = close_p
             low_p = float(bar.get("Low", close_p))
-            if np.isnan(low_p): low_p = close_p
+            if _isnan(low_p): low_p = close_p
             open_p = float(bar.get("Open", close_p))
-            if np.isnan(open_p): open_p = close_p
+            if _isnan(open_p): open_p = close_p
             ema50_p = float(bar.get("EMA50", close_p))
-            if np.isnan(ema50_p): ema50_p = close_p
+            if _isnan(ema50_p): ema50_p = close_p
 
             t["max_price"] = max(t.get("max_price", t["entry_price"]), high_p)
             t["min_price"] = min(t.get("min_price", t["entry_price"]), low_p)
@@ -939,12 +1020,17 @@ def update_stock_trades_log(
     path = log_path or STOCK_LOG_PATH
     log_data = {"summary": {}, "trades": []}
 
-    if os.path.exists(path):
+    if os.path.exists(path) and os.path.getsize(path) > 0:
         try:
             with open(path, "r") as f:
-                log_data = json.load(f)
-        except Exception:
-            pass
+                loaded = json.load(f)
+                if isinstance(loaded, dict) and "trades" in loaded:
+                    log_data = loaded
+                else:
+                    logger.error(f"Unexpected schema in stock trades log {path}: missing 'trades' key")
+        except (json.JSONDecodeError, OSError) as ex:
+            logger.error(f"Failed to read stock trades log from {path}: {ex}. Preserving path without overwriting with empty schema.")
+            raise
 
     trades = log_data.get("trades", [])
     existing_ids = set(t["id"] for t in trades)
@@ -1085,9 +1171,9 @@ def update_stock_trades_log(
 
     win_rate = round((len(winners) / max(1, len(closed_trades))) * 100, 1)
     profit_factor = round(gross_gains / max(1.0, gross_losses), 2)
-    avg_win = round(float(np.mean([t["pnl_pct"] for t in winners])), 2) if winners else 0.0
-    avg_loss = round(float(np.mean([t["pnl_pct"] for t in losers])), 2) if losers else 0.0
-    avg_holding = round(float(np.mean([t.get("days_active", 1) for t in closed_trades])), 1) if closed_trades else 0.0
+    avg_win = round(float(sum([t["pnl_pct"] for t in winners]) / len(winners)), 2) if winners else 0.0
+    avg_loss = round(float(sum([t["pnl_pct"] for t in losers]) / len(losers)), 2) if losers else 0.0
+    avg_holding = round(float(sum([t.get("days_active", 1) for t in closed_trades]) / len(closed_trades)), 1) if closed_trades else 0.0
 
     summary = {
         "total_recommendations": len(trades),

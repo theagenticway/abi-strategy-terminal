@@ -169,6 +169,58 @@ class TestRadarModule(unittest.TestCase):
         self.assertEqual(options_radar[0]["radar_streak_days"], 1)
         self.assertIn("options_alpha_breakdown", options_radar[0])
 
+        # Verify hydrated technical snapshot keys for archiving
+        for opt in options_radar:
+            self.assertIn("ema50", opt)
+            self.assertIn("rsi", opt)
+            self.assertIn("macd_hist", opt)
+            self.assertIn("retrace", opt)
+            self.assertIn("reclaim_days", opt)
+            self.assertIn("market_structure", opt)
+
+    def test_build_high_risk_options_radar_unqualified_stock_fallback(self):
+        """
+        Validates that high-beta sprint tickers outside qualified_stock_candidates
+        receive dynamic ticker-level directional alpha and complete technical snapshot keys.
+        """
+        ticker_records = [
+            {
+                "ticker": "COIN",
+                "beta": 2.5,
+                "adr_pct": 5.5,
+                "price": 200.0,
+                "ema50": 195.0,
+                "rsi": 58.0,
+                "macd_hist": 0.45,
+                "retrace": "EMA50",
+                "reclaim_days": 1,
+                "market_structure": "BULLISH_HH_HL",
+                "sector": "FINANCIALS",
+                "subsector": "Crypto FinTech",
+            }
+        ]
+
+        stocks_radar, options_radar = build_high_risk_radars(
+            ticker_records=ticker_records,
+            qualified_stock_candidates=[],
+            qualified_candidates=[],
+            raw_data=None,
+            top_quartile_sectors=["FINANCIALS"],
+            macro_confluence=4,
+            sector_mom_map={"FINANCIALS": 1.2},
+            now_utc=datetime(2026, 4, 10, 16, 0),
+            date_str="2026-04-10",
+            archive_records=[],
+        )
+
+        self.assertEqual(len(options_radar), 1)
+        coin_opt = options_radar[0]
+        self.assertEqual(coin_opt["ticker"], "COIN")
+        self.assertEqual(coin_opt["ema50"], 195.0)
+        self.assertEqual(coin_opt["rsi"], 58.0)
+        self.assertEqual(coin_opt["macd_hist"], 0.45)
+        self.assertGreater(coin_opt["options_alpha_score"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

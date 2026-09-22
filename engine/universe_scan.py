@@ -918,7 +918,7 @@ def process_universe(raw_data=None, sample_date_str=None):
         if e.get("etf"):
             sector_mom_map[e["etf"].upper()] = spread
 
-    macro_confluence = benchmark_matrix.get("score", 2)
+    macro_confluence = benchmark_matrix.get("composite_score", benchmark_matrix.get("score", 2))
 
     for s_cand in qualified_stock_candidates:
         s_sec = (s_cand.get("sector") or "").upper()

@@ -91,6 +91,7 @@ def calculate_benchmark_matrix(raw_data, sample_date_str=None):
 
     return {
         "composite_score": composite_score,
+        "score": composite_score,
         "composite_max": 4,
         "regime": regime,
         "regime_badge": regime_badge,
