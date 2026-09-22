@@ -1038,6 +1038,9 @@ def process_universe(raw_data=None, sample_date_str=None):
         ticker_records=ticker_records,
         qualified_candidates=qualified_candidates,
         qualified_stock_candidates=qualified_stock_candidates,
+        top_quartile_sectors=top_quartile_sectors,
+        macro_confluence=macro_confluence,
+        sector_mom_map=sector_mom_map,
     )
 
     return {

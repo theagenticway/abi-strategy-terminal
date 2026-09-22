@@ -202,11 +202,21 @@ def build_near_miss_candidates(
     ticker_records: List[Dict[str, Any]],
     qualified_candidates: List[Dict[str, Any]],
     qualified_stock_candidates: List[Dict[str, Any]],
+    top_quartile_sectors: Optional[List[str]] = None,
+    macro_confluence: Optional[int] = None,
+    sector_mom_map: Optional[Dict[str, float]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Identifies tickers that failed exactly 1 gatekeeper filter, building a
     prioritized 'Near-Miss Watchlist' ranked by proximity and Alpha potential.
     """
+    sector_mom_map = sector_mom_map or {}
+
+    try:
+        from engine import stocks
+    except (ImportError, ModuleNotFoundError):
+        import stocks
+
     qualified_tickers = {
         str(c.get("ticker", "")).upper()
         for c in (qualified_candidates or []) + (qualified_stock_candidates or [])
@@ -229,7 +239,37 @@ def build_near_miss_candidates(
         if len(failed_gates) == 1:
             failed_key = failed_gates[0]
             failed_info = gate_results[failed_key]
-            
+
+            # Compute a real, ticker-specific alpha_score from this ticker's actual
+            # fields. ticker_records never carries a top-level "alpha_score" key, so
+            # the previous r.get("alpha_score", 65.0) fell back to that hardcoded 65.0
+            # for every single row - the score was decorative, not real, and silently
+            # broke the documented "alpha score descending" tie-break in the sort below.
+            r_sec = (r.get("sector") or "").upper()
+            r_market_structure = gate_results.get("dow_market_structure", {}).get("current", "NEUTRAL")
+            try:
+                real_alpha_score, _ = stocks.compute_alpha_composite_score(
+                    reclaim_days=r.get("reclaim_days", 1),
+                    rvol=float(r.get("rvol", 1.2)),
+                    price=float(r.get("price", 0.0)),
+                    ema50=float(r.get("ema50", 0.0)),
+                    sector=r.get("sector"),
+                    rr_ratio=2.2,
+                    top_quartile_sectors=top_quartile_sectors,
+                    market_structure=r_market_structure,
+                    macro_confluence=macro_confluence,
+                    mom_spread=sector_mom_map.get(r_sec, 0.0),
+                    strategy_prong="HIGH_RISK" if (float(r.get("beta", 1.0) or 1.0) >= 1.5) else "BALANCED",
+                    beta=r.get("beta"),
+                    adr_pct=r.get("adr_pct"),
+                    rsi=r.get("rsi"),
+                    macd_hook_ok=r.get("macd_crawling_up"),
+                    return_breakdown=True
+                )
+            except Exception as ex:
+                logger.warning(f"Could not compute alpha score for near-miss candidate {ticker}, excluding: {ex}")
+                continue
+
             near_misses.append({
                 "ticker": ticker,
                 "sector": r.get("sector", "GENERAL"),
@@ -239,7 +279,7 @@ def build_near_miss_candidates(
                 "rsi": float(r.get("rsi", 50.0)),
                 "beta": float(r.get("beta", 1.0)),
                 "adr_pct": float(r.get("adr_pct", 2.0)),
-                "alpha_score": float(r.get("alpha_score", 65.0)),
+                "alpha_score": round(real_alpha_score, 1),
                 "failed_gate": failed_key,
                 "failed_gate_label": failed_info.get("label", failed_key),
                 "failed_reason": failed_info.get("detail", ""),
@@ -302,6 +342,19 @@ def build_high_risk_radars(
         if not is_hr:
             continue
 
+        # Fundamental floor: never surface a "BUY" radar entry for a ticker that
+        # failed the 50-EMA reclaim gate or that the gatekeeper pipeline itself
+        # rejected. Beta/ADR alone measure volatility, not tradability - a
+        # high-beta name trading below its 50 EMA in a bearish structure is not
+        # a "high risk BUY", it's a name that should be excluded regardless of
+        # whatever alpha_score the fallback scorer produces for it.
+        gate_results = t.get("gate_results", {}) or {}
+        price_above_ema50_gate = gate_results.get("price_above_ema50", {})
+        failed_ema_floor = price_above_ema50_gate.get("pass") is False
+        explicitly_unqualified = str(t.get("qualified", "")).upper() == "NO" and t["ticker"] not in stock_score_map
+        if failed_ema_floor or explicitly_unqualified:
+            continue
+
         t_price = float(t.get("price", 100.0) or 100.0)
         t_stop = round(t_price * (1.0 - SPRINT_STOP_PCT), 2)
         t_risk = round(t_price - t_stop, 2)
@@ -324,6 +377,14 @@ def build_high_risk_radars(
                 except (ImportError, ModuleNotFoundError):
                     import stocks
                 s_sec = (t.get("sector") or "").upper()
+                t_gate_results = t.get("gate_results", {}) or {}
+                # Dow structure lives nested under gate_results.dow_market_structure.current,
+                # not on a top-level "market_structure" key (which never exists on a raw
+                # ticker record) - reading the wrong key silently defaulted every fallback-
+                # scored ticker to the optimistic "BULLISH_HH_HL" assumption.
+                t_market_structure = t_gate_results.get("dow_market_structure", {}).get(
+                    "current", t.get("market_structure", "BULLISH_HH_HL")
+                )
                 t_score, t_score_breakdown = stocks.compute_alpha_composite_score(
                     reclaim_days=t.get("reclaim_days", 1),
                     rvol=float(t.get("rvol", 1.2)),
@@ -332,15 +393,27 @@ def build_high_risk_radars(
                     sector=t.get("sector"),
                     rr_ratio=2.2,
                     top_quartile_sectors=top_quartile_sectors,
-                    market_structure=t.get("market_structure", "BULLISH_HH_HL"),
+                    market_structure=t_market_structure,
                     macro_confluence=macro_confluence,
                     mom_spread=sector_mom_map.get(s_sec, 0.0),
                     strategy_prong="HIGH_RISK",
+                    # These three were previously omitted, which forced the scorer's
+                    # internal defaults (beta=1.1, adr_pct=2.5, rsi=52.0, hook=True) -
+                    # understating Beta/Elasticity and overstating Momentum for every
+                    # ticker scored via this fallback path instead of the real,
+                    # already-computed t_beta/t_adr and the ticker's actual RSI/MACD.
+                    beta=t_beta,
+                    adr_pct=t_adr,
+                    rsi=t.get("rsi"),
+                    macd_hook_ok=t.get("macd_crawling_up"),
                     return_breakdown=True
                 )
-            except Exception:
-                t_score = 70.0
-                t_score_breakdown = {}
+            except Exception as ex:
+                # A genuine scoring failure must not be masked with a fabricated
+                # passing score - that's exactly the class of bug this audit found.
+                # Exclude the ticker from the actionable radar instead.
+                logger.warning(f"Could not compute alpha score for {t.get('ticker')}, excluding from radar: {ex}")
+                continue
 
         high_risk_stocks_radar.append({
             "action": "BUY",
@@ -389,6 +462,16 @@ def build_high_risk_radars(
         if not is_hr:
             continue
 
+        # Same fundamental floor as the stock radar: beta/ADR measure volatility,
+        # not tradability. Never issue a "BUY" options contract on a ticker that
+        # failed the 50-EMA reclaim gate or that the gatekeeper pipeline rejected.
+        gate_results = t.get("gate_results", {}) or {}
+        price_above_ema50_gate = gate_results.get("price_above_ema50", {})
+        failed_ema_floor = price_above_ema50_gate.get("pass") is False
+        explicitly_unqualified = str(t.get("qualified", "")).upper() == "NO" and t["ticker"] not in options_score_map
+        if failed_ema_floor or explicitly_unqualified:
+            continue
+
         t_price = float(t.get("price", 100.0) or 100.0)
         l_strike = round(t_price * 0.98 / 5.0) * 5.0 if t_price > 20 else round(t_price * 0.98 * 2) / 2
         s_width = round(t_price * 0.20 / 5.0) * 5.0 if t_price > 40 else (5.0 if t_price > 15 else 2.5)
@@ -410,9 +493,15 @@ def build_high_risk_radars(
                     from indicators import calculate_iv_rank
                     from market_data import extract_ticker_df
                 _t_df = extract_ticker_df(raw_data, t["ticker"])
-                iv_r = calculate_iv_rank(_t_df["Close"]) if _t_df is not None and len(_t_df) > 20 else 45.0
-            except Exception:
-                iv_r = 45.0
+                if _t_df is None or len(_t_df) <= 20:
+                    # Not enough real price history to compute an IV rank proxy -
+                    # a fabricated 45.0 previously masked this. Exclude instead of guess.
+                    logger.warning(f"Insufficient price history to compute IV rank for {t.get('ticker')}, excluding from options radar.")
+                    continue
+                iv_r = calculate_iv_rank(_t_df["Close"])
+            except Exception as ex:
+                logger.warning(f"Could not compute IV rank for {t.get('ticker')}, excluding from options radar: {ex}")
+                continue
 
         try:
             try:
@@ -425,6 +514,16 @@ def build_high_risk_radars(
             _hr_expiry_date = now_utc.date() + timedelta(days=60)
             _hr_dte = 60
             _hr_theta_cliff = (_hr_expiry_date - timedelta(days=21)).strftime("%b %d")
+
+        t_gate_results = t.get("gate_results", {}) or {}
+        # Dow structure lives at gate_results.dow_market_structure.current, not on a
+        # top-level "market_structure" key - reading the wrong key silently defaulted
+        # every ticker's displayed structure (and fallback score) to "BULLISH_HH_HL".
+        # Computed unconditionally so it's correct both in the scorer and in the
+        # displayed radar payload below, regardless of which scoring branch runs.
+        t_market_structure = t_gate_results.get("dow_market_structure", {}).get(
+            "current", t.get("market_structure", "BULLISH_HH_HL")
+        )
 
         s_match = stock_score_map.get(t["ticker"])
         if s_match and s_match.get("alpha_score") is not None:
@@ -444,15 +543,78 @@ def build_high_risk_radars(
                     sector=t.get("sector"),
                     rr_ratio=2.2,
                     top_quartile_sectors=top_quartile_sectors,
-                    market_structure=t.get("market_structure", "BULLISH_HH_HL"),
+                    market_structure=t_market_structure,
                     macro_confluence=macro_confluence,
                     mom_spread=sector_mom_map.get(s_sec, 0.0),
                     strategy_prong="HIGH_RISK",
+                    # Previously omitted, forcing beta=1.1/adr_pct=2.5/rsi=52.0 internal
+                    # defaults instead of this ticker's real, already-computed values.
+                    beta=t_beta,
+                    adr_pct=t_adr,
+                    rsi=t.get("rsi"),
+                    macd_hook_ok=t.get("macd_crawling_up"),
                     return_breakdown=False
                 )
             except Exception as ex:
-                logger.debug(f"Fallback to default directional alpha for {t.get('ticker')}: {ex}")
-                directional_alpha_val = 75.0
+                # A genuine scoring failure must not be masked with a fabricated
+                # passing score. Exclude the ticker instead.
+                logger.warning(f"Could not compute directional alpha for {t.get('ticker')}, excluding from options radar: {ex}")
+                continue
+
+        # --- Real liquidity verification (replaces hardcoded long_oi=650/short_oi=420/
+        # bid_ask_spread_pct=0.05, which silently asserted every fallback-scored ticker
+        # had "HIGH" institutional liquidity regardless of its actual option chain). ---
+        try:
+            try:
+                from engine import patterns
+            except (ImportError, ModuleNotFoundError):
+                import patterns
+            opt_verif = None
+            if opt_match and opt_match.get("long_oi") is not None:
+                opt_verif = {
+                    "long_oi": opt_match.get("long_oi"),
+                    "short_oi": opt_match.get("short_oi", opt_match.get("long_oi")),
+                    "long_bid": opt_match.get("long_bid", 0),
+                    "long_ask": opt_match.get("long_ask", 0),
+                    "liquidity_status": opt_match.get("liquidity_status"),
+                }
+            else:
+                opt_verif = patterns.fetch_live_options_quotes(
+                    t["ticker"], l_strike, sh_strike, target_dte_range=(45, 90), today=now_utc.date()
+                )
+
+            if opt_verif and opt_verif.get("long_oi") is not None:
+                real_long_oi = opt_verif.get("long_oi")
+                real_short_oi = opt_verif.get("short_oi", real_long_oi)
+                long_bid = opt_verif.get("long_bid", 0)
+                long_ask = opt_verif.get("long_ask", 0)
+                long_mid = (long_bid + long_ask) / 2 if (long_bid and long_ask) else 0
+                real_spread_pct = ((long_ask - long_bid) / long_mid) if long_mid > 0 else None
+                liquidity_verified = True
+                liquidity_status = opt_verif.get("liquidity_status") or "VERIFIED (Live Quote)"
+            else:
+                # No live quote available (off-hours, no data provider, thin/no chain).
+                # Per the architecture doc this must be transparently tagged, not
+                # silently asserted as passing liquidity - so it is excluded from the
+                # actionable radar rather than assigned a fabricated "HIGH" rating.
+                logger.warning(f"No verifiable options liquidity data for {t.get('ticker')}, excluding from options radar.")
+                continue
+        except Exception as ex:
+            logger.warning(f"Options liquidity verification failed for {t.get('ticker')}, excluding from options radar: {ex}")
+            continue
+
+        # --- Real earnings-blackout check (replaces hardcoded days_to_earnings=60,
+        # which silently asserted every ticker was 60 days clear of an earnings event). ---
+        try:
+            try:
+                from engine import patterns
+            except (ImportError, ModuleNotFoundError):
+                import patterns
+            earnings_info = patterns.evaluate_earnings_blackout(t["ticker"], earnings_date=t.get("earnings_date"), today=now_utc.date())
+            real_days_to_earnings = earnings_info.get("days_to_earnings")
+        except Exception as ex:
+            logger.debug(f"Earnings blackout check unavailable for {t.get('ticker')}: {ex}")
+            real_days_to_earnings = None  # honestly "unverified", not a fabricated safe value
 
         if opt_match and opt_match.get("options_alpha_score") is not None:
             t_opt_score = float(opt_match["options_alpha_score"])
@@ -466,11 +628,11 @@ def build_high_risk_radars(
                 t_opt_score, t_opt_breakdown = patterns.compute_options_alpha_score(
                     directional_alpha=directional_alpha_val,
                     iv_rank=iv_r,
-                    long_oi=650,
-                    short_oi=420,
-                    bid_ask_spread_pct=0.05,
+                    long_oi=real_long_oi,
+                    short_oi=real_short_oi,
+                    bid_ask_spread_pct=real_spread_pct if real_spread_pct is not None else 0.08,
                     overhead_runway_pct=float(t.get("overhead_runway_pct", 999.0) or 999.0),
-                    days_to_earnings=60,
+                    days_to_earnings=real_days_to_earnings,
                     is_leaps=False,
                     strategy_prong="HIGH_RISK",
                     rsi=float(t.get("rsi", 50.0)),
@@ -478,9 +640,8 @@ def build_high_risk_radars(
                     return_breakdown=True
                 )
             except Exception as ex:
-                logger.warning(f"Could not compute options alpha score for {t.get('ticker')}: {ex}")
-                t_opt_score = 75.0
-                t_opt_breakdown = {}
+                logger.warning(f"Could not compute options alpha score for {t.get('ticker')}, excluding from options radar: {ex}")
+                continue
 
         high_risk_options_radar.append({
             "action": "BUY",
@@ -493,7 +654,7 @@ def build_high_risk_radars(
             "macd_hist": float(t.get("macd_hist", 0.0)),
             "retrace": t.get("retrace") or t.get("retrace_type", "EMA50"),
             "reclaim_days": int(t.get("reclaim_days", 1)),
-            "market_structure": t.get("market_structure", "BULLISH_HH_HL"),
+            "market_structure": t_market_structure,
             "stop": round(t_price * (1.0 - SPRINT_STOP_PCT), 2),
             "tp1": round(t_price * 1.15, 2),
             "tp2": round(t_price * 1.25, 2),
@@ -511,7 +672,7 @@ def build_high_risk_radars(
             "adr_pct": t_adr,
             "rvol": float(t.get("rvol", 1.2)),
             "iv_rank": iv_r,
-            "liquidity": "HIGH",
+            "liquidity": liquidity_status,
             "options_alpha_score": round(t_opt_score, 1),
             "options_alpha_breakdown": t_opt_breakdown,
             "alpha_score": round(t_opt_score, 1),
