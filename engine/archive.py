@@ -29,6 +29,22 @@ def _safe_int(val, default=0):
     except Exception:
         return default
 
+def _normalize_ms(val, default="BULLISH_HH_HL") -> str:
+    if isinstance(val, dict):
+        return str(val.get("regime") or default)
+    if not val:
+        return default
+    s = str(val)
+    if s.startswith("{") and "'regime':" in s:
+        try:
+            import ast
+            d = ast.literal_eval(s)
+            if isinstance(d, dict) and "regime" in d:
+                return str(d["regime"])
+        except Exception:
+            pass
+    return s
+
 def extract_signal_records(payload, date_str):
     """
     Extracts structured signal records from latest scanner payload.
@@ -66,9 +82,9 @@ def extract_signal_records(payload, date_str):
                 "rsi": _safe_float(c.get("rsi")),
                 "macd_hist": _safe_float(c.get("macd_hist")),
                 "rvol": _safe_float(c.get("rvol", 1.0)),
-                "retrace_type": str(c.get("retrace_type", "EMA50")),
+                "retrace_type": str(c.get("retrace") or c.get("retrace_type", "EMA50")),
                 "reclaim_days": _safe_int(c.get("reclaim_days", 1)),
-                "market_structure": str(c.get("market_structure", "BULLISH_HH_HL")),
+                "market_structure": _normalize_ms(c.get("market_structure"), "BULLISH_HH_HL"),
                 "beta": _safe_float(c.get("beta", 1.0)),
                 "adr_pct": _safe_float(c.get("adr_pct", 2.0)),
                 "iv_rank": _safe_float(c.get("iv_rank", 50.0))
@@ -109,9 +125,9 @@ def extract_signal_records(payload, date_str):
                 "rsi": _safe_float(c.get("rsi")),
                 "macd_hist": _safe_float(c.get("macd_hist")),
                 "rvol": _safe_float(c.get("rvol", 1.0)),
-                "retrace_type": str(c.get("retrace_type", "Stage2_Stack")),
+                "retrace_type": str(c.get("retrace") or c.get("retrace_type", "Stage2_Stack")),
                 "reclaim_days": _safe_int(c.get("reclaim_days", 1)),
-                "market_structure": str(c.get("market_structure", "BULLISH_HH_HL")),
+                "market_structure": _normalize_ms(c.get("market_structure"), "BULLISH_HH_HL"),
                 "beta": _safe_float(c.get("beta", 1.0)),
                 "adr_pct": _safe_float(c.get("adr_pct", 2.0)),
                 "iv_rank": _safe_float(c.get("iv_rank", 25.0))
@@ -152,9 +168,9 @@ def extract_signal_records(payload, date_str):
                 "rsi": _safe_float(c.get("rsi")),
                 "macd_hist": _safe_float(c.get("macd_hist")),
                 "rvol": _safe_float(c.get("rvol", 1.0)),
-                "retrace_type": str(c.get("retrace_type", "Resistance_Rejection")),
+                "retrace_type": str(c.get("retrace") or c.get("retrace_type", "Resistance_Rejection")),
                 "reclaim_days": _safe_int(c.get("reclaim_days", 0)),
-                "market_structure": str(c.get("market_structure", "BEARISH_LH_LL")),
+                "market_structure": _normalize_ms(c.get("market_structure"), "BEARISH_LH_LL"),
                 "beta": _safe_float(c.get("beta", 1.0)),
                 "adr_pct": _safe_float(c.get("adr_pct", 2.0)),
                 "iv_rank": _safe_float(c.get("iv_rank", 60.0))
@@ -174,13 +190,14 @@ def extract_signal_records(payload, date_str):
         })
 
     # 4. Stock Recommendations (Tactical Swings & Core Equities)
-    all_stocks = payload.get("stock_recommendations", []) + payload.get("core_stocks", [])
+    core_list = payload.get("core_stocks", [])
+    all_stocks = payload.get("stock_recommendations", []) + core_list
     seen_stock_ids = set()
     for s in all_stocks:
         ticker = s.get("ticker", "")
         if not ticker:
             continue
-        tier = s.get("horizon_tier", "BALANCED_SWING")
+        tier = s.get("horizon_tier") or s.get("strategy_prong") or ("CORE" if s in core_list else "BALANCED_SWING")
         if "HIGH" in str(tier).upper() or "SPRINT" in str(tier).upper():
             category = "HIGH_RISK_SPRINT"
         elif "CORE" in str(tier).upper():
@@ -203,15 +220,15 @@ def extract_signal_records(payload, date_str):
             "sector": s.get("sector", "Unknown"),
             "sub_industry": s.get("sub_industry", s.get("industry", "Unknown")),
             "entry_price": _safe_float(s.get("price", s.get("entry_price", s.get("current_price")))),
-            "alpha_score": _safe_float(s.get("alpha_composite_score", s.get("alpha_score", s.get("score")))),
+            "alpha_score": _safe_float(s.get("alpha_composite_score") or s.get("alpha_score") or s.get("score") or (80.0 if category == "CORE_ACCUMULATION" else 0.0)),
             "technical_snapshot": {
                 "ema50": _safe_float(s.get("ema50")),
                 "rsi": _safe_float(s.get("rsi")),
                 "macd_hist": _safe_float(s.get("macd_hist")),
                 "rvol": _safe_float(s.get("rvol", 1.0)),
-                "retrace_type": str(s.get("retrace_type", "EMA50")),
+                "retrace_type": str(s.get("retrace") or s.get("retrace_type", "EMA50")),
                 "reclaim_days": _safe_int(s.get("reclaim_days", 1)),
-                "market_structure": str(s.get("market_structure", "BULLISH_HH_HL")),
+                "market_structure": _normalize_ms(s.get("market_structure"), "BULLISH_HH_HL"),
                 "beta": _safe_float(s.get("beta", 1.0)),
                 "adr_pct": _safe_float(s.get("adr_pct", 2.0)),
                 "iv_rank": _safe_float(s.get("iv_rank", 40.0))
@@ -254,9 +271,9 @@ def extract_signal_records(payload, date_str):
                 "rsi": _safe_float(c.get("rsi", 50.0)),
                 "macd_hist": _safe_float(c.get("macd_hist")),
                 "rvol": _safe_float(c.get("rvol", 1.2)),
-                "retrace_type": str(c.get("retrace_type", "EMA50")),
+                "retrace_type": str(c.get("retrace") or c.get("retrace_type", "EMA50")),
                 "reclaim_days": _safe_int(c.get("reclaim_days", 1)),
-                "market_structure": str(c.get("market_structure", "BULLISH_HH_HL")),
+                "market_structure": _normalize_ms(c.get("market_structure"), "BULLISH_HH_HL"),
                 "beta": _safe_float(c.get("beta", 1.5)),
                 "adr_pct": _safe_float(c.get("adr_pct", 3.0)),
                 "iv_rank": _safe_float(c.get("iv_rank", 50.0))
@@ -300,9 +317,9 @@ def extract_signal_records(payload, date_str):
                 "rsi": _safe_float(s.get("rsi", 50.0)),
                 "macd_hist": _safe_float(s.get("macd_hist")),
                 "rvol": _safe_float(s.get("rvol", 1.2)),
-                "retrace_type": str(s.get("retrace_type", "EMA50")),
+                "retrace_type": str(s.get("retrace") or s.get("retrace_type", "EMA50")),
                 "reclaim_days": _safe_int(s.get("reclaim_days", 1)),
-                "market_structure": str(s.get("market_structure", "BULLISH_HH_HL")),
+                "market_structure": _normalize_ms(s.get("market_structure"), "BULLISH_HH_HL"),
                 "beta": _safe_float(s.get("beta", 1.5)),
                 "adr_pct": _safe_float(s.get("adr_pct", 3.0)),
                 "iv_rank": _safe_float(s.get("iv_rank", 50.0))

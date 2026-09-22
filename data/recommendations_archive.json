@@ -581,7 +581,7 @@
       "rvol": 1.05,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 999.0, 'break_of_structure': True, 'prior_swing_high': 112.76, 'prior_swing_low': 100.77, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': True, 'is_emerging_hl': True}",
+      "market_structure": "BULLISH_HH_HL",
       "beta": 2.11,
       "adr_pct": 4.25,
       "iv_rank": 40.0
@@ -656,7 +656,7 @@
       "rvol": 0.43,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (EMERGING)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 6.0, 'break_of_structure': False, 'prior_swing_high': 26.84, 'prior_swing_low': 23.05, 'structure_score': 25.0, 'status': 'EMERGING', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (EMERGING)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 6.05, 'break_of_structure': False, 'prior_swing_high': 26.84, 'prior_swing_low': 23.05, 'structure_score': 25.0, 'status': 'EMERGING', 'is_emerging_hh': False, 'is_emerging_hl': True}",
       "beta": 1.15,
       "adr_pct": 3.89,
       "iv_rank": 40.0
@@ -806,7 +806,7 @@
       "rvol": 0.39,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 0.48, 'break_of_structure': True, 'prior_swing_high': 247.19, 'prior_swing_low': 235.63, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': True, 'is_emerging_hl': True}",
+      "market_structure": "BULLISH_HH_HL",
       "beta": -0.4,
       "adr_pct": 2.04,
       "iv_rank": 40.0
@@ -842,7 +842,7 @@
       "rvol": 0.2,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 6.44, 'break_of_structure': False, 'prior_swing_high': 147.57, 'prior_swing_low': 136.38, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "BULLISH_HH_HL",
       "beta": 0.35,
       "adr_pct": 3.93,
       "iv_rank": 40.0
@@ -878,7 +878,7 @@
       "rvol": 0.94,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 0.06, 'break_of_structure': True, 'prior_swing_high': 72.58, 'prior_swing_low': 72.14, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 0.04, 'break_of_structure': True, 'prior_swing_high': 72.58, 'prior_swing_low': 72.14, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
       "beta": 0.03,
       "adr_pct": 0.23,
       "iv_rank": 40.0
@@ -914,7 +914,7 @@
       "rvol": 0.44,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 2.85, 'break_of_structure': False, 'prior_swing_high': 26.93, 'prior_swing_low': 25.28, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "BULLISH_HH_HL",
       "beta": -0.43,
       "adr_pct": 2.06,
       "iv_rank": 40.0
@@ -1067,7 +1067,7 @@
       "rvol": 0.59,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 7.36, 'break_of_structure': False, 'prior_swing_high': 171.3, 'prior_swing_low': 139.25, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 7.75, 'break_of_structure': False, 'prior_swing_high': 171.3, 'prior_swing_low': 139.25, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
       "beta": 3.58,
       "adr_pct": 4.02,
       "iv_rank": 40.0
@@ -1178,7 +1178,7 @@
       "rvol": 0.28,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (EMERGING)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 2.7, 'break_of_structure': False, 'prior_swing_high': 344.66, 'prior_swing_low': 303.89, 'structure_score': 25.0, 'status': 'EMERGING', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (EMERGING)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 0.61, 'break_of_structure': False, 'prior_swing_high': 344.66, 'prior_swing_low': 303.89, 'structure_score': 25.0, 'status': 'EMERGING', 'is_emerging_hh': False, 'is_emerging_hl': True}",
       "beta": 1.26,
       "adr_pct": 4.16,
       "iv_rank": 40.0
@@ -1367,7 +1367,7 @@
       "rvol": 0.25,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 2.71, 'break_of_structure': False, 'prior_swing_high': 62.15, 'prior_swing_low': 45.7, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': True, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 0.65, 'break_of_structure': False, 'prior_swing_high': 62.15, 'prior_swing_low': 45.7, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': True, 'is_emerging_hl': True}",
       "beta": 3.08,
       "adr_pct": 5.71,
       "iv_rank": 40.0
@@ -1403,7 +1403,7 @@
       "rvol": 0.21,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 999.0, 'break_of_structure': True, 'prior_swing_high': 163.6, 'prior_swing_low': 161.74, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 0.1, 'break_of_structure': True, 'prior_swing_high': 163.6, 'prior_swing_low': 161.74, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
       "beta": 1.03,
       "adr_pct": 0.22,
       "iv_rank": 40.0
@@ -1511,7 +1511,7 @@
       "rvol": 0.24,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'CONSOLIDATION_BASE', 'badge': '\ud83d\udfe1 BASE BUILDING', 'higher_high': False, 'higher_low': True, 'overhead_resistance_runway': 4.78, 'break_of_structure': False, 'prior_swing_high': 251.99, 'prior_swing_low': 208.22, 'structure_score': 18.0, 'status': 'BASE_BUILDING', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'CONSOLIDATION_BASE', 'badge': '\ud83d\udfe1 BASE BUILDING', 'higher_high': False, 'higher_low': True, 'overhead_resistance_runway': 2.83, 'break_of_structure': False, 'prior_swing_high': 251.99, 'prior_swing_low': 208.22, 'structure_score': 18.0, 'status': 'BASE_BUILDING', 'is_emerging_hh': False, 'is_emerging_hl': True}",
       "beta": 1.05,
       "adr_pct": 4.75,
       "iv_rank": 35.6
@@ -1547,7 +1547,7 @@
       "rvol": 0.49,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'NEUTRAL', 'badge': '\u26aa NEUTRAL', 'higher_high': True, 'higher_low': False, 'overhead_resistance_runway': 3.78, 'break_of_structure': False, 'prior_swing_high': 84.48, 'prior_swing_low': 77.71, 'structure_score': 12.0, 'status': 'NEUTRAL', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'NEUTRAL', 'badge': '\u26aa NEUTRAL', 'higher_high': True, 'higher_low': False, 'overhead_resistance_runway': 4.06, 'break_of_structure': False, 'prior_swing_high': 84.48, 'prior_swing_low': 77.71, 'structure_score': 12.0, 'status': 'NEUTRAL', 'is_emerging_hh': False, 'is_emerging_hl': True}",
       "beta": 1.85,
       "adr_pct": 2.73,
       "iv_rank": 26.9
@@ -2003,7 +2003,7 @@
       "rvol": 1.0,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 0.63, 'break_of_structure': False, 'prior_swing_high': 125.25, 'prior_swing_low': 100.68, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': True, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 1.58, 'break_of_structure': False, 'prior_swing_high': 125.25, 'prior_swing_low': 100.68, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': True, 'is_emerging_hl': True}",
       "beta": 2.95,
       "adr_pct": 5.57,
       "iv_rank": 78.9
@@ -2261,7 +2261,7 @@
       "rvol": 0.2,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 6.44, 'break_of_structure': False, 'prior_swing_high': 147.57, 'prior_swing_low': 136.38, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "BULLISH_HH_HL",
       "beta": 0.35,
       "adr_pct": 3.93,
       "iv_rank": 58.1
@@ -2297,7 +2297,7 @@
       "rvol": 0.59,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 1.12, 'break_of_structure': False, 'prior_swing_high': 250.32, 'prior_swing_low': 200.6, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 0.39, 'break_of_structure': False, 'prior_swing_high': 250.32, 'prior_swing_low': 200.6, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
       "beta": 2.34,
       "adr_pct": 5.84,
       "iv_rank": 95.5
@@ -2333,7 +2333,7 @@
       "rvol": 0.42,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'CONSOLIDATION_BASE', 'badge': '\ud83d\udfe1 BASE BUILDING', 'higher_high': False, 'higher_low': True, 'overhead_resistance_runway': 1.5, 'break_of_structure': False, 'prior_swing_high': 152.0, 'prior_swing_low': 139.72, 'structure_score': 18.0, 'status': 'BASE_BUILDING', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "CONSOLIDATION_BASE",
       "beta": 3.01,
       "adr_pct": 4.12,
       "iv_rank": 26.4
@@ -2369,7 +2369,7 @@
       "rvol": 0.98,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'CONSOLIDATION_BASE', 'badge': '\ud83d\udfe1 BASE (EMERGING HH)', 'higher_high': False, 'higher_low': True, 'overhead_resistance_runway': 0.91, 'break_of_structure': True, 'prior_swing_high': 40.45, 'prior_swing_low': 35.63, 'structure_score': 20.0, 'status': 'EMERGING_HH', 'is_emerging_hh': True, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'CONSOLIDATION_BASE', 'badge': '\ud83d\udfe1 BASE (EMERGING HH)', 'higher_high': False, 'higher_low': True, 'overhead_resistance_runway': 0.8, 'break_of_structure': True, 'prior_swing_high': 40.45, 'prior_swing_low': 35.63, 'structure_score': 20.0, 'status': 'EMERGING_HH', 'is_emerging_hh': True, 'is_emerging_hl': True}",
       "beta": 3.28,
       "adr_pct": 5.43,
       "iv_rank": 32.6
@@ -2477,7 +2477,7 @@
       "rvol": 0.62,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 7.77, 'break_of_structure': False, 'prior_swing_high': 171.3, 'prior_swing_low': 139.25, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 7.75, 'break_of_structure': False, 'prior_swing_high': 171.3, 'prior_swing_low': 139.25, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
       "beta": 3.56,
       "adr_pct": 4.02,
       "iv_rank": 42.5
@@ -2513,7 +2513,7 @@
       "rvol": 0.26,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (EMERGING)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 0.5, 'break_of_structure': False, 'prior_swing_high': 431.78, 'prior_swing_low': 404.24, 'structure_score': 25.0, 'status': 'EMERGING', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (EMERGING)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 0.13, 'break_of_structure': False, 'prior_swing_high': 431.78, 'prior_swing_low': 404.24, 'structure_score': 25.0, 'status': 'EMERGING', 'is_emerging_hh': False, 'is_emerging_hl': True}",
       "beta": 0.96,
       "adr_pct": 2.46,
       "iv_rank": 10.3
@@ -2585,7 +2585,7 @@
       "rvol": 0.6,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
-      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 0.14, 'break_of_structure': False, 'prior_swing_high': 188.37, 'prior_swing_low': 165.71, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
+      "market_structure": "{'regime': 'BULLISH_HH_HL', 'badge': '\ud83d\udfe2 HH/HL (CONFIRMED)', 'higher_high': True, 'higher_low': True, 'overhead_resistance_runway': 2.88, 'break_of_structure': False, 'prior_swing_high': 188.37, 'prior_swing_low': 165.71, 'structure_score': 25.0, 'status': 'CONFIRMED', 'is_emerging_hh': False, 'is_emerging_hl': True}",
       "beta": 2.58,
       "adr_pct": 3.92,
       "iv_rank": 18.9

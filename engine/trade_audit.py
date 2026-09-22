@@ -316,10 +316,10 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
             sec_count = len([t for t in open_trades if t.get("sector") == cand_sec])
             total_open = len(open_trades)
 
-            # Anti-Chop Re-Entry Cooldown check (<5 sessions post stop-out)
+            # Anti-Chop Re-Entry Cooldown check (<5 sessions post stop-out or stagnation exit)
             is_cooldown = False
             for prev in trades:
-                if prev.get("ticker") == ticker and prev.get("status") == "STOPPED_OUT" and prev.get("exit_date"):
+                if prev.get("ticker") == ticker and prev.get("status") in ["STOPPED_OUT", "STAGNATION_EXIT"] and prev.get("exit_date"):
                     try:
                         exit_dt = datetime.datetime.strptime(prev["exit_date"], "%Y-%m-%d").date()
                         cur_dt = datetime.datetime.strptime(today_str, "%Y-%m-%d").date()

@@ -128,7 +128,9 @@ assert.strictEqual(domElements['eq-swings-count'].textContent, '5 Swings Qualifi
 assert(!domElements['stock-swings-body'].innerHTML.includes('SPY'), "Table 1 must NOT contain SPY (routed strictly to Core Accumulation)");
 assert(!domElements['stock-swings-body'].innerHTML.includes('QQQ'), "Table 1 must NOT contain QQQ (routed strictly to Core Accumulation)");
 // Must contain single-stock alpha setups and dynamic Alpha Score badges
-assert(domElements['stock-swings-body'].innerHTML.includes('ZBRA') || domElements['stock-swings-body'].innerHTML.includes('ADI'), "Table 1 must contain top single-stock alpha candidates");
+const expectedStockTickers = (latestData.stock_recommendations || []).map(r => r.ticker);
+const hasCandidateRendered = expectedStockTickers.some(t => domElements['stock-swings-body'].innerHTML.includes(t));
+assert(hasCandidateRendered, "Table 1 must contain top single-stock alpha candidates");
 assert(domElements['stock-swings-body'].innerHTML.includes('ALPHA:'), "Table 1 must display Alpha Score badge");
 console.log("✔ Test 3: Tactical Stock Swings rendered with dynamic multi-factor Alpha scoring & index filtering.");
 

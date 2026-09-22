@@ -685,6 +685,7 @@ def structure_core_stock_accumulation(
         "beta": snapshot.get("beta", 0.9),
         "adr_pct": snapshot.get("adr_pct", 1.8),
         "rsi": snapshot.get("rsi", 50.0),
+        "alpha_score": snapshot.get("alpha_score") or snapshot.get("alpha_composite_score", 75.0),
         "weekly_stage": snapshot.get("weekly_stage", "STAGE 2 (Advancing)"),
         "structure": "Strategic Core Accumulation (Shares)"
     }

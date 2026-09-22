@@ -778,7 +778,7 @@ Every universe candidate is evaluated across a standardized dictionary contract 
    - **Primary Backend Ordering**: Candidates are sorted primarily by **Reclaim Freshness** (`reclaim_days` ascending: Day 1 $\rightarrow$ Day 2 $\rightarrow$ Day 3+), secondary tie-breaker on Alpha Score descending.
    - **Interactive UI Capabilities (`radar.html`)**:
      - Multi-dimensional sorting: *⚡ Freshest Reclaim (Day 1 First)*, *🏆 Highest Alpha Score*, *🎯 Closest to Passing (Margin)*, *🚀 Highest Beta Elasticity*.
-     - Quick filter chips by failed gate: *ALL*, *50 EMA Floor*, *Freshness / Stale Reclaim*, *MACD Momentum Hook*, *RSI Floor*, *200 SMA Runway*, *Retrace Pattern*.
+     - Quick filter chips by failed gate: *ALL*, *50 EMA Floor*, *Freshness / Stale Reclaim*, *MACD Momentum Hook*, *RSI Floor*, *200 SMA Runway*, *Retrace Pattern*, *Dow Market Structure*.
      - Interactive search filtering across tickers and sectors.
      - Freshness badges (`⚡ Day 1 Reclaim`, `Day 2 Reclaim`, `Stale: Day 4+`) with trigger dates.
 4. **UI Presentation (`radar.html`)**:

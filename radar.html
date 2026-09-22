@@ -280,6 +280,7 @@
                 <button onclick="setNearMissGateFilter('rsi_floor')" id="nm-filter-rsi_floor" class="nm-filter-btn px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700 transition">RSI Floor (<span id="nm-count-rsi_floor">0</span>)</button>
                 <button onclick="setNearMissGateFilter('overhead_200sma_runway')" id="nm-filter-overhead_200sma_runway" class="nm-filter-btn px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700 transition">200 SMA Runway (<span id="nm-count-overhead_200sma_runway">0</span>)</button>
                 <button onclick="setNearMissGateFilter('retrace_taxonomy')" id="nm-filter-retrace_taxonomy" class="nm-filter-btn px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700 transition">Retrace Pattern (<span id="nm-count-retrace_taxonomy">0</span>)</button>
+                <button onclick="setNearMissGateFilter('dow_market_structure')" id="nm-filter-dow_market_structure" class="nm-filter-btn px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700 transition">Dow Market Structure (<span id="nm-count-dow_market_structure">0</span>)</button>
             </div>
             <div class="p-2.5 bg-slate-950/40 border-b border-slate-800 text-xs text-slate-400 flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
@@ -702,7 +703,8 @@
                 macd_hook: 0,
                 rsi_floor: 0,
                 overhead_200sma_runway: 0,
-                retrace_taxonomy: 0
+                retrace_taxonomy: 0,
+                dow_market_structure: 0
             };
             candidates.forEach(c => {
                 if (counts[c.failed_gate] !== undefined) {
@@ -716,6 +718,8 @@
             document.getElementById('nm-count-rsi_floor').textContent = counts.rsi_floor;
             document.getElementById('nm-count-overhead_200sma_runway').textContent = counts.overhead_200sma_runway;
             document.getElementById('nm-count-retrace_taxonomy').textContent = counts.retrace_taxonomy;
+            const elDow = document.getElementById('nm-count-dow_market_structure');
+            if (elDow) elDow.textContent = counts.dow_market_structure;
 
             const badge = document.getElementById('near-miss-badge');
             if (badge) badge.textContent = candidates.length;
