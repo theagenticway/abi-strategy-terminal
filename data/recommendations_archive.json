@@ -10,7 +10,7 @@
     "company_name": "COIN",
     "sector": "CRYPTO",
     "sub_industry": "Unknown",
-    "entry_price": 198.53,
+    "entry_price": 199.64,
     "alpha_score": 85.2,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -21,8 +21,8 @@
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 2.37,
-      "adr_pct": 5.64,
-      "iv_rank": 63.6
+      "adr_pct": 5.67,
+      "iv_rank": 63.4
     },
     "structure": {
       "strategy": "High-Risk Bull Call Spread",
@@ -32,9 +32,9 @@
       "long_strike": 195.0,
       "short_strike": 235.0,
       "net_debit": 15.2,
-      "stop_price": 183.64,
-      "tp1": 228.31,
-      "tp2": 248.16,
+      "stop_price": 184.67,
+      "tp1": 229.59,
+      "tp2": 249.55,
       "shares": null
     }
   },
@@ -47,19 +47,19 @@
     "company_name": "ZETA",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 29.7,
+    "entry_price": 29.96,
     "alpha_score": 84.5,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 51.09,
+      "rsi": 52.42,
       "macd_hist": 0.0,
-      "rvol": 0.28,
+      "rvol": 0.37,
       "retrace_type": "Stage2_Stack",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 1.54,
       "adr_pct": 4.59,
-      "iv_rank": 17.8
+      "iv_rank": 16.0
     },
     "structure": {
       "strategy": "Deep-ITM Call LEAPS",
@@ -67,10 +67,10 @@
       "dte": 502,
       "long_strike": 22.5,
       "short_strike": null,
-      "net_debit": 9.58,
+      "net_debit": 9.86,
       "stop_price": 20.18,
-      "tp1": 50.64,
-      "tp2": 63.02,
+      "tp1": 51.48,
+      "tp2": 64.19,
       "shares": null
     }
   },
@@ -85,7 +85,7 @@
     "company_name": "SNPS",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 407.48,
+    "entry_price": 407.43,
     "alpha_score": 82.2,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -95,8 +95,8 @@
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 1.95,
-      "adr_pct": 3.84,
+      "beta": 1.94,
+      "adr_pct": 3.85,
       "iv_rank": 100.0
     },
     "structure": {
@@ -107,46 +107,10 @@
       "long_strike": 400.0,
       "short_strike": 480.0,
       "net_debit": 30.4,
-      "stop_price": 376.92,
-      "tp1": 468.6,
-      "tp2": 509.35,
+      "stop_price": 376.87,
+      "tp1": 468.54,
+      "tp2": 509.29,
       "shares": null
-    }
-  },
-  {
-    "id": "2026-09-22_REGN_BALANCED_SWING_EQUITY",
-    "date": "2026-09-22",
-    "asset_type": "EQUITY",
-    "category": "BALANCED_SWING",
-    "ticker": "REGN",
-    "company_name": "REGN",
-    "sector": "HEALTHCARE",
-    "sub_industry": "Unknown",
-    "entry_price": 794.53,
-    "alpha_score": 81.0,
-    "technical_snapshot": {
-      "ema50": 0.0,
-      "rsi": 50.86,
-      "macd_hist": 0.0,
-      "rvol": 0.06,
-      "retrace_type": "DB",
-      "reclaim_days": 2,
-      "market_structure": "BULLISH_HH_HL",
-      "beta": 0.55,
-      "adr_pct": 2.2,
-      "iv_rank": 40.0
-    },
-    "structure": {
-      "strategy": "Common Shares",
-      "expiration": "N/A",
-      "dte": 0,
-      "long_strike": null,
-      "short_strike": null,
-      "net_debit": null,
-      "stop_price": 755.5,
-      "tp1": 892.11,
-      "tp2": 931.13,
-      "shares": 7
     }
   },
   {
@@ -232,7 +196,7 @@
     "company_name": "GRAL",
     "sector": "HEALTHCARE",
     "sub_industry": "Unknown",
-    "entry_price": 105.52,
+    "entry_price": 108.29,
     "alpha_score": 80.2,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -242,9 +206,9 @@
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 3.49,
-      "adr_pct": 5.92,
-      "iv_rank": 49.3
+      "beta": 3.48,
+      "adr_pct": 5.94,
+      "iv_rank": 48.8
     },
     "structure": {
       "strategy": "High-Risk Bull Call Spread",
@@ -254,9 +218,9 @@
       "long_strike": 105.0,
       "short_strike": 125.0,
       "net_debit": 7.6,
-      "stop_price": 97.61,
-      "tp1": 121.35,
-      "tp2": 131.9,
+      "stop_price": 100.17,
+      "tp1": 124.53,
+      "tp2": 135.36,
       "shares": null
     }
   },
@@ -271,7 +235,7 @@
     "company_name": "RIOT",
     "sector": "CRYPTO",
     "sub_industry": "Unknown",
-    "entry_price": 25.28,
+    "entry_price": 24.92,
     "alpha_score": 80.2,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -282,8 +246,8 @@
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 3.29,
-      "adr_pct": 6.45,
-      "iv_rank": 48.4
+      "adr_pct": 6.46,
+      "iv_rank": 47.7
     },
     "structure": {
       "strategy": "High-Risk Bull Call Spread",
@@ -293,9 +257,9 @@
       "long_strike": 25.0,
       "short_strike": 30.0,
       "net_debit": 1.9,
-      "stop_price": 23.38,
-      "tp1": 29.07,
-      "tp2": 31.6,
+      "stop_price": 23.05,
+      "tp1": 28.66,
+      "tp2": 31.15,
       "shares": null
     }
   },
@@ -310,7 +274,7 @@
     "company_name": "CRCL",
     "sector": "HEALTHCARE",
     "sub_industry": "Unknown",
-    "entry_price": 93.79,
+    "entry_price": 93.61,
     "alpha_score": 80.2,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -321,7 +285,7 @@
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 2.89,
-      "adr_pct": 6.9,
+      "adr_pct": 6.93,
       "iv_rank": 49.3
     },
     "structure": {
@@ -332,9 +296,9 @@
       "long_strike": 90.0,
       "short_strike": 110.0,
       "net_debit": 7.6,
-      "stop_price": 86.76,
-      "tp1": 107.86,
-      "tp2": 117.24,
+      "stop_price": 86.59,
+      "tp1": 107.65,
+      "tp2": 117.01,
       "shares": null
     }
   },
@@ -349,7 +313,7 @@
     "company_name": "CRWD",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 247.91,
+    "entry_price": 246.46,
     "alpha_score": 80.2,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -359,21 +323,21 @@
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 2.48,
+      "beta": 2.49,
       "adr_pct": 5.8,
-      "iv_rank": 95.8
+      "iv_rank": 96.0
     },
     "structure": {
       "strategy": "High-Risk Bull Call Spread",
-      "contract": "Nov 20 $245/$295 Call Spread",
+      "contract": "Nov 20 $240/$290 Call Spread",
       "expiration": "2026-11-20",
       "dte": 59,
-      "long_strike": 245.0,
-      "short_strike": 295.0,
+      "long_strike": 240.0,
+      "short_strike": 290.0,
       "net_debit": 19.0,
-      "stop_price": 229.32,
-      "tp1": 285.1,
-      "tp2": 309.89,
+      "stop_price": 227.98,
+      "tp1": 283.43,
+      "tp2": 308.07,
       "shares": null
     }
   },
@@ -388,7 +352,7 @@
     "company_name": "PANW",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 367.43,
+    "entry_price": 366.76,
     "alpha_score": 80.2,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -400,7 +364,7 @@
       "market_structure": "BULLISH_HH_HL",
       "beta": 2.06,
       "adr_pct": 5.01,
-      "iv_rank": 97.0
+      "iv_rank": 97.1
     },
     "structure": {
       "strategy": "High-Risk Bull Call Spread",
@@ -410,9 +374,9 @@
       "long_strike": 360.0,
       "short_strike": 435.0,
       "net_debit": 28.5,
-      "stop_price": 339.87,
-      "tp1": 422.54,
-      "tp2": 459.29,
+      "stop_price": 339.25,
+      "tp1": 421.77,
+      "tp2": 458.45,
       "shares": null
     }
   },
@@ -427,7 +391,7 @@
     "company_name": "NET",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 351.46,
+    "entry_price": 350.54,
     "alpha_score": 80.2,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -439,7 +403,7 @@
       "market_structure": "BULLISH_HH_HL",
       "beta": 1.82,
       "adr_pct": 5.39,
-      "iv_rank": 53.8
+      "iv_rank": 53.9
     },
     "structure": {
       "strategy": "High-Risk Bull Call Spread",
@@ -449,9 +413,9 @@
       "long_strike": 345.0,
       "short_strike": 415.0,
       "net_debit": 26.6,
-      "stop_price": 325.1,
-      "tp1": 404.18,
-      "tp2": 439.32,
+      "stop_price": 324.25,
+      "tp1": 403.12,
+      "tp2": 438.18,
       "shares": null
     }
   },
@@ -505,7 +469,7 @@
     "company_name": "HPE",
     "sector": "TECH CORE",
     "sub_industry": "Unknown",
-    "entry_price": 61.19,
+    "entry_price": 61.13,
     "alpha_score": 80.2,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -516,8 +480,8 @@
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 2.91,
-      "adr_pct": 5.55,
-      "iv_rank": 71.5
+      "adr_pct": 5.57,
+      "iv_rank": 71.6
     },
     "structure": {
       "strategy": "High-Risk Bull Call Spread",
@@ -527,9 +491,9 @@
       "long_strike": 60.0,
       "short_strike": 70.0,
       "net_debit": 3.8,
-      "stop_price": 56.6,
-      "tp1": 70.37,
-      "tp2": 76.49,
+      "stop_price": 56.55,
+      "tp1": 70.3,
+      "tp2": 76.41,
       "shares": null
     }
   },
@@ -544,7 +508,7 @@
     "company_name": "CDNS",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 296.86,
+    "entry_price": 296.92,
     "alpha_score": 80.2,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -566,10 +530,82 @@
       "long_strike": 290.0,
       "short_strike": 350.0,
       "net_debit": 22.8,
-      "stop_price": 274.6,
-      "tp1": 341.39,
-      "tp2": 371.08,
+      "stop_price": 274.65,
+      "tp1": 341.46,
+      "tp2": 371.15,
       "shares": null
+    }
+  },
+  {
+    "id": "2026-09-22_AAPL_BALANCED_SWING_EQUITY",
+    "date": "2026-09-22",
+    "asset_type": "EQUITY",
+    "category": "BALANCED_SWING",
+    "ticker": "AAPL",
+    "company_name": "AAPL",
+    "sector": "TECH CORE",
+    "sub_industry": "Unknown",
+    "entry_price": 342.97,
+    "alpha_score": 80.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 69.02,
+      "macd_hist": 0.0,
+      "rvol": 0.32,
+      "retrace_type": "EMA50",
+      "reclaim_days": 2,
+      "market_structure": "BULLISH_HH_HL",
+      "beta": 0.05,
+      "adr_pct": 2.21,
+      "iv_rank": 40.0
+    },
+    "structure": {
+      "strategy": "Common Shares",
+      "expiration": "N/A",
+      "dte": 0,
+      "long_strike": null,
+      "short_strike": null,
+      "net_debit": null,
+      "stop_price": 313.09,
+      "tp1": 417.67,
+      "tp2": 447.55,
+      "shares": 15
+    }
+  },
+  {
+    "id": "2026-09-22_REGN_BALANCED_SWING_EQUITY",
+    "date": "2026-09-22",
+    "asset_type": "EQUITY",
+    "category": "BALANCED_SWING",
+    "ticker": "REGN",
+    "company_name": "REGN",
+    "sector": "HEALTHCARE",
+    "sub_industry": "Unknown",
+    "entry_price": 800.53,
+    "alpha_score": 79.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 52.82,
+      "macd_hist": 0.0,
+      "rvol": 0.09,
+      "retrace_type": "DB",
+      "reclaim_days": 2,
+      "market_structure": "BULLISH_HH_HL",
+      "beta": 0.55,
+      "adr_pct": 2.2,
+      "iv_rank": 40.0
+    },
+    "structure": {
+      "strategy": "Common Shares",
+      "expiration": "N/A",
+      "dte": 0,
+      "long_strike": null,
+      "short_strike": null,
+      "net_debit": null,
+      "stop_price": 755.73,
+      "tp1": 912.53,
+      "tp2": 957.33,
+      "shares": 7
     }
   },
   {
@@ -581,13 +617,13 @@
     "company_name": "META",
     "sector": "COMM SERVICES",
     "sub_industry": "Unknown",
-    "entry_price": 750.75,
+    "entry_price": 748.91,
     "alpha_score": 78.0,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 78.82,
+      "rsi": 78.63,
       "macd_hist": 0.0,
-      "rvol": 0.55,
+      "rvol": 0.63,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
       "market_structure": "CONSOLIDATION_BASE",
@@ -602,9 +638,9 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 679.43,
-      "tp1": 929.05,
-      "tp2": 1000.37,
+      "stop_price": 677.76,
+      "tp1": 926.78,
+      "tp2": 997.93,
       "shares": 6
     }
   },
@@ -617,13 +653,13 @@
     "company_name": "ANET",
     "sector": "TECH CORE",
     "sub_industry": "Unknown",
-    "entry_price": 205.41,
+    "entry_price": 204.46,
     "alpha_score": 77.0,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 59.84,
+      "rsi": 58.93,
       "macd_hist": 0.0,
-      "rvol": 0.19,
+      "rvol": 0.23,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
       "market_structure": "BULLISH_HH_HL",
@@ -638,9 +674,9 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 188.98,
-      "tp1": 241.56,
-      "tp2": 262.91,
+      "stop_price": 188.1,
+      "tp1": 240.45,
+      "tp2": 261.72,
       "shares": 29
     }
   },
@@ -655,7 +691,7 @@
     "company_name": "ANET",
     "sector": "TECH CORE",
     "sub_industry": "Unknown",
-    "entry_price": 205.41,
+    "entry_price": 204.46,
     "alpha_score": 77.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -676,10 +712,10 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 190.0,
+      "stop_price": 189.13,
       "tp0_5": 0.0,
-      "tp1": 239.31,
-      "tp2": 259.35,
+      "tp1": 238.19,
+      "tp2": 258.12,
       "shares": 29
     }
   },
@@ -717,6 +753,42 @@
       "tp1": 31.34,
       "tp2": 32.0,
       "shares": 202
+    }
+  },
+  {
+    "id": "2026-09-22_TECH_BALANCED_SWING_EQUITY",
+    "date": "2026-09-22",
+    "asset_type": "EQUITY",
+    "category": "BALANCED_SWING",
+    "ticker": "TECH",
+    "company_name": "TECH",
+    "sector": "HEALTHCARE",
+    "sub_industry": "Unknown",
+    "entry_price": 72.53,
+    "alpha_score": 76.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 64.29,
+      "macd_hist": 0.0,
+      "rvol": 0.69,
+      "retrace_type": "DB",
+      "reclaim_days": 2,
+      "market_structure": "BULLISH_HH_HL",
+      "beta": 0.04,
+      "adr_pct": 0.22,
+      "iv_rank": 40.0
+    },
+    "structure": {
+      "strategy": "Common Shares",
+      "expiration": "N/A",
+      "dte": 0,
+      "long_strike": null,
+      "short_strike": null,
+      "net_debit": null,
+      "stop_price": 69.18,
+      "tp1": 80.91,
+      "tp2": 84.25,
+      "shares": 82
     }
   },
   {
@@ -767,13 +839,13 @@
     "company_name": "SPY",
     "sector": "INDEX",
     "sub_industry": "Unknown",
-    "entry_price": 773.56,
+    "entry_price": 773.44,
     "alpha_score": 75.0,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 58.47,
+      "rsi": 58.37,
       "macd_hist": 0.0,
-      "rvol": 0.16,
+      "rvol": 0.21,
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
@@ -789,8 +861,8 @@
       "short_strike": null,
       "net_debit": null,
       "stop_price": 695.67,
-      "tp1": 966.95,
-      "tp2": 1160.34,
+      "tp1": 966.8,
+      "tp2": 1160.16,
       "shares": 6
     }
   },
@@ -803,13 +875,13 @@
     "company_name": "QQQ",
     "sector": "INDEX",
     "sub_industry": "Unknown",
-    "entry_price": 745.73,
+    "entry_price": 744.77,
     "alpha_score": 75.0,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 67.33,
+      "rsi": 66.97,
       "macd_hist": 0.0,
-      "rvol": 0.24,
+      "rvol": 0.35,
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
@@ -824,9 +896,9 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 643.9,
-      "tp1": 932.16,
-      "tp2": 1118.6,
+      "stop_price": 643.89,
+      "tp1": 930.96,
+      "tp2": 1117.15,
       "shares": 4
     }
   },
@@ -839,18 +911,18 @@
     "company_name": "RSP",
     "sector": "INDEX",
     "sub_industry": "Unknown",
-    "entry_price": 212.51,
+    "entry_price": 212.55,
     "alpha_score": 75.0,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 37.43,
+      "rsi": 37.52,
       "macd_hist": 0.0,
-      "rvol": 0.34,
+      "rvol": 0.43,
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 0.55,
-      "adr_pct": 0.71,
+      "adr_pct": 0.72,
       "iv_rank": 40.0
     },
     "structure": {
@@ -861,8 +933,8 @@
       "short_strike": null,
       "net_debit": null,
       "stop_price": 198.9,
-      "tp1": 265.64,
-      "tp2": 318.76,
+      "tp1": 265.69,
+      "tp2": 318.83,
       "shares": 28
     }
   },
@@ -875,18 +947,18 @@
     "company_name": "IWM",
     "sector": "INDEX",
     "sub_industry": "Unknown",
-    "entry_price": 287.19,
+    "entry_price": 286.41,
     "alpha_score": 75.0,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 41.63,
+      "rsi": 39.89,
       "macd_hist": 0.0,
-      "rvol": 0.33,
+      "rvol": 0.43,
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 0.86,
-      "adr_pct": 0.98,
+      "adr_pct": 0.99,
       "iv_rank": 40.0
     },
     "structure": {
@@ -897,8 +969,8 @@
       "short_strike": null,
       "net_debit": null,
       "stop_price": 266.96,
-      "tp1": 358.99,
-      "tp2": 430.78,
+      "tp1": 358.01,
+      "tp2": 429.62,
       "shares": 20
     }
   },
@@ -911,17 +983,17 @@
     "company_name": "IFF",
     "sector": "MATERIALS",
     "sub_industry": "Unknown",
-    "entry_price": 85.52,
+    "entry_price": 85.43,
     "alpha_score": 75.0,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 55.22,
+      "rsi": 54.91,
       "macd_hist": 0.0,
-      "rvol": 0.09,
+      "rvol": 0.17,
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 0.46,
+      "beta": 0.45,
       "adr_pct": 1.79,
       "iv_rank": 40.0
     },
@@ -933,9 +1005,9 @@
       "short_strike": null,
       "net_debit": null,
       "stop_price": 73.29,
-      "tp1": 106.9,
-      "tp2": 128.28,
-      "shares": 40
+      "tp1": 106.79,
+      "tp2": 128.15,
+      "shares": 41
     }
   },
   {
@@ -949,7 +1021,7 @@
     "company_name": "MRNA",
     "sector": "HEALTHCARE",
     "sub_industry": "Unknown",
-    "entry_price": 181.68,
+    "entry_price": 183.9,
     "alpha_score": 75.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -959,8 +1031,8 @@
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 3.83,
-      "adr_pct": 7.22,
+      "beta": 3.82,
+      "adr_pct": 7.26,
       "iv_rank": 50.0
     },
     "structure": {
@@ -970,11 +1042,11 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 168.05,
+      "stop_price": 170.11,
       "tp0_5": 0.0,
-      "tp1": 211.67,
-      "tp2": 229.39,
-      "shares": 33
+      "tp1": 214.24,
+      "tp2": 232.17,
+      "shares": 32
     }
   },
   {
@@ -986,19 +1058,19 @@
     "company_name": "HOOD",
     "sector": "FINANCIALS",
     "sub_industry": "Unknown",
-    "entry_price": 123.39,
+    "entry_price": 124.17,
     "alpha_score": 72.2,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 62.37,
+      "rsi": 62.89,
       "macd_hist": 0.0,
-      "rvol": 0.23,
+      "rvol": 0.29,
       "retrace_type": "DB",
       "reclaim_days": 2,
       "market_structure": "BULLISH_HH_HL",
       "beta": 3.12,
       "adr_pct": 5.44,
-      "iv_rank": 75.1
+      "iv_rank": 75.0
     },
     "structure": {
       "strategy": "Bull Call Spread (45-60 DTE)",
@@ -1006,10 +1078,10 @@
       "dte": 75,
       "long_strike": 120.0,
       "short_strike": 175.0,
-      "net_debit": 11.85,
-      "stop_price": 103.83,
-      "tp1": 172.29,
-      "tp2": 191.85,
+      "net_debit": 11.15,
+      "stop_price": 103.86,
+      "tp1": 174.94,
+      "tp2": 195.25,
       "shares": null
     }
   },
@@ -1024,7 +1096,7 @@
     "company_name": "GRAL",
     "sector": "HEALTHCARE",
     "sub_industry": "Unknown",
-    "entry_price": 105.52,
+    "entry_price": 108.29,
     "alpha_score": 71.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1034,8 +1106,8 @@
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 3.49,
-      "adr_pct": 5.92,
+      "beta": 3.48,
+      "adr_pct": 5.94,
       "iv_rank": 50.0
     },
     "structure": {
@@ -1045,11 +1117,11 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 97.61,
+      "stop_price": 100.17,
       "tp0_5": 0.0,
-      "tp1": 122.92,
-      "tp2": 133.2,
-      "shares": 56
+      "tp1": 126.15,
+      "tp2": 136.71,
+      "shares": 55
     }
   },
   {
@@ -1063,7 +1135,7 @@
     "company_name": "TEM",
     "sector": "HEALTHCARE",
     "sub_industry": "Unknown",
-    "entry_price": 77.72,
+    "entry_price": 78.33,
     "alpha_score": 71.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1084,11 +1156,11 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 71.89,
+      "stop_price": 72.46,
       "tp0_5": 0.0,
-      "tp1": 90.55,
-      "tp2": 98.12,
-      "shares": 77
+      "tp1": 91.24,
+      "tp2": 98.88,
+      "shares": 76
     }
   },
   {
@@ -1102,7 +1174,7 @@
     "company_name": "PLTR",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 183.32,
+    "entry_price": 182.95,
     "alpha_score": 71.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1112,8 +1184,8 @@
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 2.78,
-      "adr_pct": 3.78,
+      "beta": 2.79,
+      "adr_pct": 3.8,
       "iv_rank": 50.0
     },
     "structure": {
@@ -1123,10 +1195,10 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 169.57,
+      "stop_price": 169.23,
       "tp0_5": 0.0,
-      "tp1": 213.57,
-      "tp2": 231.44,
+      "tp1": 213.13,
+      "tp2": 230.97,
       "shares": 32
     }
   },
@@ -1141,7 +1213,7 @@
     "company_name": "ELF",
     "sector": "CONSUMER STAPLES",
     "sub_industry": "Unknown",
-    "entry_price": 100.75,
+    "entry_price": 100.3,
     "alpha_score": 71.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1162,11 +1234,47 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 93.19,
+      "stop_price": 92.78,
       "tp0_5": 0.0,
-      "tp1": 117.38,
-      "tp2": 127.21,
+      "tp1": 116.84,
+      "tp2": 126.62,
       "shares": 59
+    }
+  },
+  {
+    "id": "2026-09-22_DOCU_CORE_ACCUMULATION_LEAPS",
+    "date": "2026-09-22",
+    "asset_type": "OPTION",
+    "category": "CORE_ACCUMULATION",
+    "ticker": "DOCU",
+    "company_name": "DOCU",
+    "sector": "TECH SOFTWARE",
+    "sub_industry": "Unknown",
+    "entry_price": 66.65,
+    "alpha_score": 70.5,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 54.03,
+      "macd_hist": 0.0,
+      "rvol": 0.21,
+      "retrace_type": "Stage2_Stack",
+      "reclaim_days": 1,
+      "market_structure": "BULLISH_HH_HL",
+      "beta": 0.24,
+      "adr_pct": 4.04,
+      "iv_rank": 49.9
+    },
+    "structure": {
+      "strategy": "Deep-ITM Call LEAPS",
+      "expiration": "2028-01-21",
+      "dte": 502,
+      "long_strike": 50.0,
+      "short_strike": null,
+      "net_debit": 21.98,
+      "stop_price": 52.07,
+      "tp1": 98.73,
+      "tp2": 117.68,
+      "shares": null
     }
   },
   {
@@ -1180,7 +1288,7 @@
     "company_name": "HPE",
     "sector": "TECH CORE",
     "sub_industry": "Unknown",
-    "entry_price": 61.19,
+    "entry_price": 61.13,
     "alpha_score": 67.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1191,7 +1299,7 @@
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 2.91,
-      "adr_pct": 5.55,
+      "adr_pct": 5.57,
       "iv_rank": 50.0
     },
     "structure": {
@@ -1201,10 +1309,10 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 56.6,
+      "stop_price": 56.55,
       "tp0_5": 0.0,
-      "tp1": 71.29,
-      "tp2": 77.25,
+      "tp1": 71.21,
+      "tp2": 77.16,
       "shares": 98
     }
   },
@@ -1219,7 +1327,7 @@
     "company_name": "DELL",
     "sector": "TECH CORE",
     "sub_industry": "Unknown",
-    "entry_price": 561.6,
+    "entry_price": 562.12,
     "alpha_score": 67.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1230,7 +1338,7 @@
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 3.73,
-      "adr_pct": 5.6,
+      "adr_pct": 5.61,
       "iv_rank": 50.0
     },
     "structure": {
@@ -1240,10 +1348,10 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 519.48,
+      "stop_price": 519.96,
       "tp0_5": 0.0,
-      "tp1": 654.26,
-      "tp2": 709.02,
+      "tp1": 654.87,
+      "tp2": 709.68,
       "shares": 10
     }
   },
@@ -1258,7 +1366,7 @@
     "company_name": "CRWD",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 247.91,
+    "entry_price": 246.46,
     "alpha_score": 67.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1268,7 +1376,7 @@
       "retrace_type": "EMA50",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 2.48,
+      "beta": 2.49,
       "adr_pct": 5.8,
       "iv_rank": 50.0
     },
@@ -1279,10 +1387,10 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 229.32,
+      "stop_price": 227.98,
       "tp0_5": 0.0,
-      "tp1": 288.81,
-      "tp2": 312.98,
+      "tp1": 287.12,
+      "tp2": 311.14,
       "shares": 24
     }
   },
@@ -1336,7 +1444,7 @@
     "company_name": "GNRC",
     "sector": "INDUSTRIALS",
     "sub_industry": "Unknown",
-    "entry_price": 205.71,
+    "entry_price": 206.9,
     "alpha_score": 67.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1347,7 +1455,7 @@
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 2.22,
-      "adr_pct": 4.29,
+      "adr_pct": 4.36,
       "iv_rank": 50.0
     },
     "structure": {
@@ -1357,11 +1465,11 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 190.28,
+      "stop_price": 191.38,
       "tp0_5": 0.0,
-      "tp1": 239.66,
-      "tp2": 259.72,
-      "shares": 29
+      "tp1": 241.04,
+      "tp2": 261.22,
+      "shares": 28
     }
   },
   {
@@ -1373,13 +1481,13 @@
     "company_name": "MSTR",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 169.34,
+    "entry_price": 168.96,
     "alpha_score": 66.2,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 71.16,
+      "rsi": 71.05,
       "macd_hist": 0.0,
-      "rvol": 0.36,
+      "rvol": 0.42,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
       "market_structure": "NEUTRAL",
@@ -1393,10 +1501,10 @@
       "dte": 75,
       "long_strike": 165.0,
       "short_strike": 290.0,
-      "net_debit": 17.28,
-      "stop_price": 121.73,
-      "tp1": 288.37,
-      "tp2": 335.98,
+      "net_debit": 15.66,
+      "stop_price": 121.72,
+      "tp1": 287.06,
+      "tp2": 334.3,
       "shares": null
     }
   },
@@ -1409,30 +1517,30 @@
     "company_name": "GEN",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 28.15,
+    "entry_price": 27.97,
     "alpha_score": 65.5,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 40.54,
+      "rsi": 39.62,
       "macd_hist": 0.0,
-      "rvol": 0.15,
+      "rvol": 0.21,
       "retrace_type": "Stage2_Stack",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 0.66,
-      "adr_pct": 2.8,
-      "iv_rank": 43.3
+      "beta": 0.67,
+      "adr_pct": 2.83,
+      "iv_rank": 45.1
     },
     "structure": {
       "strategy": "Deep-ITM Call LEAPS",
       "expiration": "2028-01-21",
       "dte": 502,
-      "long_strike": 22.5,
+      "long_strike": 20.0,
       "short_strike": null,
-      "net_debit": 7.9,
+      "net_debit": 10.21,
       "stop_price": 24.06,
-      "tp1": 37.15,
-      "tp2": 42.46,
+      "tp1": 36.57,
+      "tp2": 41.66,
       "shares": null
     }
   },
@@ -1445,19 +1553,19 @@
     "company_name": "DT",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 56.23,
+    "entry_price": 55.95,
     "alpha_score": 64.5,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 65.58,
+      "rsi": 64.27,
       "macd_hist": 0.0,
-      "rvol": 0.08,
+      "rvol": 0.23,
       "retrace_type": "Stage2_Stack",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 0.65,
       "adr_pct": 3.1,
-      "iv_rank": 39.8
+      "iv_rank": 40.2
     },
     "structure": {
       "strategy": "Deep-ITM Call LEAPS",
@@ -1465,46 +1573,10 @@
       "dte": 502,
       "long_strike": 40.0,
       "short_strike": null,
-      "net_debit": 20.73,
+      "net_debit": 20.43,
       "stop_price": 40.76,
-      "tp1": 90.26,
-      "tp2": 110.38,
-      "shares": null
-    }
-  },
-  {
-    "id": "2026-09-22_DOCU_CORE_ACCUMULATION_LEAPS",
-    "date": "2026-09-22",
-    "asset_type": "OPTION",
-    "category": "CORE_ACCUMULATION",
-    "ticker": "DOCU",
-    "company_name": "DOCU",
-    "sector": "TECH SOFTWARE",
-    "sub_industry": "Unknown",
-    "entry_price": 66.52,
-    "alpha_score": 62.5,
-    "technical_snapshot": {
-      "ema50": 0.0,
-      "rsi": 53.69,
-      "macd_hist": 0.0,
-      "rvol": 0.15,
-      "retrace_type": "Stage2_Stack",
-      "reclaim_days": 1,
-      "market_structure": "BULLISH_HH_HL",
-      "beta": 0.24,
-      "adr_pct": 4.04,
-      "iv_rank": 50.3
-    },
-    "structure": {
-      "strategy": "Deep-ITM Call LEAPS",
-      "expiration": "2028-01-21",
-      "dte": 502,
-      "long_strike": 50.0,
-      "short_strike": null,
-      "net_debit": 21.84,
-      "stop_price": 52.07,
-      "tp1": 98.31,
-      "tp2": 117.09,
+      "tp1": 89.37,
+      "tp2": 109.12,
       "shares": null
     }
   },
@@ -1553,19 +1625,19 @@
     "company_name": "QRVO",
     "sector": "TECH SEMIS",
     "sub_industry": "Unknown",
-    "entry_price": 117.43,
+    "entry_price": 117.96,
     "alpha_score": 62.5,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 65.56,
+      "rsi": 66.02,
       "macd_hist": 0.0,
-      "rvol": 0.08,
+      "rvol": 0.14,
       "retrace_type": "Stage2_Stack",
       "reclaim_days": 1,
       "market_structure": "BULLISH_HH_HL",
       "beta": 1.03,
       "adr_pct": 4.11,
-      "iv_rank": 89.7
+      "iv_rank": 89.6
     },
     "structure": {
       "strategy": "Deep-ITM Call LEAPS",
@@ -1573,10 +1645,10 @@
       "dte": 502,
       "long_strike": 90.0,
       "short_strike": null,
-      "net_debit": 36.82,
-      "stop_price": 86.77,
-      "tp1": 184.88,
-      "tp2": 224.74,
+      "net_debit": 37.4,
+      "stop_price": 86.78,
+      "tp1": 186.56,
+      "tp2": 227.09,
       "shares": null
     }
   },
@@ -1653,6 +1725,42 @@
     }
   },
   {
+    "id": "2026-09-22_REGN_BALANCED_SWING_BCS",
+    "date": "2026-09-22",
+    "asset_type": "OPTION",
+    "category": "BALANCED_SWING",
+    "ticker": "REGN",
+    "company_name": "REGN",
+    "sector": "HEALTHCARE",
+    "sub_industry": "Unknown",
+    "entry_price": 800.53,
+    "alpha_score": 57.2,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 52.82,
+      "macd_hist": 0.0,
+      "rvol": 0.09,
+      "retrace_type": "DB",
+      "reclaim_days": 2,
+      "market_structure": "BULLISH_HH_HL",
+      "beta": 0.55,
+      "adr_pct": 2.2,
+      "iv_rank": 18.2
+    },
+    "structure": {
+      "strategy": "Bull Call Spread (45-60 DTE)",
+      "expiration": "2026-11-20",
+      "dte": 75,
+      "long_strike": 800.0,
+      "short_strike": 975.0,
+      "net_debit": 66.5,
+      "stop_price": 736.49,
+      "tp1": 960.63,
+      "tp2": 1024.67,
+      "shares": null
+    }
+  },
+  {
     "id": "2026-09-22_PLTR_BALANCED_SWING_BCS",
     "date": "2026-09-22",
     "asset_type": "OPTION",
@@ -1685,6 +1793,42 @@
       "stop_price": 160.77,
       "tp1": 236.09,
       "tp2": 257.61,
+      "shares": null
+    }
+  },
+  {
+    "id": "2026-09-22_SMCI_BALANCED_SWING_BCS",
+    "date": "2026-09-22",
+    "asset_type": "OPTION",
+    "category": "BALANCED_SWING",
+    "ticker": "SMCI",
+    "company_name": "SMCI",
+    "sector": "TECH CORE",
+    "sub_industry": "Unknown",
+    "entry_price": 40.76,
+    "alpha_score": 56.2,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 58.38,
+      "macd_hist": 0.0,
+      "rvol": 0.27,
+      "retrace_type": "DB",
+      "reclaim_days": 2,
+      "market_structure": "CONSOLIDATION_BASE",
+      "beta": 3.27,
+      "adr_pct": 5.15,
+      "iv_rank": 29.9
+    },
+    "structure": {
+      "strategy": "Bull Call Spread (45-60 DTE)",
+      "expiration": "2026-11-20",
+      "dte": 75,
+      "long_strike": 40.0,
+      "short_strike": 57.5,
+      "net_debit": 3.6,
+      "stop_price": 35.01,
+      "tp1": 55.13,
+      "tp2": 60.88,
       "shares": null
     }
   },
@@ -1733,19 +1877,19 @@
     "company_name": "WAT",
     "sector": "HEALTHCARE",
     "sub_industry": "Unknown",
-    "entry_price": 426.18,
+    "entry_price": 429.64,
     "alpha_score": 46.2,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 61.57,
+      "rsi": 63.43,
       "macd_hist": 0.0,
-      "rvol": 0.04,
+      "rvol": 0.21,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 0.94,
-      "adr_pct": 2.38,
-      "iv_rank": 10.5
+      "beta": 0.93,
+      "adr_pct": 2.42,
+      "iv_rank": 11.2
     },
     "structure": {
       "strategy": "Bull Call Spread (45-60 DTE)",
@@ -1753,10 +1897,10 @@
       "dte": 75,
       "long_strike": 420.0,
       "short_strike": 520.0,
-      "net_debit": 25.9,
-      "stop_price": 392.09,
-      "tp1": 511.41,
-      "tp2": 545.5,
+      "net_debit": 27.05,
+      "stop_price": 393.68,
+      "tp1": 519.54,
+      "tp2": 555.5,
       "shares": null
     }
   },
@@ -1769,7 +1913,7 @@
     "company_name": "IP",
     "sector": "MATERIALS",
     "sub_industry": "Unknown",
-    "entry_price": 35.69,
+    "entry_price": 35.62,
     "alpha_score": 0.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1790,9 +1934,9 @@
       "long_strike": 37.5,
       "short_strike": 32.5,
       "net_debit": 1.9,
-      "stop_price": 36.76,
-      "tp1": 31.41,
-      "tp2": 29.27,
+      "stop_price": 36.69,
+      "tp1": 31.35,
+      "tp2": 29.21,
       "shares": null
     }
   },
@@ -1805,7 +1949,7 @@
     "company_name": "RCL",
     "sector": "CONSUMER DISC",
     "sub_industry": "Unknown",
-    "entry_price": 255.38,
+    "entry_price": 254.17,
     "alpha_score": 0.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1826,9 +1970,9 @@
       "long_strike": 260.0,
       "short_strike": 220.0,
       "net_debit": 15.2,
-      "stop_price": 263.04,
-      "tp1": 224.73,
-      "tp2": 209.41,
+      "stop_price": 261.8,
+      "tp1": 223.67,
+      "tp2": 208.42,
       "shares": null
     }
   },
@@ -1949,7 +2093,7 @@
     "company_name": "SPGI",
     "sector": "FINANCIALS",
     "sub_industry": "Unknown",
-    "entry_price": 402.72,
+    "entry_price": 404.28,
     "alpha_score": 0.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1968,11 +2112,11 @@
       "expiration": "N/A",
       "dte": 45,
       "long_strike": 410.0,
-      "short_strike": 350.0,
-      "net_debit": 22.8,
-      "stop_price": 414.8,
-      "tp1": 354.39,
-      "tp2": 330.23,
+      "short_strike": 360.0,
+      "net_debit": 13.48,
+      "stop_price": 416.41,
+      "tp1": 355.77,
+      "tp2": 331.51,
       "shares": null
     }
   },
@@ -2009,6 +2153,78 @@
       "stop_price": 536.9,
       "tp1": 458.71,
       "tp2": 427.43,
+      "shares": null
+    }
+  },
+  {
+    "id": "2026-09-22_PHM_DOWNSIDE_HEDGE_BPS",
+    "date": "2026-09-22",
+    "asset_type": "OPTION",
+    "category": "DOWNSIDE_HEDGE",
+    "ticker": "PHM",
+    "company_name": "PHM",
+    "sector": "CONSUMER DISC",
+    "sub_industry": "Unknown",
+    "entry_price": 120.89,
+    "alpha_score": 0.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 0.0,
+      "macd_hist": 0.0,
+      "rvol": 1.0,
+      "retrace_type": "Resistance_Rejection",
+      "reclaim_days": 0,
+      "market_structure": "BEARISH_LH_LL",
+      "beta": 1.0,
+      "adr_pct": 2.0,
+      "iv_rank": 60.0
+    },
+    "structure": {
+      "strategy": "Bear Put Spread",
+      "expiration": "N/A",
+      "dte": 45,
+      "long_strike": 125.0,
+      "short_strike": 105.0,
+      "net_debit": 1.62,
+      "stop_price": 124.52,
+      "tp1": 106.38,
+      "tp2": 99.13,
+      "shares": null
+    }
+  },
+  {
+    "id": "2026-09-22_ICE_DOWNSIDE_HEDGE_BPS",
+    "date": "2026-09-22",
+    "asset_type": "OPTION",
+    "category": "DOWNSIDE_HEDGE",
+    "ticker": "ICE",
+    "company_name": "ICE",
+    "sector": "FINANCIALS",
+    "sub_industry": "Unknown",
+    "entry_price": 153.49,
+    "alpha_score": 0.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 0.0,
+      "macd_hist": 0.0,
+      "rvol": 1.0,
+      "retrace_type": "Resistance_Rejection",
+      "reclaim_days": 0,
+      "market_structure": "BEARISH_LH_LL",
+      "beta": 1.0,
+      "adr_pct": 2.0,
+      "iv_rank": 60.0
+    },
+    "structure": {
+      "strategy": "Bear Put Spread",
+      "expiration": "N/A",
+      "dte": 45,
+      "long_strike": 155.0,
+      "short_strike": 135.0,
+      "net_debit": 7.6,
+      "stop_price": 158.09,
+      "tp1": 135.07,
+      "tp2": 125.86,
       "shares": null
     }
   },
