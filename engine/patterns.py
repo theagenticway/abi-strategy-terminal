@@ -57,7 +57,7 @@ def detect_retrace_pattern(close, high, low, ema50, sma150) -> tuple:
     if cur_sma150 > 0 and abs(cur_close - cur_sma150) / cur_sma150 <= 0.03:
         return "MA150", cur_sma150
 
-    return "EMA50", cur_ema50
+    return "EXTENDED", cur_ema50
 
 def calculate_reclaim_velocity(close: pd.Series, ema50: pd.Series) -> tuple:
     """
@@ -84,10 +84,12 @@ def calculate_reclaim_velocity(close: pd.Series, ema50: pd.Series) -> tuple:
             break
             
     if not found_dip:
-        reclaim_days = 2 if cur_above else 5
-
-    bounce_state = "BOUNCED" if (cur_above and reclaim_days <= 3) else ("ABOVE" if cur_above else "BELOW")
-    is_confirmed = bool(cur_above and reclaim_days <= 3)
+        reclaim_days = 15
+        bounce_state = "EXTENDED_ABOVE" if cur_above else "BELOW"
+        is_confirmed = False
+    else:
+        bounce_state = "BOUNCED" if (cur_above and reclaim_days <= 3) else ("ABOVE" if cur_above else "BELOW")
+        is_confirmed = bool(cur_above and reclaim_days <= 3)
     
     return reclaim_days, is_confirmed, bounce_state
 

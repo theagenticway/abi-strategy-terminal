@@ -26,6 +26,8 @@ def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
     
     rs = avg_gain / avg_loss.replace(0, np.nan)
     rsi = 100 - (100 / (1 + rs))
+    rsi = rsi.where(~((avg_loss == 0) & (avg_gain > 0)), 100.0)
+    rsi = rsi.where(~((avg_loss == 0) & (avg_gain == 0)), 50.0)
     return rsi.fillna(50.0)
 
 def calculate_macd(series: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9):
@@ -77,7 +79,7 @@ def calculate_beta(ticker_returns: pd.Series, spy_returns: pd.Series, window: in
         return 1.0
     try:
         cov = np.cov(combined.iloc[:, 0], combined.iloc[:, 1])[0][1]
-        var_spy = np.var(combined.iloc[:, 1])
+        var_spy = np.var(combined.iloc[:, 1], ddof=1)
         if var_spy == 0 or np.isnan(cov) or np.isnan(var_spy):
             return 1.0
         return round(float(cov / var_spy), 2)
@@ -85,7 +87,7 @@ def calculate_beta(ticker_returns: pd.Series, spy_returns: pd.Series, window: in
         return 1.0
 
 
-def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, lookback: int = 60) -> dict:
+def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, lookback: int = 60, ema50: pd.Series = None) -> dict:
     """
     Analyzes Dow Theory market structure across rolling swing pivots:
     - Identifies recent swing highs and swing lows.
@@ -96,6 +98,7 @@ def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, 
     - Checks Structural Higher Low confirmation: Is current bounce floor higher than prior swing low?
     - Calculates Overhead Resistance Runway %: Distance to nearest overhead prior swing high.
     - Checks Break of Structure (BOS): Did recent price break above the previous swing high?
+    - 50 EMA Guardrail: Stocks trading above the 50 EMA are prevented from false BEARISH_LH_LL classification.
     """
     if high is None or low is None or close is None or len(close) < 15:
         return {
@@ -115,6 +118,16 @@ def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, 
     c = close.tail(lookback).values if hasattr(close, "values") else np.array(close)
     n = len(c)
     current_price = float(c[-1])
+
+    # Determine current 50 EMA for regime floor validation
+    cur_ema50 = None
+    if ema50 is not None:
+        cur_ema50 = float(ema50.iloc[-1] if hasattr(ema50, "iloc") else ema50)
+    elif len(close) >= 50:
+        try:
+            cur_ema50 = float(calculate_ema(close, 50).iloc[-1])
+        except Exception:
+            cur_ema50 = None
 
     swing_highs = []
     swing_lows = []
@@ -139,11 +152,28 @@ def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, 
 
     cur_support_floor = float(np.min(l[-5:])) if n >= 5 else current_price * 0.96
 
-    has_higher_high = bool(sh2 >= sh1 * 0.995)
-    has_higher_low = bool(cur_support_floor >= sl1 * 0.99)
-    
+    # Break of Structure (BOS): Recent close broken above previous swing high
     recent_max = float(np.max(c[-3:])) if n >= 3 else current_price
-    break_of_structure = bool(recent_max >= sh2 * 0.998)
+    break_of_structure = bool(recent_max >= sh2 * 0.998 or current_price >= sh2 * 0.998)
+
+    # Higher High detection:
+    # 1. Swing high sh2 >= sh1, OR
+    # 2. Breakout: Current price or recent_max has pushed through prior swing highs sh2 or sh1
+    has_higher_high = bool(
+        (sh2 >= sh1 * 0.995) or
+        break_of_structure or
+        (current_price >= sh2 * 0.998) or
+        (current_price >= sh1 * 0.998)
+    )
+
+    # Higher Low detection:
+    # 1. Swing low sl2 >= sl1 (ascending swing lows), OR
+    # 2. Recent support floor is holding above sl1 or sl2
+    has_higher_low = bool(
+        (sl2 >= sl1 * 0.99) or
+        (cur_support_floor >= sl1 * 0.99) or
+        (cur_support_floor >= sl2 * 0.99)
+    )
 
     overhead_targets = [sh for sh in [sh1, sh2] if sh > current_price]
     if overhead_targets:
@@ -152,10 +182,13 @@ def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, 
     else:
         overhead_runway = 999.0
 
-    # Leading-edge analysis for Day 0 / Day 1 breakout velocity (Item 2E)
+    # Leading-edge analysis for Day 0 / Day 1 breakout velocity
     recent_high = float(np.max(h[-2:])) if n >= 2 else current_price
-    is_emerging_hh = bool(recent_high > sh2 * 1.002)
+    is_emerging_hh = bool(recent_high > sh2 * 1.002 or current_price > sh2 * 1.002)
     is_emerging_hl = bool(cur_support_floor > sl2 * 0.998)
+
+    # 50 EMA Guardrail: A stock holding above its 50 EMA is not in a classical Downtrend (LH/LL)
+    is_above_ema50 = bool(cur_ema50 is not None and current_price >= cur_ema50 * 0.995)
 
     if has_higher_high and has_higher_low:
         regime = "BULLISH_HH_HL"
@@ -176,11 +209,30 @@ def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, 
             badge = "🟡 BASE BUILDING"
             status = "BASE_BUILDING"
             structure_score = 18.0
+    elif has_higher_high and not has_higher_low:
+        if is_above_ema50:
+            regime = "CONSOLIDATION_BASE"
+            badge = "🟡 BASE BUILDING"
+            status = "BASE_BUILDING"
+            structure_score = 18.0
+        else:
+            regime = "NEUTRAL"
+            badge = "⚪ NEUTRAL"
+            status = "NEUTRAL"
+            structure_score = 12.0
     elif not has_higher_low and not has_higher_high:
-        regime = "BEARISH_LH_LL"
-        badge = "🔴 LH/LL BEARISH"
-        status = "BEARISH_TRAP"
-        structure_score = 5.0
+        if is_above_ema50:
+            # Holding 50 EMA floor - Base Building / Consolidation, not a Downtrend
+            regime = "CONSOLIDATION_BASE"
+            badge = "🟡 BASE BUILDING"
+            status = "BASE_BUILDING"
+            structure_score = 18.0
+            has_higher_low = True
+        else:
+            regime = "BEARISH_LH_LL"
+            badge = "🔴 LH/LL BEARISH"
+            status = "BEARISH_TRAP"
+            structure_score = 5.0
     else:
         regime = "NEUTRAL"
         badge = "⚪ NEUTRAL"
@@ -313,7 +365,7 @@ def compute_technical_snapshot(df: pd.DataFrame, spy_returns: pd.Series = None) 
     d1_return = round(float(returns.iloc[-1] * 100), 2) if len(returns) > 1 and not np.isnan(returns.iloc[-1]) else 0.0
     d5_return = round(float(((close.iloc[-1] - close.iloc[-5]) / close.iloc[-5]) * 100), 2) if len(close) >= 5 and float(close.iloc[-5]) > 0 else 0.0
     d20_return = round(float(((close.iloc[-1] - close.iloc[-20]) / close.iloc[-20]) * 100), 2) if len(close) >= 20 and float(close.iloc[-20]) > 0 else 0.0
-    market_structure = analyze_market_structure(high, low, close)
+    market_structure = analyze_market_structure(high, low, close, lookback=60, ema50=ema50)
 
     return {
         "price": round(current_price, 2),

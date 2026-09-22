@@ -186,6 +186,40 @@ class TestNearMissWatchlist(unittest.TestCase):
         self.assertEqual(near_misses[1]["ticker"], "DAY3")
         self.assertEqual(near_misses[1]["reclaim_days"], 3)
 
+    def test_evaluate_gatekeepers_extended_reclaim_days(self):
+        # When a stock has been above 50 EMA for >15 days without dipping, reclaim_days is 15
+        gates = evaluate_gatekeepers(self.base_snapshot, reclaim_days=15, retrace_type="EMA50")
+        self.assertFalse(gates["reclaim_freshness"]["pass"])
+        self.assertEqual(gates["reclaim_freshness"]["current"], 15)
+        self.assertEqual(gates["reclaim_freshness"]["detail"], "Extended above 50 EMA (>15d)")
+
+    def test_evaluate_gatekeepers_extended_retrace_taxonomy(self):
+        # When a stock is overextended and does not fit EMA50, DB, or OTE
+        gates = evaluate_gatekeepers(self.base_snapshot, reclaim_days=2, retrace_type="EXTENDED")
+        self.assertFalse(gates["retrace_taxonomy"]["pass"])
+        self.assertEqual(gates["retrace_taxonomy"]["current"], "EXTENDED")
+        self.assertIn("EXTENDED", gates["retrace_taxonomy"]["detail"])
+
+    def test_evaluate_gatekeepers_macd_positive_expansion(self):
+        # When MACD hook is False but histogram has positive expansion (>0.05) and price > EMA50
+        snapshot_positive_macd = dict(self.base_snapshot)
+        snapshot_positive_macd["macd_hook_ok"] = False
+        snapshot_positive_macd["macd_crawling_up"] = False
+        snapshot_positive_macd["macd_hist"] = 0.45
+
+        gates = evaluate_gatekeepers(snapshot_positive_macd, reclaim_days=2, retrace_type="EMA50")
+        self.assertTrue(gates["macd_hook"]["pass"])
+
+    def test_evaluate_gatekeepers_dow_consolidation_base(self):
+        # Ticker holding 50 EMA with CONSOLIDATION_BASE passes Dow gate
+        snapshot_base = dict(self.base_snapshot)
+        snapshot_base["market_structure"] = {
+            "regime": "CONSOLIDATION_BASE",
+            "badge": "🟡 BASE BUILDING"
+        }
+        gates = evaluate_gatekeepers(snapshot_base, reclaim_days=1, retrace_type="EMA50")
+        self.assertTrue(gates["dow_market_structure"]["pass"])
+
 
 if __name__ == "__main__":
     unittest.main()

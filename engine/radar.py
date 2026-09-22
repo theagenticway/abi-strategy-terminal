@@ -118,8 +118,11 @@ def evaluate_gatekeepers(
     rsi_floor_ok = bool(rsi_val >= 45.0)
     rsi_margin = round(rsi_val - 45.0, 1)
 
-    # 6. MACD momentum hook
-    macd_ok = bool(snapshot.get("macd_hook_ok", snapshot.get("macd_crawling_up", True)))
+    # 6. MACD momentum hook (accelerating histogram or positive expansion)
+    macd_crawling_up = snapshot.get("macd_crawling_up", False)
+    macd_hook_ok = snapshot.get("macd_hook_ok", False)
+    macd_hist_val = float(snapshot.get("macd_hist", 0.0)) if snapshot.get("macd_hist") is not None else 0.0
+    macd_ok = bool(macd_hook_ok or macd_crawling_up or (macd_hist_val > 0.05 and p_above_ema50))
 
     # 7. Dow Theory Market Structure (not BEARISH_LH_LL)
     ms_regime = snapshot.get("market_structure", {}).get("regime", "NEUTRAL") if isinstance(snapshot.get("market_structure"), dict) else "NEUTRAL"
@@ -143,7 +146,7 @@ def evaluate_gatekeepers(
             "current": reclaim_days,
             "target": 3,
             "margin": reclaim_margin,
-            "detail": f"Day {reclaim_days} reclaim (needs ≤ 3)"
+            "detail": "Extended above 50 EMA (>15d)" if reclaim_days >= 15 else f"Day {reclaim_days} reclaim (needs ≤ 3)"
         },
         "retrace_taxonomy": {
             "pass": retrace_ok,

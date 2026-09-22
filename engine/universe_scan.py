@@ -189,6 +189,8 @@ def process_universe(raw_data=None, sample_date_str=None):
             trend_quality = "MODERATE — holding EMA21"
         elif abs(snapshot["ema50_dist_pct"]) <= 1.5:
             trend_quality = "AT EMA50 — bounce or break"
+        elif price >= snapshot["ema50"]:
+            trend_quality = "ABOVE EMA50 — holding Stage 2"
         elif price >= sma150:
             trend_quality = "BELOW EMA50 — MA150 support"
         else:

@@ -148,22 +148,29 @@ Measures capital commitment on support reclaims and breakouts: $$\text{RVOL} = \
       - DB: Double Bottom test within $1.5%$ of prior 20-day swing low.
       - OTE: Optimal Trade Entry (Fibonacci $61.8% - 78.6%$ retracement).
       - MA150: Deep cyclical retest of the 150-day moving average.
+      - EXTENDED: Ticker is trading far above the 50 EMA (>3%) and does not meet EMA50, DB, or OTE retracement criteria. Disqualified from fresh retrace gatekeepers.
   - **reclaim_days** **Velocity ("Sooner Metric")**:
       
       - Day 0: Intraday breakout (marked ð¡ PENDING CLOSE until official 4:00 PM ET close).
-      - Day 1: Confirmed daily close above 50 EMA with follow-through (Prime velocity entry).
-      - Day 2: Secondary confirmation test.
-      - Day > 2: Stale reclaim; penalized or excluded.
+      - Day 1: Confirmed daily close above 50 EMA with follow-through (Prime velocity entry, ⚡ Day 1 Reclaim).
+      - Day 2–3: Secondary confirmation test (Day 2/3 Reclaim).
+      - Day > 3: Stale reclaim; penalized or excluded from fresh entry qualification.
+      - Day ≥ 15 (Extended Above): Price has held continuously above the 50 EMA for 15+ trading sessions without dipping below it. Classified as `bounce_state = "EXTENDED_ABOVE"` with badge `Extended (>15d)` to prevent false "Day 2 Reclaim" classifications on mature runaway trends.
 
 ### 6\. Dow Theory Market Structure Engine & Hard Disqualification Gate
 
-Derived via engine/indicators.py::detect_market_structure() by evaluating 5-day rolling swing highs and swing lows across price history:
+Derived via engine/indicators.py::analyze_market_structure() by evaluating 5-day rolling swing highs and swing lows across price history:
 
   - **Regime Classifications**:
       
-      - BULLISH_HH_HL: Series of Higher Highs and Higher Lows. Confirms an active Stage 2 institutional mark-up trend.
-      - CONSOLIDATION_BASE: Forming higher lows above multi-week accumulation baselines or horizontal range support.
-      - BEARISH_LH_LL: Series of Lower Highs and Lower Lows. Confirms an active Stage 4 institutional distribution trend.
+      - BULLISH_HH_HL: Series of Higher Highs and Higher Lows, or Break of Structure (BOS) breakout above prior swing highs. Confirms an active Stage 2 institutional mark-up trend.
+      - CONSOLIDATION_BASE: Forming higher lows above multi-week accumulation baselines, horizontal range support, or pulling back while holding above the 50 EMA.
+      - BEARISH_LH_LL: Series of Lower Highs and Lower Lows below the 50 EMA. Confirms an active Stage 4 institutional distribution trend.
+  - **Breakout Recognition & Ascending Swing Lows**:
+      - If current price or recent 3-day closes break above prior swing highs (`sh2` or `sh1`), `has_higher_high` is confirmed.
+      - If recent 5-day support floor holds above prior swing lows (`sl1` or `sl2`), `has_higher_low` is confirmed.
+  - **50 EMA Bullish Guardrail**:
+      - If a stock is trading firmly above its 50 EMA (`Price >= EMA50 * 0.995`), it is mathematically guarded against false `BEARISH_LH_LL` classification. If no new high has formed yet, it is classified as `CONSOLIDATION_BASE` (Base Building) rather than a bearish downtrend.
   - **Universal Hard Qualification Filter for Long Plays (****dow_structure_ok****)**:
       
       - $$\text{Market Structure Regime} \neq \text{"BEARISH_LH_LL"}$$
