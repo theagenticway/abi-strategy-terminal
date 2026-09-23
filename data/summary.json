@@ -1,16 +1,16 @@
 [
   {
     "date": "2026-09-23",
-    "timestamp": "2026-09-23 14:31:07",
+    "timestamp": "2026-09-23 15:01:06",
     "total_alerts": 458,
     "reclaims": 40,
     "confirmed": 40,
     "below": 418,
     "dead": 0,
-    "retrace_ote": 20,
-    "retrace_db": 105,
+    "retrace_ote": 19,
+    "retrace_db": 107,
     "retrace_ema50": 131,
-    "retrace_ma150": 34,
+    "retrace_ma150": 33,
     "beta_lt_1": 330,
     "beta_1_to_1_5": 44,
     "beta_gt_1_5": 84,
@@ -24,15 +24,15 @@
     "winrate_cumulative": "35.9%",
     "funnel_diagnostic": {
       "scanned": 476,
-      "below_floor": 296,
-      "stale_reclaim": 122,
+      "below_floor": 297,
+      "stale_reclaim": 120,
       "wrong_retrace": 1,
       "low_runway": 5,
       "pending_eod": 0,
-      "illiquid_options": 5,
-      "qualified": 32
+      "illiquid_options": 12,
+      "qualified": 31
     },
-    "offense_pct": 45,
+    "offense_pct": 40,
     "regime": "MIXED",
     "regime_desc": "MIXED \u2014 No clear rotation"
   },
