@@ -724,7 +724,9 @@ def structure_core_stock_accumulation(
     price = snapshot.get("price")
     if price is None or _isnan(price) or price <= 0:
         return None
-    sma200 = snapshot.get("sma200") or (price * 0.85)
+    sma200 = snapshot.get("sma200")
+    if sma200 is None or _isnan(sma200) or sma200 <= 0:
+        return None
     macro_stop = round(sma200 * 0.97, 2)
     risk_per_share = round(price - macro_stop, 2)
 
@@ -976,8 +978,9 @@ def audit_stock_positions(stock_trades: list, current_market_bars: dict, today_s
                         strategy_prong=prong,
                         return_breakdown=True
                     )
-                except Exception:
-                    cur_score = float(t.get("current_alpha_score", t.get("alpha_score", 65.0)))
+                except Exception as ex:
+                    logger.warning("Failed recalculating alpha score for position %s: %s", t.get("ticker"), ex)
+                    cur_score = float(t.get("current_alpha_score", t.get("alpha_score", 0.0)))
                     breakdown = t.get("score_breakdown", {})
 
                 t["current_alpha_score"] = round(float(cur_score), 1)
@@ -1084,10 +1087,10 @@ def update_stock_trades_log(
                 if eviction_pool:
                     lowest_incumbent = min(
                         eviction_pool, 
-                        key=lambda x: float(x.get("current_alpha_score", x.get("alpha_score", 50.0)))
+                        key=lambda x: float(x.get("current_alpha_score", x.get("alpha_score", 0.0)))
                     )
-                    incumbent_score = float(lowest_incumbent.get("current_alpha_score", lowest_incumbent.get("alpha_score", 50.0)))
-                    cand_score = float(s_rec.get("alpha_score", 75.0))
+                    incumbent_score = float(lowest_incumbent.get("current_alpha_score", lowest_incumbent.get("alpha_score", 0.0)))
+                    cand_score = float(s_rec.get("alpha_score", 0.0))
                     score_delta = round(cand_score - incumbent_score, 1)
 
                     if score_delta >= REPLACEMENT_HURDLE_DELTA:
@@ -1116,6 +1119,13 @@ def update_stock_trades_log(
                         continue
                 else:
                     continue
+            
+            ent_price = float(s_rec["price"])
+            st_price = float(s_rec.get("stop", ent_price * 0.92))
+            shs = int(s_rec.get("shares", max(1, int(4500.0 / ent_price))))
+            cap_dep = float(s_rec.get("capital_deployed", round(shs * ent_price, 2)))
+            act_risk = float(s_rec.get("actual_risk_dollars", round(shs * abs(ent_price - st_price), 2)))
+
             new_trade_entry = {
                 "id": trade_id,
                 "asset_class": s_rec.get("asset_class", "EQUITY"),
@@ -1125,25 +1135,25 @@ def update_stock_trades_log(
                 "ticker": ticker,
                 "sector": s_rec["sector"],
                 "subsector": s_rec.get("subsector", "General"),
-                "entry_price": s_rec["price"],
-                "stop_price": s_rec["stop"],
-                "tp0_5": s_rec.get("tp0_5", round(float(s_rec["price"]) + max(0.01, float(s_rec["price"]) - float(s_rec.get("stop", s_rec["price"]*0.92))) * 1.0, 2)),
-                "tp1": s_rec.get("tp1", round(float(s_rec["price"]) * 1.15, 2)),
-                "tp2": s_rec.get("tp2", round(float(s_rec["price"]) * 1.25, 2)),
+                "entry_price": ent_price,
+                "stop_price": st_price,
+                "tp0_5": s_rec.get("tp0_5", round(ent_price + max(0.01, ent_price - st_price) * 1.0, 2)),
+                "tp1": s_rec.get("tp1", round(ent_price * 1.15, 2)),
+                "tp2": s_rec.get("tp2", round(ent_price * 1.25, 2)),
                 "rr_ratio": s_rec.get("rr_ratio", "1:2.5"),
-                "shares": s_rec.get("shares", 50),
-                "capital_deployed": s_rec.get("capital_deployed", 4500.0),
-                "actual_risk_dollars": s_rec.get("actual_risk_dollars", 450.0),
-                "current_alpha_score": round(float(s_rec.get("alpha_score", 75.0)), 1),
+                "shares": shs,
+                "capital_deployed": cap_dep,
+                "actual_risk_dollars": act_risk,
+                "current_alpha_score": round(float(s_rec.get("alpha_score", 0.0)), 1),
                 "score_breakdown": s_rec.get("alpha_score_breakdown", s_rec.get("score_breakdown", {})),
                 "active_health_tier": "TIER_B_ON_TRACK",
                 "health_badge": "🟢 TIER B (ON-TRACK)",
                 "consecutive_low_score_days": 0,
                 "eviction_eligible": False,
                 "status": "OPEN",
-                "current_price": s_rec["price"],
-                "max_price": s_rec["price"],
-                "min_price": s_rec["price"],
+                "current_price": ent_price,
+                "max_price": ent_price,
+                "min_price": ent_price,
                 "days_active": 0,
                 "pnl_pct": 0.0,
                 "order_ticket": s_rec.get("order_ticket"),
@@ -1166,8 +1176,8 @@ def update_stock_trades_log(
     winners = [t for t in closed_trades if t not in breakevens and float(t.get("pnl_pct", 0.0) or 0.0) > 0.10]
     losers = [t for t in closed_trades if t not in breakevens and float(t.get("pnl_pct", 0.0) or 0.0) < -0.10]
 
-    gross_gains = sum([(t.get("capital_deployed", 1000) * ((t.get("pnl_pct") or 0) / 100)) for t in winners])
-    gross_losses = abs(sum([(t.get("capital_deployed", 1000) * ((t.get("pnl_pct") or 0) / 100)) for t in losers]))
+    gross_gains = sum([(float(t.get("capital_deployed", float(t.get("entry_price", 100.0)) * float(t.get("shares", 1)))) * ((t.get("pnl_pct") or 0) / 100)) for t in winners])
+    gross_losses = abs(sum([(float(t.get("capital_deployed", float(t.get("entry_price", 100.0)) * float(t.get("shares", 1)))) * ((t.get("pnl_pct") or 0) / 100)) for t in losers]))
 
     win_rate = round((len(winners) / max(1, len(closed_trades))) * 100, 1)
     profit_factor = round(gross_gains / max(1.0, gross_losses), 2)

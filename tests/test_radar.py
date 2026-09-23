@@ -133,12 +133,16 @@ class TestRadarModule(unittest.TestCase):
                 "ticker": "MSTR",
                 "options_alpha_score": 88.0,
                 "iv_rank": 55.0,
+                "long_oi": 800,
+                "short_oi": 500,
                 "options_alpha_breakdown": {"directional_foundation": 32},
             },
             {
                 "ticker": "PLTR",
                 "options_alpha_score": 82.0,
                 "iv_rank": 40.0,
+                "long_oi": 650,
+                "short_oi": 400,
                 "options_alpha_breakdown": {"directional_foundation": 29},
             },
         ]
@@ -197,6 +201,9 @@ class TestRadarModule(unittest.TestCase):
                 "market_structure": "BULLISH_HH_HL",
                 "sector": "FINANCIALS",
                 "subsector": "Crypto FinTech",
+                "iv_rank": 65.0,
+                "long_oi": 750,
+                "short_oi": 450,
             }
         ]
 

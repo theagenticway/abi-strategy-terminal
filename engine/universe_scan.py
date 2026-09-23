@@ -14,9 +14,12 @@ happy to do that as a follow-up if useful.
 import os
 import sys
 import json
+import logging
 import datetime
 import pandas as pd
 import numpy as np
+
+logger = logging.getLogger("universe_scan")
 
 _this_dir = os.path.dirname(os.path.abspath(__file__))
 if _this_dir not in sys.path:
@@ -608,20 +611,20 @@ def process_universe(raw_data=None, sample_date_str=None):
                 for day_item in s_hist[:14]:
                     daily_activity.append({
                         "date": day_item.get("date", today_str),
-                        "ema50": day_item.get("retrace_ema50", 10),
-                        "db": day_item.get("retrace_db", 5),
-                        "ote": day_item.get("retrace_ote", 2),
-                        "ma150": day_item.get("retrace_ma150", 4),
-                        "bounce": day_item.get("reclaims", 12),
-                        "alert": day_item.get("total_alerts", 24),
+                        "ema50": day_item.get("retrace_ema50", 0),
+                        "db": day_item.get("retrace_db", 0),
+                        "ote": day_item.get("retrace_ote", 0),
+                        "ma150": day_item.get("retrace_ma150", 0),
+                        "bounce": day_item.get("reclaims", 0),
+                        "alert": day_item.get("total_alerts", 0),
                         "reclaim": "--"
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Error parsing summary history for daily activity: %s", e)
 
     # 10. Macro Breadth Calculation
     top_sectors = sorted(sector_counts.items(), key=lambda x: x[1], reverse=True)[:3]
-    top_sectors_str = ", ".join([f"{s}({c})" for s, c in top_sectors]) if top_sectors else "FINANCIALS, TECH, ENERGY"
+    top_sectors_str = ", ".join([f"{s}({c})" for s, c in top_sectors]) if top_sectors else "DATA_UNAVAILABLE"
 
     # Cumulative alerts/reclaims/win-rate previously used hardcoded seed values (1012, 385,
     # "38.0%") whenever the session count was small, and winrate_cumulative was *always*
@@ -938,24 +941,70 @@ def process_universe(raw_data=None, sample_date_str=None):
         s_cand["alpha_score"] = s_score
         s_cand["alpha_score_breakdown"] = s_breakdown
 
-    # Score ALL qualified options candidates so all_qualified and radar.html have real scores
-    # (previously this only scored the liquidity-filtered verified_top_candidates, leaving
-    # the rest of qualified_candidates - and anything reading options_alpha_score off them -
-    # without a real score). verified_top_candidates holds references into qualified_candidates,
-    # so mutating here still updates it in place; the sort below still applies correctly.
+    # Score core stock accumulation candidates dynamically with CORE strategy prong
+    for core_cand in core_stock_candidates:
+        c_sec = (core_cand.get("sector") or "").upper()
+        c_score, c_breakdown = stocks.compute_alpha_composite_score(
+            reclaim_days=core_cand.get("reclaim_days", 0),
+            rvol=core_cand.get("rvol", 1.0),
+            price=core_cand.get("price", 100.0),
+            ema50=core_cand.get("ema50", core_cand.get("price", 100.0)),
+            sector=core_cand.get("sector"),
+            rr_ratio=core_cand.get("rr_ratio", 2.2),
+            top_quartile_sectors=top_quartile_sectors,
+            market_structure=core_cand.get("market_structure"),
+            macro_confluence=macro_confluence,
+            mom_spread=sector_mom_map.get(c_sec, 0.0),
+            strategy_prong="CORE",
+            beta=core_cand.get("beta"),
+            adr_pct=core_cand.get("adr_pct"),
+            rsi=core_cand.get("rsi"),
+            macd_hook_ok=core_cand.get("macd_hook_ok"),
+            return_breakdown=True
+        )
+        core_cand["alpha_score"] = c_score
+        core_cand["alpha_score_breakdown"] = c_breakdown
+
+    # Build lookup map of authentic stock-side alpha scores
+    stock_alpha_map = {s["ticker"]: s for s in qualified_stock_candidates if "ticker" in s}
+
+    # Score ALL qualified options candidates with authentic directional alpha
     for c_cand in qualified_candidates:
+        tick = c_cand.get("ticker")
+        if tick in stock_alpha_map:
+            dir_alpha = stock_alpha_map[tick].get("alpha_score")
+        else:
+            c_sec = (c_cand.get("sector") or "").upper()
+            dir_alpha, _ = stocks.compute_alpha_composite_score(
+                reclaim_days=c_cand.get("reclaim_days", 0),
+                rvol=c_cand.get("rvol", 1.0),
+                price=c_cand.get("price", 100.0),
+                ema50=c_cand.get("ema50", c_cand.get("price", 100.0)),
+                sector=c_cand.get("sector"),
+                rr_ratio=c_cand.get("rr_ratio", 2.5),
+                top_quartile_sectors=top_quartile_sectors,
+                market_structure=c_cand.get("market_structure"),
+                macro_confluence=macro_confluence,
+                mom_spread=sector_mom_map.get(c_sec, 0.0),
+                strategy_prong=c_cand.get("strategy_prong", "BALANCED"),
+                beta=c_cand.get("beta"),
+                adr_pct=c_cand.get("adr_pct"),
+                rsi=c_cand.get("rsi"),
+                macd_hook_ok=c_cand.get("macd_hook_ok"),
+                return_breakdown=True
+            )
         opt_s, opt_b = patterns.compute_options_alpha_score(
-            directional_alpha=c_cand.get("alpha_score", 75.0),
-            iv_rank=c_cand.get("iv_rank", 25.0),
-            long_oi=c_cand.get("long_oi", 650),
-            short_oi=c_cand.get("short_oi", 420),
-            bid_ask_spread_pct=c_cand.get("bid_ask_spread_pct", 0.05),
-            overhead_runway_pct=c_cand.get("overhead_runway_pct", 999.0),
-            days_to_earnings=c_cand.get("days_to_earnings", 60),
+            directional_alpha=dir_alpha,
+            iv_rank=c_cand.get("iv_rank"),
+            long_oi=c_cand.get("long_oi"),
+            short_oi=c_cand.get("short_oi"),
+            bid_ask_spread_pct=c_cand.get("bid_ask_spread_pct"),
+            overhead_runway_pct=c_cand.get("overhead_runway_pct"),
+            days_to_earnings=c_cand.get("days_to_earnings"),
             is_leaps=False,
             strategy_prong=c_cand.get("strategy_prong", "BALANCED"),
-            rsi=c_cand.get("rsi", 52.0),
-            macd_hook_ok=c_cand.get("macd_hook_ok", True),
+            rsi=c_cand.get("rsi"),
+            macd_hook_ok=c_cand.get("macd_hook_ok"),
             return_breakdown=True
         )
         c_cand["options_alpha_score"] = opt_s
@@ -966,18 +1015,41 @@ def process_universe(raw_data=None, sample_date_str=None):
 
     # Score and dynamically rank Strategic LEAPS
     for l_cand in verified_leaps:
+        tick = l_cand.get("ticker")
+        if tick in stock_alpha_map:
+            l_dir_alpha = stock_alpha_map[tick].get("alpha_score")
+        else:
+            l_sec = (l_cand.get("sector") or "").upper()
+            l_dir_alpha, _ = stocks.compute_alpha_composite_score(
+                reclaim_days=l_cand.get("reclaim_days", 0),
+                rvol=l_cand.get("rvol", 1.0),
+                price=l_cand.get("price", 100.0),
+                ema50=l_cand.get("ema50", l_cand.get("price", 100.0)),
+                sector=l_cand.get("sector"),
+                rr_ratio=l_cand.get("rr_ratio", 2.2),
+                top_quartile_sectors=top_quartile_sectors,
+                market_structure=l_cand.get("market_structure"),
+                macro_confluence=macro_confluence,
+                mom_spread=sector_mom_map.get(l_sec, 0.0),
+                strategy_prong="CORE",
+                beta=l_cand.get("beta"),
+                adr_pct=l_cand.get("adr_pct"),
+                rsi=l_cand.get("rsi"),
+                macd_hook_ok=l_cand.get("macd_hook_ok"),
+                return_breakdown=True
+            )
         l_s, l_b = patterns.compute_options_alpha_score(
-            directional_alpha=l_cand.get("alpha_score", 70.0),
-            iv_rank=l_cand.get("iv_rank", 20.0),
-            long_oi=l_cand.get("long_oi", 350),
+            directional_alpha=l_dir_alpha,
+            iv_rank=l_cand.get("iv_rank"),
+            long_oi=l_cand.get("long_oi"),
             short_oi=None,
-            bid_ask_spread_pct=0.06,
-            overhead_runway_pct=l_cand.get("overhead_runway_pct", 999.0),
-            days_to_earnings=l_cand.get("days_to_earnings", 60),
+            bid_ask_spread_pct=l_cand.get("bid_ask_spread_pct"),
+            overhead_runway_pct=l_cand.get("overhead_runway_pct"),
+            days_to_earnings=l_cand.get("days_to_earnings"),
             is_leaps=True,
             strategy_prong="CORE",
-            rsi=l_cand.get("rsi", 52.0),
-            macd_hook_ok=l_cand.get("macd_hook_ok", True),
+            rsi=l_cand.get("rsi"),
+            macd_hook_ok=l_cand.get("macd_hook_ok"),
             return_breakdown=True
         )
         l_cand["options_alpha_score"] = l_s

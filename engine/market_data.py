@@ -7,8 +7,11 @@ Extracted verbatim from the original scanner.py (no logic changes).
 """
 import os
 import datetime
+import logging
 import pandas as pd
 import numpy as np
+
+logger = logging.getLogger("market_data")
 
 try:
     from engine.config import HISTORY_DIR, RETENTION_DAYS
@@ -124,7 +127,14 @@ def verify_multi_timeframe_confluence(ticker: str, daily_ema50: float) -> dict:
         t = yf.Ticker(ticker)
         df_1h = t.history(period="5d", interval="1h")
         if df_1h is None or len(df_1h) < 4:
-            return {"confirmed_4h": True, "badge": "4H CONFLUENCE (Pass)", "status": "CONFIRMED_4H"}
+            logger.warning("Insufficient 1H data for %s (len: %s), cannot confirm 4H confluence.", ticker, len(df_1h) if df_1h is not None else 0)
+            return {
+                "confirmed_4h": False,
+                "badge": "🟡 UNVERIFIED (Data Unavailable)",
+                "status": "PENDING_4H",
+                "data_unavailable": True,
+                "reason": "Insufficient 1H bar history"
+            }
 
         df_4h = df_1h.resample("4h").agg({
             "Open": "first", "High": "max", "Low": "min", "Close": "last", "Volume": "sum"
@@ -137,6 +147,20 @@ def verify_multi_timeframe_confluence(ticker: str, daily_ema50: float) -> dict:
                 return {"confirmed_4h": True, "badge": "🟢 4H CONFLUENCE OK", "status": "CONFIRMED_4H", "last_4h_close": last_4h_close}
             else:
                 return {"confirmed_4h": False, "badge": "🟡 PENDING 4H CLOSE", "status": "PENDING_4H", "last_4h_close": last_4h_close}
-        return {"confirmed_4h": True, "badge": "4H CONFLUENCE (Pass)", "status": "CONFIRMED_4H"}
-    except Exception:
-        return {"confirmed_4h": True, "badge": "4H CONFLUENCE (Pass)", "status": "CONFIRMED_4H"}
+        logger.warning("Empty 4H resampled data for %s, cannot confirm 4H confluence.", ticker)
+        return {
+            "confirmed_4h": False,
+            "badge": "🟡 UNVERIFIED (Data Unavailable)",
+            "status": "PENDING_4H",
+            "data_unavailable": True,
+            "reason": "Empty 4H bar history"
+        }
+    except Exception as ex:
+        logger.warning("Error computing 4H confluence for %s: %s", ticker, ex)
+        return {
+            "confirmed_4h": False,
+            "badge": "🟡 UNVERIFIED (Data Unavailable)",
+            "status": "PENDING_4H",
+            "data_unavailable": True,
+            "reason": str(ex)
+        }

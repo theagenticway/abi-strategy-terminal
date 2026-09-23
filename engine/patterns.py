@@ -3,9 +3,21 @@ Pattern Recognition & Reclaim Velocity Classifier for ABI Strategy Terminal.
 Detects EMA50 Bounces, Double Bottoms (DB), Optimal Trade Entry (OTE),
 computes Reclaim Velocity (D0-D2), and pre-structures Options Alpha setups.
 """
+from __future__ import annotations
 
-import numpy as np
-import pandas as pd
+import logging
+
+try:
+    import numpy as np
+except (ImportError, ModuleNotFoundError):
+    np = None
+
+try:
+    import pandas as pd
+except (ImportError, ModuleNotFoundError):
+    pd = None
+
+logger = logging.getLogger("patterns")
 
 try:
     from engine.config import DEFAULT_PORTFOLIO_CAPITAL
@@ -534,7 +546,7 @@ def compute_options_alpha_score(
     """
     if isinstance(directional_alpha, dict):
         d = directional_alpha
-        directional_alpha = d.get("alpha_score", 70.0)
+        directional_alpha = d.get("alpha_score")
         iv_rank = d.get("iv_rank", iv_rank)
         long_oi = d.get("long_oi", long_oi)
         short_oi = d.get("short_oi", short_oi)
@@ -551,11 +563,16 @@ def compute_options_alpha_score(
     dir_weight = 0.35 if has_momentum_factor else 0.40
 
     # 1. Directional Foundation
-    try:
-        d_val = float(directional_alpha) if directional_alpha is not None else 70.0
-    except (ValueError, TypeError):
-        d_val = 70.0
-    dir_pts = round(min(100.0, max(0.0, d_val)) * dir_weight, 1)
+    if directional_alpha is None:
+        logger.warning("compute_options_alpha_score called without directional alpha. Crediting 0 points.")
+        dir_pts = 0.0
+    else:
+        try:
+            d_val = float(directional_alpha)
+            dir_pts = round(min(100.0, max(0.0, d_val)) * dir_weight, 1)
+        except (ValueError, TypeError):
+            logger.warning("Invalid directional alpha %s. Crediting 0 points.", directional_alpha)
+            dir_pts = 0.0
 
     # 2. IV Rank Behavior (Bifurcated by Strategy Prong)
     try:
@@ -589,21 +606,34 @@ def compute_options_alpha_score(
         else: iv_pts = 4.0
 
     # 3. Liquidity Quality (20 pts max)
-    try:
-        l_oi = int(long_oi) if long_oi is not None else 300
-    except (ValueError, TypeError):
-        l_oi = 300
-    try:
-        s_oi = int(short_oi) if short_oi is not None else l_oi
-    except (ValueError, TypeError):
-        s_oi = l_oi
-    min_oi = min(l_oi, s_oi)
-    try:
-        spread = float(bid_ask_spread_pct) if bid_ask_spread_pct is not None else 0.08
-    except (ValueError, TypeError):
-        spread = 0.08
+    l_oi = None
+    s_oi = None
+    if long_oi is not None:
+        try:
+            l_oi = int(long_oi)
+        except (ValueError, TypeError):
+            l_oi = None
+    if short_oi is not None:
+        try:
+            s_oi = int(short_oi)
+        except (ValueError, TypeError):
+            s_oi = None
 
-    if min_oi >= 500 and spread <= 0.08:
+    if l_oi is None and s_oi is None:
+        min_oi = None
+    elif l_oi is not None and s_oi is not None:
+        min_oi = min(l_oi, s_oi)
+    else:
+        min_oi = l_oi if l_oi is not None else s_oi
+
+    try:
+        spread = float(bid_ask_spread_pct) if bid_ask_spread_pct is not None else None
+    except (ValueError, TypeError):
+        spread = None
+
+    if min_oi is None or spread is None:
+        liq_pts = 5.0  # Conservative unverified liquidity credit
+    elif min_oi >= 500 and spread <= 0.08:
         liq_pts = 20.0
     elif min_oi >= 250 and spread <= 0.15:
         liq_pts = 14.0

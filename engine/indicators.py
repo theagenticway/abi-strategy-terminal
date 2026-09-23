@@ -103,14 +103,15 @@ def analyze_market_structure(high: pd.Series, low: pd.Series, close: pd.Series, 
     if high is None or low is None or close is None or len(close) < 15:
         return {
             "regime": "NEUTRAL",
-            "badge": "⚪ NEUTRAL",
+            "badge": "⚪ NEUTRAL (Insufficient Data)",
             "higher_high": False,
-            "higher_low": True,
-            "overhead_resistance_runway": 15.0,
+            "higher_low": False,
+            "overhead_resistance_runway": 0.0,
             "break_of_structure": False,
-            "prior_swing_high": 100.0,
-            "prior_swing_low": 90.0,
-            "structure_score": 12.0
+            "prior_swing_high": 0.0,
+            "prior_swing_low": 0.0,
+            "structure_score": 0.0,
+            "data_unavailable": True
         }
 
     h = high.tail(lookback).values if hasattr(high, "values") else np.array(high)

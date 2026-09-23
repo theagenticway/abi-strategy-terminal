@@ -307,6 +307,10 @@ def build_near_miss_candidates(
     return near_misses
 
 
+# Backward-compatible alias for near-miss candidate identification
+identify_near_misses = build_near_miss_candidates
+
+
 def build_high_risk_radars(
     ticker_records: List[Dict[str, Any]],
     qualified_stock_candidates: List[Dict[str, Any]],
@@ -484,7 +488,9 @@ def build_high_risk_radars(
         opt_match = options_score_map.get(t["ticker"])
         if opt_match and opt_match.get("iv_rank") is not None:
             iv_r = float(opt_match["iv_rank"])
-        else:
+        elif t.get("iv_rank") is not None:
+            iv_r = float(t["iv_rank"])
+        elif raw_data is not None:
             try:
                 try:
                     from engine.indicators import calculate_iv_rank
@@ -495,13 +501,16 @@ def build_high_risk_radars(
                 _t_df = extract_ticker_df(raw_data, t["ticker"])
                 if _t_df is None or len(_t_df) <= 20:
                     # Not enough real price history to compute an IV rank proxy -
-                    # a fabricated 45.0 previously masked this. Exclude instead of guess.
+                    # exclude instead of guessing or injecting fake rank.
                     logger.warning(f"Insufficient price history to compute IV rank for {t.get('ticker')}, excluding from options radar.")
                     continue
                 iv_r = calculate_iv_rank(_t_df["Close"])
             except Exception as ex:
                 logger.warning(f"Could not compute IV rank for {t.get('ticker')}, excluding from options radar: {ex}")
                 continue
+        else:
+            logger.warning(f"Insufficient price history to compute IV rank for {t.get('ticker')}, excluding from options radar.")
+            continue
 
         try:
             try:
@@ -535,7 +544,7 @@ def build_high_risk_radars(
                 except (ImportError, ModuleNotFoundError):
                     import stocks
                 s_sec = (t.get("sector") or "").upper()
-                directional_alpha_val, _ = stocks.compute_alpha_composite_score(
+                directional_alpha_val = stocks.compute_alpha_composite_score(
                     reclaim_days=t.get("reclaim_days", 1),
                     rvol=float(t.get("rvol", 1.2)),
                     price=t_price,
@@ -565,10 +574,6 @@ def build_high_risk_radars(
         # bid_ask_spread_pct=0.05, which silently asserted every fallback-scored ticker
         # had "HIGH" institutional liquidity regardless of its actual option chain). ---
         try:
-            try:
-                from engine import patterns
-            except (ImportError, ModuleNotFoundError):
-                import patterns
             opt_verif = None
             if opt_match and opt_match.get("long_oi") is not None:
                 opt_verif = {
@@ -578,7 +583,19 @@ def build_high_risk_radars(
                     "long_ask": opt_match.get("long_ask", 0),
                     "liquidity_status": opt_match.get("liquidity_status"),
                 }
+            elif t.get("long_oi") is not None:
+                opt_verif = {
+                    "long_oi": t.get("long_oi"),
+                    "short_oi": t.get("short_oi", t.get("long_oi")),
+                    "long_bid": t.get("long_bid", 0),
+                    "long_ask": t.get("long_ask", 0),
+                    "liquidity_status": t.get("liquidity_status"),
+                }
             else:
+                try:
+                    from engine import patterns
+                except (ImportError, ModuleNotFoundError):
+                    import patterns
                 opt_verif = patterns.fetch_live_options_quotes(
                     t["ticker"], l_strike, sh_strike, target_dte_range=(45, 90), today=now_utc.date()
                 )

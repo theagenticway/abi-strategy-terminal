@@ -119,24 +119,47 @@ def save_payloads(payload: dict, raw_data=None):
         current_bars = {}
         for t_rec in payload.get("tickers", []):
             tick = t_rec.get("ticker")
+            if not tick:
+                continue
+            df_t = extract_ticker_df(raw_data, tick) if raw_data is not None else None
             p = t_rec.get("price")
-            if tick and p is not None and not np.isnan(p) and p > 0:
+            gate_res = t_rec.get("gate_results", {}) or {}
+            dow_ms = gate_res.get("dow_market_structure", {}).get("current", t_rec.get("market_structure", "NEUTRAL"))
+            
+            if df_t is not None and len(df_t) > 0:
+                last_row = df_t.iloc[-1]
                 current_bars[tick] = {
-                    "High": t_rec.get("High", p * 1.01),
-                    "Low": t_rec.get("Low", p * 0.99),
+                    "High": float(last_row.get("High", p)),
+                    "Low": float(last_row.get("Low", p)),
+                    "Open": float(last_row.get("Open", p)),
+                    "Close": float(last_row.get("Close", p)),
+                    "EMA50": t_rec.get("ema50", p),
+                    "rsi": t_rec.get("rsi", 50.0),
+                    "macd_hist": t_rec.get("macd_hist", 0.0),
+                    "macd_crawling_up": t_rec.get("macd_crawling_up", False),
+                    "rvol": t_rec.get("rvol", 1.0),
+                    "beta": t_rec.get("beta", 1.0),
+                    "adr_pct": t_rec.get("adr_pct", 2.0),
+                    "market_structure": dow_ms,
+                    "reclaim_days": t_rec.get("reclaim_days", 1)
+                }
+            elif p is not None and not np.isnan(p) and p > 0:
+                current_bars[tick] = {
+                    "High": t_rec.get("High", p),
+                    "Low": t_rec.get("Low", p),
                     "Open": t_rec.get("Open", p),
                     "Close": p,
                     "EMA50": t_rec.get("ema50", p),
                     "rsi": t_rec.get("rsi", 50.0),
                     "macd_hist": t_rec.get("macd_hist", 0.0),
-                    "macd_crawling_up": t_rec.get("macd_crawling_up", True),
+                    "macd_crawling_up": t_rec.get("macd_crawling_up", False),
                     "rvol": t_rec.get("rvol", 1.0),
                     "beta": t_rec.get("beta", 1.0),
                     "adr_pct": t_rec.get("adr_pct", 2.0),
-                    "market_structure": t_rec.get("market_structure", "BULLISH_HH_HL"),
+                    "market_structure": dow_ms,
                     "reclaim_days": t_rec.get("reclaim_days", 1)
                 }
-        spy_df = extract_ticker_df(raw_data, "SPY")
+        spy_df = extract_ticker_df(raw_data, "SPY") if raw_data is not None else None
         spy_ret = float(spy_df["Close"].pct_change().iloc[-1]) if (spy_df is not None and len(spy_df) >= 2) else 0.0
         stock_recs = payload.get("stock_recommendations", []) + payload.get("core_stocks", [])
         stocks.update_stock_trades_log(stock_recs, current_bars, date_str, spy_ret)
