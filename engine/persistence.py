@@ -32,6 +32,14 @@ except (ImportError, ModuleNotFoundError):
     from trade_audit import audit_and_update_trades
 
 try:
+    from engine.indicators import calculate_macd
+except (ImportError, ModuleNotFoundError):
+    try:
+        from indicators import calculate_macd
+    except (ImportError, ModuleNotFoundError):
+        calculate_macd = None
+
+try:
     import stocks
 except ModuleNotFoundError:
     import importlib.util
@@ -128,6 +136,16 @@ def save_payloads(payload: dict, raw_data=None):
             
             if df_t is not None and len(df_t) > 0:
                 last_row = df_t.iloc[-1]
+                macd_h = t_rec.get("macd_hist")
+                macd_crawl = t_rec.get("macd_crawling_up")
+                if calculate_macd is not None and "Close" in df_t.columns and len(df_t["Close"]) >= 26:
+                    try:
+                        _macd, _sig, _h = calculate_macd(df_t["Close"])
+                        if len(_h) > 0:
+                            macd_h = float(_h.iloc[-1])
+                            macd_crawl = bool(len(_h) >= 2 and _h.iloc[-1] > _h.iloc[-2])
+                    except Exception:
+                        pass
                 current_bars[tick] = {
                     "High": float(last_row.get("High", p)),
                     "Low": float(last_row.get("Low", p)),
@@ -135,8 +153,8 @@ def save_payloads(payload: dict, raw_data=None):
                     "Close": float(last_row.get("Close", p)),
                     "EMA50": t_rec.get("ema50", p),
                     "rsi": t_rec.get("rsi", 50.0),
-                    "macd_hist": t_rec.get("macd_hist", 0.0),
-                    "macd_crawling_up": t_rec.get("macd_crawling_up", False),
+                    "macd_hist": float(macd_h if macd_h is not None else 0.0),
+                    "macd_crawling_up": bool(macd_crawl if macd_crawl is not None else False),
                     "rvol": t_rec.get("rvol", 1.0),
                     "beta": t_rec.get("beta", 1.0),
                     "adr_pct": t_rec.get("adr_pct", 2.0),

@@ -1085,12 +1085,18 @@ def update_stock_trades_log(
                     if t.get("eviction_eligible") is True and t.get("days_active", 0) >= MIN_EVICTION_AGING_DAYS
                 ]
                 if eviction_pool:
-                    lowest_incumbent = min(
-                        eviction_pool, 
-                        key=lambda x: float(x.get("current_alpha_score", x.get("alpha_score", 0.0)))
-                    )
-                    incumbent_score = float(lowest_incumbent.get("current_alpha_score", lowest_incumbent.get("alpha_score", 0.0)))
-                    cand_score = float(s_rec.get("alpha_score", 0.0))
+                    def _incumbent_score(x):
+                        val = x.get("current_alpha_score", x.get("options_alpha_score", x.get("alpha_score")))
+                        if val is None:
+                            return 0.0
+                        return float(val)
+
+                    lowest_incumbent = min(eviction_pool, key=_incumbent_score)
+                    incumbent_score = _incumbent_score(lowest_incumbent)
+                    cand_score_raw = s_rec.get("alpha_score")
+                    if cand_score_raw is None:
+                        continue
+                    cand_score = float(cand_score_raw)
                     score_delta = round(cand_score - incumbent_score, 1)
 
                     if score_delta >= REPLACEMENT_HURDLE_DELTA:

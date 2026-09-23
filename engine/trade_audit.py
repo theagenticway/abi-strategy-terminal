@@ -116,12 +116,12 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
     trades_log_path = os.path.join(DATA_DIR, "trades_log.json")
     trades_data = {"summary": {}, "trades": []}
     
-    if os.path.exists(trades_log_path):
+    if os.path.exists(trades_log_path) and os.path.getsize(trades_log_path) > 0:
         try:
             with open(trades_log_path, "r") as f:
                 trades_data = json.load(f)
-        except Exception:
-            pass
+        except Exception as ex:
+            raise RuntimeError(f"Refusing to continue: could not read {trades_log_path}, proceeding would overwrite it with an empty ledger.") from ex
             
     trades = trades_data.get("trades", [])
     existing_ids = set(t["id"] for t in trades)
@@ -370,12 +370,19 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
                     if t.get("eviction_eligible") is True and t.get("days_active", 0) >= MIN_EVICTION_AGING_DAYS
                 ]
                 if eviction_pool:
-                    lowest_incumbent = min(
-                        eviction_pool, 
-                        key=lambda x: float(x.get("current_alpha_score", x.get("options_alpha_score", x.get("alpha_score", 50.0))))
-                    )
-                    incumbent_score = float(lowest_incumbent.get("current_alpha_score", lowest_incumbent.get("options_alpha_score", lowest_incumbent.get("alpha_score", 50.0))))
-                    cand_score = float(c.get("options_alpha_score", c.get("alpha_score", 75.0)))
+                    def _incumbent_score(x):
+                        val = x.get("current_alpha_score", x.get("options_alpha_score", x.get("alpha_score")))
+                        if val is None:
+                            return 0.0
+                        return float(val)
+
+                    lowest_incumbent = min(eviction_pool, key=_incumbent_score)
+                    incumbent_score = _incumbent_score(lowest_incumbent)
+                    cand_score_raw = c.get("options_alpha_score", c.get("alpha_score"))
+                    if cand_score_raw is None:
+                        c["correlation_status"] = f"THROTTLED: Book Full ({cand_book}) - Candidate has no score"
+                        continue
+                    cand_score = float(cand_score_raw)
                     score_delta = round(cand_score - incumbent_score, 1)
 
                     if score_delta >= REPLACEMENT_HURDLE_DELTA:
