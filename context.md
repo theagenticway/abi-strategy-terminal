@@ -185,7 +185,9 @@ e$ `"BEARISH_LH_LL"`. Rejects dead-cat bounces in structural downtrends.
   * Trigger: Total Open $\ge 18$ slots OR Sub-Book $\ge 85\%$ full OR incumbent flagged Tier D.
   * Aging Rule: Incumbent must have `days_active >= 5` sessions (`MIN_EVICTION_AGING_DAYS = 5`).
   * Hurdle Delta: $\Delta = \text{Score}_{\text{Candidate}} - \text{Score}_{\text{Incumbent}} \ge 18.0$ points.
+  * Score Resolution: Employs unified `_incumbent_score()` resolving across `current_alpha_score`, `options_alpha_score`, and `alpha_score`; blocks eviction if incoming candidate lacks a verified score.
   * Closes incumbent as `CLOSED_EVICTED`, books P&L, logs delta, and allocates slot to incoming candidate.
+  * Catastrophic Ledger Overwrite Guard: Halts execution via `RuntimeError` on read/decode failure to prevent blanking persistent trade ledgers.
 
 ### H. The "Liquid Route" Options-to-Stock Auto-Switch
 * If an options candidate meets technical gates but fails options chain liquidity ($\text{OI} < 500$ or bid-ask spread $> 8\%$), it is automatically converted into a **Common Stock Order Ticket** with a `🔄 AUTO-ROUTED FROM OPTIONS` badge.
