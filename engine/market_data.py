@@ -32,8 +32,8 @@ def prune_old_history():
                 try:
                     os.remove(os.path.join(HISTORY_DIR, filename))
                     pruned_count += 1
-                except Exception:
-                    pass
+                except Exception as ex:
+                    print(f"[!] Could not prune old history file {filename}: {ex}")
     if pruned_count > 0:
         print(f"[*] Pruned {pruned_count} historical files older than {RETENTION_DAYS} days.")
 
@@ -114,6 +114,10 @@ def extract_ticker_df(raw_data, ticker):
                         return df
                 except Exception:
                     pass
+    # Every naming variant / MultiIndex branch was tried and failed - previously this
+    # returned None with zero diagnostic trail, making a ticker's data silently vanish
+    # from every downstream calculation with no way to tell why.
+    logger.warning("extract_ticker_df: could not extract usable data for '%s' (tried variants: %s).", ticker, clean_variants)
     return None
 
 

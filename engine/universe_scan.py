@@ -605,26 +605,42 @@ def process_universe(raw_data=None, sample_date_str=None):
     daily_activity = []
     summary_path = os.path.join(DATA_DIR, "summary.json")
     if os.path.exists(summary_path):
-        try:
-            with open(summary_path, "r") as sf:
-                s_hist = json.load(sf)
-                for day_item in s_hist[:14]:
-                    daily_activity.append({
-                        "date": day_item.get("date", today_str),
-                        "ema50": day_item.get("retrace_ema50", 0),
-                        "db": day_item.get("retrace_db", 0),
-                        "ote": day_item.get("retrace_ote", 0),
-                        "ma150": day_item.get("retrace_ma150", 0),
-                        "bounce": day_item.get("reclaims", 0),
-                        "alert": day_item.get("total_alerts", 0),
-                        "reclaim": "--"
-                    })
-        except Exception as e:
-            logger.debug("Error parsing summary history for daily activity: %s", e)
+        with open(summary_path, "r") as sf:
+            s_hist = json.load(sf)
+        required_activity_fields = ["date", "retrace_ema50", "retrace_db", "retrace_ote", "retrace_ma150", "reclaims", "total_alerts"]
+        for day_item in s_hist[:14]:
+            missing = [f for f in required_activity_fields if f not in day_item]
+            if missing:
+                # Previously substituted plausible-looking counts (later softened to 0,
+                # then silently logged at debug level and skipped) instead of surfacing
+                # that summary.json contains a malformed/legacy record. Per policy this
+                # must fail explicitly rather than degrade the daily activity feed.
+                raise ValueError(
+                    f"Malformed summary.json record for date={day_item.get('date', '<unknown>')}: "
+                    f"missing required field(s) {missing}. Refusing to substitute fabricated activity counts."
+                )
+            daily_activity.append({
+                "date": day_item["date"],
+                "ema50": day_item["retrace_ema50"],
+                "db": day_item["retrace_db"],
+                "ote": day_item["retrace_ote"],
+                "ma150": day_item["retrace_ma150"],
+                "bounce": day_item["reclaims"],
+                "alert": day_item["total_alerts"],
+                "reclaim": "--"
+            })
 
     # 10. Macro Breadth Calculation
     top_sectors = sorted(sector_counts.items(), key=lambda x: x[1], reverse=True)[:3]
-    top_sectors_str = ", ".join([f"{s}({c})" for s, c in top_sectors]) if top_sectors else "DATA_UNAVAILABLE"
+    if not top_sectors:
+        # Previously substituted a fabricated "FINANCIALS, TECH, ENERGY" placeholder,
+        # then softened to the sentinel string "DATA_UNAVAILABLE" - still a hardcoded
+        # fallback value standing in for a genuine computation failure. An empty
+        # sector_counts here means effectively zero tickers were processed, which is
+        # already a fatal condition elsewhere in the pipeline (see the ticker_count==0
+        # circuit breaker in persistence.py) - so raising here is consistent, not novel.
+        raise ValueError("No sector data available to compute top_sectors; refusing to substitute a fabricated sector list.")
+    top_sectors_str = ", ".join([f"{s}({c})" for s, c in top_sectors])
 
     # Cumulative alerts/reclaims/win-rate previously used hardcoded seed values (1012, 385,
     # "38.0%") whenever the session count was small, and winrate_cumulative was *always*
@@ -633,18 +649,23 @@ def process_universe(raw_data=None, sample_date_str=None):
     # cumulative figures are just a sum over that history plus today's session counts.
     cumulative_alerts = alert_count
     cumulative_reclaims = reclaim_count
-    try:
-        _summary_path = os.path.join(DATA_DIR, "summary.json")
-        if os.path.exists(_summary_path):
-            with open(_summary_path, "r") as _sf:
-                _hist_days = json.load(_sf)
-            for _d in _hist_days:
-                if _d.get("date") == today_str:
-                    continue  # avoid double-counting a same-day re-run
-                cumulative_alerts += int(_d.get("total_alerts", 0) or 0)
-                cumulative_reclaims += int(_d.get("reclaims", 0) or 0)
-    except Exception:
-        pass
+    _summary_path = os.path.join(DATA_DIR, "summary.json")
+    if os.path.exists(_summary_path):
+        with open(_summary_path, "r") as _sf:
+            _hist_days = json.load(_sf)
+        for _d in _hist_days:
+            if _d.get("date") == today_str:
+                continue  # avoid double-counting a same-day re-run
+            if "total_alerts" not in _d or "reclaims" not in _d:
+                # Previously swallowed via a bare except and silently kept whatever partial
+                # sum had accumulated so far - understating the cumulative totals with no
+                # indication anything was wrong.
+                raise ValueError(
+                    f"Malformed summary.json record for date={_d.get('date', '<unknown>')}: "
+                    f"missing 'total_alerts' or 'reclaims'. Refusing to silently under-count cumulative totals."
+                )
+            cumulative_alerts += int(_d["total_alerts"])
+            cumulative_reclaims += int(_d["reclaims"])
 
     macro_breadth = {
         "date": today_str,

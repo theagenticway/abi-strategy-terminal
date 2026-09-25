@@ -237,7 +237,11 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
 
                 # Continuous Daily Re-Scoring & Active Health Tier Telemetry for open/trailing trades
                 if t["status"] in ["OPEN", "TP1_HIT"]:
-                    opt_score = float(t.get("current_alpha_score", t.get("options_alpha_score", t.get("alpha_score", 70.0))))
+                    # Starting point if re-scoring below can't run/complete: carry forward
+                    # the position's own last known score rather than a fresh, unrelated
+                    # constant (70.0) that has nothing to do with this specific trade.
+                    opt_score = t.get("current_alpha_score", t.get("options_alpha_score", t.get("alpha_score")))
+                    opt_score = float(opt_score) if opt_score is not None else 0.0
                     opt_breakdown = t.get("score_breakdown", {})
                     try:
                         spy_returns = spy_df["Close"].pct_change().dropna() if (spy_df is not None and len(spy_df) >= 2 and "Close" in spy_df.columns) else None
@@ -249,7 +253,7 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
                                 price=close_p,
                                 ema50=snapshot.get("ema50", close_p),
                                 sector=t.get("sector"),
-                                market_structure=snapshot.get("market_structure", "BULLISH_HH_HL"),
+                                market_structure=snapshot.get("market_structure", "NEUTRAL"),
                                 beta=snapshot.get("beta", 1.0),
                                 adr_pct=snapshot.get("adr_pct", 2.0),
                                 rsi=snapshot.get("rsi", 50.0),
@@ -258,22 +262,30 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
                                 strategy_prong=t.get("strategy_prong", "BALANCED"),
                                 return_breakdown=True
                             )
+                            # Liquidity/earnings data captured for real at trade entry (see
+                            # new_trade construction above) - NOT re-guessed as "definitely
+                            # liquid, definitely far from earnings" every single day a
+                            # position stays open. Previously long_oi=1000/short_oi=800/
+                            # bid_ask_spread_pct=0.04/days_to_earnings=90 were used
+                            # unconditionally here, and since the ledger never actually
+                            # stored these fields at entry, this fired on every re-score of
+                            # every open position for its entire lifetime.
                             opt_score, opt_breakdown = compute_options_alpha_score(
                                 directional_alpha=dir_alpha,
-                                iv_rank=snapshot.get("iv_rank", 50.0),
-                                long_oi=t.get("long_oi", 1000),
-                                short_oi=t.get("short_oi", 800),
-                                bid_ask_spread_pct=t.get("bid_ask_spread_pct", 0.04),
+                                iv_rank=snapshot.get("iv_rank", t.get("iv_rank")),
+                                long_oi=t.get("long_oi"),
+                                short_oi=t.get("short_oi"),
+                                bid_ask_spread_pct=t.get("bid_ask_spread_pct"),
                                 overhead_runway_pct=snapshot.get("overhead_runway_pct", 999.0),
-                                days_to_earnings=t.get("days_to_earnings", 90),
+                                days_to_earnings=t.get("days_to_earnings"),
                                 is_leaps=("LEAPS" in t.get("structure", "")),
                                 strategy_prong=t.get("strategy_prong", "BALANCED"),
                                 rsi=snapshot.get("rsi", 50.0),
                                 macd_hook_ok=snapshot.get("macd_hook_ok", True),
                                 return_breakdown=True
                             )
-                    except Exception:
-                        pass
+                    except Exception as rescale_ex:
+                        print(f"[!] Daily re-score failed for {t.get('ticker')}, keeping last known score ({opt_score:.1f}): {rescale_ex}")
 
                     t["current_alpha_score"] = round(float(opt_score), 1)
                     t["score_breakdown"] = opt_breakdown
@@ -326,8 +338,11 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
                         if 0 <= (cur_dt - exit_dt).days <= 4:
                             is_cooldown = True
                             break
-                    except Exception:
-                        pass
+                    except Exception as date_ex:
+                        # A malformed date here previously meant the cooldown check for
+                        # this record was silently skipped, which could let a ticker that
+                        # should still be in its anti-chop cooldown re-enter early.
+                        print(f"[!] Could not parse exit_date '{prev.get('exit_date')}' for {ticker} while checking anti-chop cooldown: {date_ex}")
             if is_cooldown:
                 c["correlation_status"] = f"THROTTLED: Anti-Chop Cooldown (<5d: {ticker})"
                 continue
@@ -344,12 +359,20 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
             if macro_conf is None:
                 try:
                     bm = calculate_benchmark_matrix(raw_data)
-                    macro_conf = bm.get("composite_score", 4)
-                except Exception:
-                    macro_conf = 4
+                    macro_conf = bm.get("composite_score")
+                    if macro_conf is None:
+                        raise ValueError("calculate_benchmark_matrix returned no composite_score")
+                except Exception as bm_ex:
+                    # A benchmark-calculation failure means we have no visibility into
+                    # current market regime - defaulting to 4 (the MOST bullish/permissive
+                    # regime, "FULL_OFFENSE") maximized position capacity at exactly the
+                    # moment conditions couldn't be verified. Assume the most conservative
+                    # regime instead so a data outage tightens risk limits, not loosens them.
+                    print(f"[!] Could not compute benchmark matrix for regime-gated tier capacity, assuming most conservative regime (0): {bm_ex}")
+                    macro_conf = 0
             tier_caps = get_regime_tier_capacities(macro_conf)
             cand_prong = c.get("strategy_prong", "BALANCED")
-            prong_open_count = len([t for t in open_trades if t.get("strategy_prong") == cand_prong])
+            prong_open_count = len([t for t in open_trades if t.get("strategy_prong", "BALANCED") == cand_prong])
             tier_max = tier_caps.get(cand_prong, 5)
             if prong_open_count >= tier_max:
                 c["correlation_status"] = f"THROTTLED: Regime-Gated Tier Cap {tier_max} ({cand_prong} under {tier_caps['regime']})"
@@ -416,6 +439,10 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
             c["correlation_status"] = "APPROVED (Within Risk Limits)"
             entry_p = c["price"]
             stop_p = c.get("stop") or c.get("macro_stop") or round(entry_p * 0.90, 2)
+            entry_alpha_score = c.get("options_alpha_score", c.get("alpha_score"))
+            if entry_alpha_score is None:
+                print(f"[!] {ticker}: no computed alpha score available at entry; recording as 0 rather than assuming a passing 75.0.")
+                entry_alpha_score = 0.0
             new_trade = {
                 "id": trade_id,
                 "entry_date": today_str,
@@ -426,6 +453,13 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
                 "tp1": c["tp1"],
                 "tp2": c["tp2"],
                 "structure": c.get("structure", "Bull Call Spread (45-60 DTE)"),
+                # strategy_prong was previously never persisted onto the ledger record at
+                # all, even though it's read back from `t` in the daily re-score, the
+                # anti-chop/eviction logic, and the regime-gated tier-capacity count above
+                # (prong_open_count). Every open trade silently registered as "BALANCED"
+                # there (or, without any default on the read, didn't match any prong at
+                # all) for its entire lifetime, defeating per-prong capacity enforcement.
+                "strategy_prong": c.get("strategy_prong", "BALANCED"),
                 "contract": c.get("contract", f"{c['sector']} Call Spread"),
                 "contract_details": c.get("contract_details", "Defined Risk"),
                 "routing_guidance": c.get("routing_guidance", f"LIMIT @ ${c.get('est_debit', 5.0):.2f} Mid"),
@@ -434,8 +468,18 @@ def audit_and_update_trades(raw_data, qualified_candidates, today_str, max_optio
                 "target_allocation": c.get("target_allocation", 1000.0),
                 "allocation_desc": c.get("allocation_desc", "$1,000 (Full 100%)"),
                 "macro_throttled": c.get("macro_throttled", False),
-                "current_alpha_score": round(float(c.get("options_alpha_score", c.get("alpha_score", 75.0))), 1),
+                "current_alpha_score": round(float(entry_alpha_score), 1),
                 "score_breakdown": c.get("score_breakdown", {}),
+                # Captured for real at entry so the daily re-score isn't forced to guess
+                # "definitely liquid, definitely far from earnings" for the rest of this
+                # position's lifetime. None (rather than an optimistic constant) is honest
+                # for a candidate that never went through liquidity verification.
+                "iv_rank": c.get("iv_rank"),
+                "long_oi": c.get("long_oi"),
+                "short_oi": c.get("short_oi"),
+                "bid_ask_spread_pct": c.get("bid_ask_spread_pct"),
+                "days_to_earnings": c.get("days_to_earnings"),
+                "liquidity_status": c.get("liquidity_status", "⚪ UNVERIFIED (Not Yet Liquidity-Checked)"),
                 "active_health_tier": "TIER_B_ON_TRACK",
                 "health_badge": "🟢 TIER B (ON-TRACK)",
                 "consecutive_low_score_days": 0,

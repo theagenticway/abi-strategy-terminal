@@ -774,8 +774,14 @@ def structure_trade_signal(
     earnings_info = evaluate_earnings_blackout(ticker, earnings_date)
     
     # Screen liquidity
-    adv = snapshot.get("volume", 2000000)
-    liquidity_status = "HIGH" if adv >= 1000000 else "MODERATE"
+    adv = snapshot.get("volume")
+    if adv is None:
+        # Missing volume data is not the same as confirmed high liquidity - defaulting to
+        # 2,000,000 shares here silently auto-passed the liquidity screen ("HIGH") for any
+        # ticker whose volume simply failed to load.
+        liquidity_status = "UNVERIFIED"
+    else:
+        liquidity_status = "HIGH" if adv >= 1000000 else "MODERATE"
 
     return {
         "action": "BUY",

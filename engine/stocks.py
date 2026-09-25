@@ -294,7 +294,7 @@ def compute_alpha_composite_score(
             regime = market_structure.get("regime", "NEUTRAL")
             higher_low = market_structure.get("higher_low", False)
             bos = market_structure.get("break_of_structure", False)
-            runway = market_structure.get("overhead_resistance_runway", 15.0)
+            runway = market_structure.get("overhead_resistance_runway", 0.0)  # unknown runway treated as no confirmed clearance, not an optimistic pass
 
             if regime == "BULLISH_HH_HL": struct_pts += 10.0
             elif regime == "CONSOLIDATION_BASE": struct_pts += 5.0
@@ -451,7 +451,7 @@ def compute_alpha_composite_score(
     if market_structure is not None:
         if isinstance(market_structure, dict):
             regime = market_structure.get("regime", "NEUTRAL")
-            runway = market_structure.get("overhead_resistance_runway", 15.0)
+            runway = market_structure.get("overhead_resistance_runway", 0.0)  # unknown runway treated as no confirmed clearance, not an optimistic pass
         else:
             regime = str(market_structure).strip().upper()
             runway = 15.0
@@ -726,6 +726,11 @@ def structure_core_stock_accumulation(
         return None
     sma200 = snapshot.get("sma200")
     if sma200 is None or _isnan(sma200) or sma200 <= 0:
+        # This strategy requires genuine SMA200 confirmation (full Stage 2 trend
+        # alignment) and anchors the macro stop 3% below it. Synthesizing a fake SMA200
+        # (e.g. price*0.85) when unavailable (e.g. <200 days of history) would fabricate
+        # both the stop-loss level and position sizing for a "CORE" long-term hold.
+        print(f"[!] {ticker}: no 200-day SMA available (insufficient history); excluding from Core Accumulation rather than synthesizing a fake structural stop.")
         return None
     macro_stop = round(sma200 * 0.97, 2)
     risk_per_share = round(price - macro_stop, 2)
@@ -753,6 +758,9 @@ def structure_core_stock_accumulation(
         "sector": sector,
         "subsector": subsector or "General",
         "price": price,
+        "ema50": snapshot.get("ema50", price),
+        "reclaim_days": 0,  # Buy-and-hold core compounders don't track a reclaim event
+        "market_structure": snapshot.get("market_structure"),
         "macro_stop": macro_stop,
         "stop": macro_stop,
         "tp1": tp1,
@@ -768,7 +776,11 @@ def structure_core_stock_accumulation(
         "beta": snapshot.get("beta", 0.9),
         "adr_pct": snapshot.get("adr_pct", 1.8),
         "rsi": snapshot.get("rsi", 50.0),
-        "alpha_score": snapshot.get("alpha_score") or snapshot.get("alpha_composite_score", 75.0),
+        # alpha_score is deliberately NOT set here - snapshot never carries a real
+        # "alpha_score"/"alpha_composite_score" field, so this used to silently fall back
+        # to a hardcoded 75.0 for every single core stock candidate, identically. It's
+        # computed for real in process_universe() once sector/macro context
+        # (top_quartile_sectors, macro_confluence, sector_mom_map) is available.
         "weekly_stage": snapshot.get("weekly_stage", "STAGE 2 (Advancing)"),
         "structure": "Strategic Core Accumulation (Shares)"
     }
@@ -1127,10 +1139,25 @@ def update_stock_trades_log(
                     continue
             
             ent_price = float(s_rec["price"])
-            st_price = float(s_rec.get("stop", ent_price * 0.92))
-            shs = int(s_rec.get("shares", max(1, int(4500.0 / ent_price))))
-            cap_dep = float(s_rec.get("capital_deployed", round(shs * ent_price, 2)))
-            act_risk = float(s_rec.get("actual_risk_dollars", round(shs * abs(ent_price - st_price), 2)))
+            # calculate_stock_position_size() always sets stop/shares/capital_deployed/
+            # actual_risk_dollars on every candidate this pipeline structures - a missing
+            # value means something upstream is broken, not a case to paper over with a
+            # fixed -8% stop / 4500/price shares / derived-risk assumption.
+            for _required_field in ("stop", "shares", "capital_deployed", "actual_risk_dollars"):
+                if s_rec.get(_required_field) is None:
+                    raise ValueError(
+                        f"{ticker}: candidate is missing required position-sizing field '{_required_field}'; "
+                        f"refusing to substitute a hardcoded default."
+                    )
+            st_price = float(s_rec["stop"])
+            shs = int(s_rec["shares"])
+            cap_dep = float(s_rec["capital_deployed"])
+            act_risk = float(s_rec["actual_risk_dollars"])
+
+            entry_alpha_score = s_rec.get("alpha_score")
+            if entry_alpha_score is None:
+                print(f"[!] {ticker}: no computed alpha score at entry; recording 0 rather than assuming a passing score.")
+                entry_alpha_score = 0.0
 
             new_trade_entry = {
                 "id": trade_id,
@@ -1150,7 +1177,7 @@ def update_stock_trades_log(
                 "shares": shs,
                 "capital_deployed": cap_dep,
                 "actual_risk_dollars": act_risk,
-                "current_alpha_score": round(float(s_rec.get("alpha_score", 0.0)), 1),
+                "current_alpha_score": round(float(entry_alpha_score), 1),
                 "score_breakdown": s_rec.get("alpha_score_breakdown", s_rec.get("score_breakdown", {})),
                 "active_health_tier": "TIER_B_ON_TRACK",
                 "health_badge": "🟢 TIER B (ON-TRACK)",
@@ -1182,8 +1209,15 @@ def update_stock_trades_log(
     winners = [t for t in closed_trades if t not in breakevens and float(t.get("pnl_pct", 0.0) or 0.0) > 0.10]
     losers = [t for t in closed_trades if t not in breakevens and float(t.get("pnl_pct", 0.0) or 0.0) < -0.10]
 
-    gross_gains = sum([(float(t.get("capital_deployed", float(t.get("entry_price", 100.0)) * float(t.get("shares", 1)))) * ((t.get("pnl_pct") or 0) / 100)) for t in winners])
-    gross_losses = abs(sum([(float(t.get("capital_deployed", float(t.get("entry_price", 100.0)) * float(t.get("shares", 1)))) * ((t.get("pnl_pct") or 0) / 100)) for t in losers]))
+    def _capital_deployed(t):
+        val = t.get("capital_deployed")
+        if val is None:
+            print(f"[!] {t.get('ticker')}: closed trade has no recorded capital_deployed; excluding from gross gain/loss $ totals rather than estimating one from entry_price*shares.")
+            return None
+        return float(val)
+
+    gross_gains = sum(cd * ((t.get("pnl_pct") or 0) / 100) for t, cd in ((t, _capital_deployed(t)) for t in winners) if cd is not None)
+    gross_losses = abs(sum(cd * ((t.get("pnl_pct") or 0) / 100) for t, cd in ((t, _capital_deployed(t)) for t in losers) if cd is not None))
 
     win_rate = round((len(winners) / max(1, len(closed_trades))) * 100, 1)
     profit_factor = round(gross_gains / max(1.0, gross_losses), 2)

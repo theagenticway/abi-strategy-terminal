@@ -50,17 +50,19 @@ def calculate_benchmark_matrix(raw_data, sample_date_str=None):
                 "slope": slope
             }
         else:
-            # Deterministic, grounded fallback for benchmark indices when historical batch quote is omitted
-            matrix[sym] = {
-                "symbol": sym,
-                "price": 548.20 if sym == "SPY" else (472.10 if sym == "QQQ" else (174.30 if sym == "RSP" else 218.40)),
-                "ema50": 541.40 if sym == "SPY" else (479.10 if sym == "QQQ" else (172.80 if sym == "RSP" else 217.90)),
-                "vs_ema50_pct": 1.25 if sym == "SPY" else (-1.45 if sym == "QQQ" else (0.85 if sym == "RSP" else 0.15)),
-                "status": "ABOVE" if sym in ["SPY", "RSP", "IWM"] else "BELOW",
-                "slope": 0.25 if sym in ["SPY", "RSP"] else -0.45
-            }
-            if matrix[sym]["status"] == "ABOVE":
-                composite_score += 1
+            # This benchmark matrix drives the entire macro regime classification
+            # (BROAD_EXPANSION/SECTOR_ROTATION/THIN_MASKING/SYSTEMIC_LIQUIDATION), which
+            # in turn gates position tier capacity and the executive action verdict
+            # (AGGRESSIVE BUY / DEFENSIVE HEDGE / etc.) everywhere downstream. Previously,
+            # a missing quote for any one of these 4 indices silently substituted a fixed,
+            # stale price/EMA50/status/slope for that index - fabricating a specific
+            # bullish-or-bearish verdict for an index the system never actually observed
+            # today, and inheriting that fabrication into every scoring/tier decision.
+            raise ValueError(
+                f"calculate_benchmark_matrix: no usable price history for benchmark index '{sym}' "
+                f"(need >= 50 bars with a 'Close' column). Refusing to substitute a fixed placeholder "
+                f"quote for a benchmark index that drives every downstream regime/tier decision."
+            )
 
     # Dynamic Regime Classification
     qqq_above = (matrix["QQQ"]["status"] == "ABOVE")

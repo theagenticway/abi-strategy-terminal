@@ -29,7 +29,11 @@ def _safe_int(val, default=0):
     except Exception:
         return default
 
-def _normalize_ms(val, default="BULLISH_HH_HL") -> str:
+def _normalize_ms(val, default="NEUTRAL") -> str:
+    # Previously defaulted to the specific regime "BULLISH_HH_HL" (or, at one call site,
+    # "BEARISH_LH_LL") whenever the source candidate had no real market_structure value -
+    # fabricating a specific directional verdict in the 365-day historical archive used
+    # for backtesting/performance analysis. "NEUTRAL" is an honest "unknown", not a guess.
     if isinstance(val, dict):
         return str(val.get("regime") or default)
     if not val:
@@ -41,8 +45,8 @@ def _normalize_ms(val, default="BULLISH_HH_HL") -> str:
             d = ast.literal_eval(s)
             if isinstance(d, dict) and "regime" in d:
                 return str(d["regime"])
-        except Exception:
-            pass
+        except Exception as ex:
+            print(f"[!] _normalize_ms: could not parse market_structure string '{s}': {ex}")
     return s
 
 def extract_signal_records(payload, date_str):
@@ -84,7 +88,7 @@ def extract_signal_records(payload, date_str):
                 "rvol": _safe_float(c.get("rvol", 1.0)),
                 "retrace_type": str(c.get("retrace") or c.get("retrace_type", "EMA50")),
                 "reclaim_days": _safe_int(c.get("reclaim_days", 1)),
-                "market_structure": _normalize_ms(c.get("market_structure"), "BULLISH_HH_HL"),
+                "market_structure": _normalize_ms(c.get("market_structure")),
                 "beta": _safe_float(c.get("beta", 1.0)),
                 "adr_pct": _safe_float(c.get("adr_pct", 2.0)),
                 "iv_rank": _safe_float(c.get("iv_rank", 50.0))
@@ -127,7 +131,7 @@ def extract_signal_records(payload, date_str):
                 "rvol": _safe_float(c.get("rvol", 1.0)),
                 "retrace_type": str(c.get("retrace") or c.get("retrace_type", "Stage2_Stack")),
                 "reclaim_days": _safe_int(c.get("reclaim_days", 1)),
-                "market_structure": _normalize_ms(c.get("market_structure"), "BULLISH_HH_HL"),
+                "market_structure": _normalize_ms(c.get("market_structure")),
                 "beta": _safe_float(c.get("beta", 1.0)),
                 "adr_pct": _safe_float(c.get("adr_pct", 2.0)),
                 "iv_rank": _safe_float(c.get("iv_rank", 25.0))
@@ -170,7 +174,7 @@ def extract_signal_records(payload, date_str):
                 "rvol": _safe_float(c.get("rvol", 1.0)),
                 "retrace_type": str(c.get("retrace") or c.get("retrace_type", "Resistance_Rejection")),
                 "reclaim_days": _safe_int(c.get("reclaim_days", 0)),
-                "market_structure": _normalize_ms(c.get("market_structure"), "BEARISH_LH_LL"),
+                "market_structure": _normalize_ms(c.get("market_structure")),
                 "beta": _safe_float(c.get("beta", 1.0)),
                 "adr_pct": _safe_float(c.get("adr_pct", 2.0)),
                 "iv_rank": _safe_float(c.get("iv_rank", 60.0))
@@ -228,7 +232,7 @@ def extract_signal_records(payload, date_str):
                 "rvol": _safe_float(s.get("rvol", 1.0)),
                 "retrace_type": str(s.get("retrace") or s.get("retrace_type", "EMA50")),
                 "reclaim_days": _safe_int(s.get("reclaim_days", 1)),
-                "market_structure": _normalize_ms(s.get("market_structure"), "BULLISH_HH_HL"),
+                "market_structure": _normalize_ms(s.get("market_structure")),
                 "beta": _safe_float(s.get("beta", 1.0)),
                 "adr_pct": _safe_float(s.get("adr_pct", 2.0)),
                 "iv_rank": _safe_float(s.get("iv_rank", 40.0))
@@ -273,7 +277,7 @@ def extract_signal_records(payload, date_str):
                 "rvol": _safe_float(c.get("rvol", 1.2)),
                 "retrace_type": str(c.get("retrace") or c.get("retrace_type", "EMA50")),
                 "reclaim_days": _safe_int(c.get("reclaim_days", 1)),
-                "market_structure": _normalize_ms(c.get("market_structure"), "BULLISH_HH_HL"),
+                "market_structure": _normalize_ms(c.get("market_structure")),
                 "beta": _safe_float(c.get("beta", 1.5)),
                 "adr_pct": _safe_float(c.get("adr_pct", 3.0)),
                 "iv_rank": _safe_float(c.get("iv_rank", 50.0))
@@ -319,7 +323,7 @@ def extract_signal_records(payload, date_str):
                 "rvol": _safe_float(s.get("rvol", 1.2)),
                 "retrace_type": str(s.get("retrace") or s.get("retrace_type", "EMA50")),
                 "reclaim_days": _safe_int(s.get("reclaim_days", 1)),
-                "market_structure": _normalize_ms(s.get("market_structure"), "BULLISH_HH_HL"),
+                "market_structure": _normalize_ms(s.get("market_structure")),
                 "beta": _safe_float(s.get("beta", 1.5)),
                 "adr_pct": _safe_float(s.get("adr_pct", 3.0)),
                 "iv_rank": _safe_float(s.get("iv_rank", 50.0))
@@ -375,7 +379,8 @@ def update_recommendations_archive(payload, date_str, archive_path=ARCHIVE_PATH,
         # Calculate cutoff date for 365-day rolling window
         try:
             curr_dt = datetime.datetime.strptime(date_str, "%Y-%m-%d")
-        except Exception:
+        except Exception as ex:
+            print(f"[!] Could not parse date_str '{date_str}' for archive retention cutoff, using current time instead: {ex}")
             curr_dt = datetime.datetime.now()
         
         cutoff_dt = curr_dt - datetime.timedelta(days=retention_days)
