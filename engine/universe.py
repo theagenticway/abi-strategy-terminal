@@ -38,6 +38,7 @@ SECTOR_ETFS = {
 # Complete S&P 500 + Key NASDAQ-100 Constituent Taxonomy
 # Ticker: (Sector, Sub-Sector / Industry)
 TICKER_TAXONOMY = {
+    # --- BENCHMARKS & CORE SECTOR TRACKERS ---
     "SPY": ("INDEX", "S&P 500 Benchmark"),
     "QQQ": ("INDEX", "Nasdaq 100 Growth"),
     "RSP": ("INDEX", "S&P 500 Equal Weight"),
@@ -50,34 +51,32 @@ TICKER_TAXONOMY = {
     "VIS": ("INDEX", "Vanguard Industrials"),
     "VDE": ("INDEX", "Vanguard Energy"),
     "VAW": ("INDEX", "Vanguard Materials"),
-    "VDC": ("INDEX", "Vanguard Consumer Staples"),
-    "VGT": ("INDEX", "Vanguard Information Tech"),
-    "VCR": ("INDEX", "Vanguard Consumer Discretionary"),
-    "VHT": ("INDEX", "Vanguard Health Care"),
-    "VIS": ("INDEX", "Vanguard Industrials"),
-    "VDE": ("INDEX", "Vanguard Energy"),
-    "VAW": ("INDEX", "Vanguard Materials"),
     "VXUS": ("INDEX", "Vanguard Total International Stock"),
-    "BND": ("INDEX", "Vanguard  Total Bond Market"),
+    "BND": ("INDEX", "Vanguard Total Bond Market"),
+
     # --- INFORMATION TECHNOLOGY ---
     "AAPL": ("TECH CORE", "Technology Hardware & Storage"),
     "ACN": ("TECH CORE", "IT Consulting & Outsourcing"),
     "ADBE": ("TECH SOFTWARE", "Application Software & Creative"),
     "ADI": ("TECH SEMIS", "Semiconductors & Mixed-Signal"),
+    "ADP": ("TECH SOFTWARE", "Cloud Human Capital Management & Payroll"),
     "ADSK": ("TECH SOFTWARE", "3D Design & Engineering Software"),
     "AKAM": ("TECH SOFTWARE", "Edge Computing & CDN Security"),
     "AMAT": ("TECH SEMIS", "Semiconductor Equipment"),
     "AMD": ("TECH SEMIS", "Semiconductors & Processors"),
     "ANET": ("TECH CORE", "Cloud Networking Equipment"),
-    "ANSS": ("TECH SOFTWARE", "Simulation Software"),
     "APH": ("TECH CORE", "Electronic Components & Fiber"),
+    "ASML": ("TECH SEMIS", "Photolithography Semiconductor Systems"),
     "AVGO": ("TECH SEMIS", "Semiconductors & Networking"),
     "CDNS": ("TECH SOFTWARE", "Electronic Design Automation"),
     "CDW": ("TECH CORE", "Technology Solutions & Distribution"),
     "CRM": ("TECH SOFTWARE", "Application Software & CRM"),
     "CRWD": ("TECH SOFTWARE", "Endpoint Cybersecurity Software"),
     "CSCO": ("TECH CORE", "Communications Equipment"),
+    "DDOG": ("TECH SOFTWARE", "Cloud Monitoring & Observability"),
     "DELL": ("TECH CORE", "Servers, Storage & Hardware"),
+    "DOCU": ("TECH SOFTWARE", "Electronic Signatures & CLM"),
+    "DT": ("TECH SOFTWARE", "Cloud Observability & Security Monitoring"),
     "FFIV": ("TECH SOFTWARE", "Application Delivery & Security"),
     "FICO": ("TECH SOFTWARE", "Applied Analytics & Scoring"),
     "FSLR": ("TECH CORE", "Solar Modules & Systems"),
@@ -89,12 +88,15 @@ TICKER_TAXONOMY = {
     "IBM": ("TECH CORE", "IT Consulting & Enterprise Systems"),
     "INTC": ("TECH SEMIS", "Processors & Foundry Services"),
     "INTU": ("TECH SOFTWARE", "Application Software & FinTech"),
+    "IOT": ("TECH SOFTWARE", "Connected Operations & Fleet IoT"),
     "JBL": ("TECH CORE", "Electronic Manufacturing Solutions"),
     "KEYS": ("TECH CORE", "Electronic Measurement Instruments"),
     "KLAC": ("TECH SEMIS", "Semiconductor Equipment"),
+    "LITE": ("TECH CORE", "Optical Communications & Photonic Subsystems"),
     "LRCX": ("TECH SEMIS", "Semiconductor Equipment"),
     "MCHP": ("TECH SEMIS", "Semiconductors & Microcontrollers"),
     "MPWR": ("TECH SEMIS", "Semiconductors & Power Solutions"),
+    "MRVL": ("TECH SEMIS", "Data Infrastructure & Custom AI ASICs"),
     "MSFT": ("TECH SOFTWARE", "Systems Software & Cloud"),
     "MSI": ("TECH CORE", "Communications & Public Safety"),
     "MU": ("TECH SEMIS", "Semiconductors & Memory"),
@@ -105,6 +107,7 @@ TICKER_TAXONOMY = {
     "ON": ("TECH SEMIS", "Semiconductors & Power/Sensors"),
     "ORCL": ("TECH SOFTWARE", "Database & Cloud Infrastructure"),
     "PANW": ("TECH SOFTWARE", "Cybersecurity Software"),
+    "PAYX": ("TECH SOFTWARE", "Payroll, HR & Benefits Outsourcing"),
     "PLTR": ("TECH SOFTWARE", "Enterprise AI & Big Data Platforms"),
     "PTC": ("TECH SOFTWARE", "Industrial IoT & CAD Software"),
     "QCOM": ("TECH SEMIS", "Semiconductors & Wireless"),
@@ -115,6 +118,7 @@ TICKER_TAXONOMY = {
     "STX": ("TECH CORE", "Hard Drives & Data Storage"),
     "SWKS": ("TECH SEMIS", "Mobile Connectivity Chips"),
     "TDY": ("TECH CORE", "Aerospace & Defense Electronics"),
+    "TEAM": ("TECH SOFTWARE", "Team Collaboration & Workflow Software"),
     "TEL": ("TECH CORE", "Electronic Components & Sensors"),
     "TER": ("TECH SEMIS", "Automated Semiconductor Test"),
     "TRMB": ("TECH CORE", "Navigation & Positioning Tech"),
@@ -200,6 +204,7 @@ TICKER_TAXONOMY = {
     "ABBV": ("HEALTHCARE", "Biopharmaceuticals & Immunology"),
     "ABT": ("HEALTHCARE", "Medical Devices & Nutritional Products"),
     "ALGN": ("HEALTHCARE", "Orthodontic Medical Devices (Invisalign)"),
+    "ALNY": ("HEALTHCARE", "RNA Interference (RNAi) Therapeutics"),
     "AMGN": ("HEALTHCARE", "Biotechnology Therapeutics"),
     "BAX": ("HEALTHCARE", "Hospital & Dialysis Medical Products"),
     "BDX": ("HEALTHCARE", "Medical Supplies & Diagnostic Devices"),
@@ -270,6 +275,7 @@ TICKER_TAXONOMY = {
     "CCL": ("CONSUMER DISC", "Multi-Brand Cruise Vacations"),
     "CMG": ("CONSUMER DISC", "Fast-Casual Mexican Restaurants"),
     "CZR": ("CONSUMER DISC", "Casino Gaming & Resort Entertainment"),
+    "DASH": ("CONSUMER DISC", "Local On-Demand Logistics & Delivery"),
     "DECK": ("CONSUMER DISC", "Footwear & Premium Lifestyle Brands"),
     "DHI": ("CONSUMER DISC", "Single-Family Residential Homebuilding"),
     "DRI": ("CONSUMER DISC", "Full-Service Casual Dining Restaurants"),
@@ -296,6 +302,7 @@ TICKER_TAXONOMY = {
     "NKE": ("CONSUMER DISC", "Footwear, Apparel & Equipment"),
     "NVR": ("CONSUMER DISC", "Single-Family Home Construction"),
     "ORLY": ("CONSUMER DISC", "Automotive Aftermarket Parts Retail"),
+    "PDD":  ("CONSUMER DISC", "Cross-Border E-Commerce & Marketplace (Temu/Pinduoduo)"),
     "PHM": ("CONSUMER DISC", "Residential Homebuilding"),
     "POOL": ("CONSUMER DISC", "Wholesale Swimming Pool Supplies"),
     "RCL": ("CONSUMER DISC", "Cruise Ship Vacation Fleets"),
@@ -317,6 +324,7 @@ TICKER_TAXONOMY = {
     "BF.B": ("CONSUMER STAPLES", "Distilled Spirits (Jack Daniel's)"),
     "BG": ("CONSUMER STAPLES", "Agribusiness & Food Processing"),
     "CAG": ("CONSUMER STAPLES", "Packaged Frozen Foods & Brands"),
+    "CCEP": ("CONSUMER STAPLES", "Bottling & Distribution Partner (Coca-Cola Europacific)"),
     "CHD": ("CONSUMER STAPLES", "Household & Personal Specialty Products"),
     "CL": ("CONSUMER STAPLES", "Oral, Personal & Home Care Products"),
     "CLX": ("CONSUMER STAPLES", "Household Cleaning & Consumer Goods"),
@@ -328,7 +336,6 @@ TICKER_TAXONOMY = {
     "GIS": ("CONSUMER STAPLES", "Packaged Cereals & Foods"),
     "HRL": ("CONSUMER STAPLES", "Packaged Meat & Food Brands (Spam)"),
     "HSY": ("CONSUMER STAPLES", "Chocolate & Sugar Confectionery"),
-    "K": ("CONSUMER STAPLES", "Packaged Snacks & Cereals (Kellanova)"),
     "KDP": ("CONSUMER STAPLES", "Packaged Beverages & Coffee Systems"),
     "KMB": ("CONSUMER STAPLES", "Personal Care Paper Products"),
     "KO": ("CONSUMER STAPLES", "Non-Alcoholic Beverages & Syrups"),
@@ -337,6 +344,7 @@ TICKER_TAXONOMY = {
     "LW": ("CONSUMER STAPLES", "Frozen Potato Products & French Fries"),
     "MDLZ": ("CONSUMER STAPLES", "Packaged Snack Foods & Confectionery"),
     "MKC": ("CONSUMER STAPLES", "Spices, Seasonings & Condiments"),
+    "MNST": ("CONSUMER STAPLES", "Energy Drinks & Functional Beverages"),
     "MO": ("CONSUMER STAPLES", "Tobacco & Cigarettes"),
     "PEP": ("CONSUMER STAPLES", "Snack Foods & Packaged Beverages"),
     "PG": ("CONSUMER STAPLES", "Personal Care & Household Products"),
@@ -394,6 +402,7 @@ TICKER_TAXONOMY = {
     "EXPD": ("INDUSTRIALS", "Air & Ocean Freight Forwarding"),
     "FAST": ("INDUSTRIALS", "Industrial Fasteners & Supply Chain"),
     "FDX": ("INDUSTRIALS", "Global Express Freight & Air Delivery"),
+    "FER":  ("INDUSTRIALS", "Global Transportation Infrastructure & Toll Roads"),
     "GD": ("INDUSTRIALS", "Aerospace (Gulfstream) & Marine Combat"),
     "GE": ("INDUSTRIALS", "Commercial & Military Aerospace Propulsion"),
     "GEV": ("INDUSTRIALS", "Renewable Energy, Gas Turbines & Electrification"),
@@ -476,7 +485,6 @@ TICKER_TAXONOMY = {
     "EQT": ("ENERGY", "Natural Gas Exploration & Production"),
     "FANG": ("ENERGY", "Permian Basin Pure-Play E&P"),
     "HAL": ("ENERGY", "Oilfield Services & Drilling Equipment"),
-    "HES": ("ENERGY", "Exploration & Offshore Oil Production"),
     "KMI": ("ENERGY", "Energy Pipeline Infrastructure & Storage"),
     "MPC": ("ENERGY", "Petroleum Refining & Marketing"),
     "OKE": ("ENERGY", "Natural Gas Midstream Infrastructure"),
@@ -608,110 +616,16 @@ TICKER_TAXONOMY = {
     "PTEN": ("ENERGY", "Contract Land Drilling & Pressure Pumping"),
     "OII":  ("ENERGY", "Subsea Offshore Robotics & Engineering"),
 
-    # --- Foreign Listings Excluded from S&P 500 ---
-    "ASML": ("TECH SEMIS", "Photolithography Semiconductor Systems"),
-    "PDD":  ("CONSUMER DISC", "Cross-Border E-Commerce & Marketplace (Temu)"),
-
-    # --- High Implied Volatility & Earnings Momentum ---
-    "MRVL": ("TECH SEMIS", "Data Infrastructure & Custom AI ASICs"),
-    "DDOG": ("TECH SOFTWARE", "Cloud Monitoring & Observability"),
-    "DASH": ("CONSUMER DISC", "Local On-Demand Logistics & Delivery"),
-    "ALNY": ("HEALTHCARE", "RNA Interference (RNAi) Therapeutics"),
-
     # --- Pure-Play AI Infrastructure ("Neoclouds") ---
     "CRWV": ("TECH SOFTWARE", "GPU Cloud Infrastructure & AI Compute (CoreWeave)"),
     "NBIS": ("TECH SOFTWARE", "AI Infrastructure & Cloud GPU Clusters (Nebius Group)"),
-    
-    # --- INFORMATION TECHNOLOGY (SEMIS & HARDWARE) ---
-    "ASML": ("TECH SEMIS", "Photolithography Semiconductor Systems"),
-    "MRVL": ("TECH SEMIS", "Data Infrastructure & Custom AI ASICs"),
-    "LITE": ("TECH CORE", "Optical Communications & Photonic Subsystems"),
-
-    # --- INFORMATION TECHNOLOGY (SOFTWARE & CLOUD) ---
-    "ADP":  ("TECH SOFTWARE", "Cloud Human Capital Management & Payroll"),
-    "PAYX": ("TECH SOFTWARE", "Payroll, HR & Benefits Outsourcing"),
-    "DDOG": ("TECH SOFTWARE", "Cloud Monitoring & Observability"),
-    "TEAM": ("TECH SOFTWARE", "Team Collaboration & Workflow Software"),
-    "CRWV": ("TECH SOFTWARE", "GPU Cloud Infrastructure & AI Compute"),
-    "NBIS": ("TECH SOFTWARE", "AI Infrastructure & Cloud GPU Clusters"),
-
-    # --- CONSUMER DISCRETIONARY & PLATFORMS ---
-    "PDD":  ("CONSUMER DISC", "Cross-Border E-Commerce & Marketplace (Temu/Pinduoduo)"),
-    "DASH": ("CONSUMER DISC", "Local On-Demand Logistics & Delivery"),
-
-    # --- CONSUMER STAPLES ---
-    "MNST": ("CONSUMER STAPLES", "Energy Drinks & Functional Beverages"),
-    "CCEP": ("CONSUMER STAPLES", "Bottling & Distribution Partner (Coca-Cola Europacific)"),
-
-    # --- HEALTHCARE & BIOTECH ---
-    "ALNY": ("HEALTHCARE", "RNA Interference (RNAi) Therapeutics"),
-
-    # --- INDUSTRIALS & INFRASTRUCTURE ---
-    "FER":  ("INDUSTRIALS", "Global Transportation Infrastructure & Toll Roads"),
 }
 
 def fetch_live_sp500_constituents():
     """
-    Dynamically fetches official S&P 500 constituents from Wikipedia.
-    Disabled due to upstream rate-limiting/403 blocks; falls back to static taxonomy.
+    Returns the static taxonomy dictionary.
+    Dynamic scraping is disabled to avoid Wikipedia/upstream 403 blocks and timeouts.
     """
-    # NOTE: Scraping disabled to prevent Wikipedia 403/parsing errors and network stalls.
-    # To re-enable in the future, Wikimedia requires a dedicated User-Agent policy
-    # (e.g., 'User-Agent': 'MyAppName/1.0 (contact@domain.com)').
-    
-    # try:
-    #     import urllib.request
-    #     url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-    #     req = urllib.request.Request(
-    #         url,
-    #         headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-    #     )
-    #     with urllib.request.urlopen(req) as resp:
-    #         tables = pd.read_html(resp.read())
-    #     df = tables[0]
-    #     live_taxonomy = {}
-    #     for _, row in df.iterrows():
-    #         sym = str(row['Symbol']).replace('.', '-')
-    #         gics_sector = str(row['GICS Sector']).upper()
-    #         gics_sub = str(row.get('GICS Sub-Industry', ''))
-    #         
-    #         # Map to Strategy Sector buckets
-    #         if "INFORMATION TECHNOLOGY" in gics_sector:
-    #             if any(k in gics_sub.lower() for k in ["semiconductor", "equipment"]):
-    #                 sec = "TECH SEMIS"
-    #             elif any(k in gics_sub.lower() for k in ["software", "internet"]):
-    #                 sec = "TECH SOFTWARE"
-    #             else:
-    #                 sec = "TECH CORE"
-    #         elif "FINANCIALS" in gics_sector:
-    #             sec = "FINANCIALS"
-    #         elif "HEALTH CARE" in gics_sector:
-    #             sec = "HEALTHCARE"
-    #         elif "ENERGY" in gics_sector:
-    #             sec = "ENERGY"
-    #         elif "INDUSTRIALS" in gics_sector:
-    #             sec = "INDUSTRIALS"
-    #         elif "CONSUMER DISCRETIONARY" in gics_sector:
-    #             sec = "CONSUMER DISC"
-    #         elif "CONSUMER STAPLES" in gics_sector:
-    #             sec = "CONSUMER STAPLES"
-    #         elif "COMMUNICATION" in gics_sector:
-    #             sec = "COMM SERVICES"
-    #         elif "MATERIALS" in gics_sector:
-    #             sec = "MATERIALS"
-    #         elif "REAL ESTATE" in gics_sector:
-    #             sec = "REAL ESTATE"
-    #         elif "UTILITIES" in gics_sector:
-    #             sec = "UTILITIES"
-    #         else:
-    #             sec = gics_sector
-    #             
-    #         live_taxonomy[sym] = (sec, gics_sub)
-    #     return live_taxonomy
-    # except Exception as e:
-    #     print(f"[!] Dynamic S&P 500 fetch skipped ({e}). Using built-in master taxonomy.")
-
-    # Safe return: Use the static taxonomy defined in the module
     return TICKER_TAXONOMY
 
 def get_complete_taxonomy():
