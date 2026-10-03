@@ -608,7 +608,9 @@ class TestNewStockOptimizations(unittest.TestCase):
             "stop": 92.0,
             "tp1": 115.0,
             "tp2": 125.0,
-            "shares": 50
+            "shares": 50,
+            "capital_deployed": 5000.0,     # 50 shares * $100.00
+            "actual_risk_dollars": 400.0    # 50 shares * ($100.00 - $92.00)
         }]
 
         import tempfile
@@ -651,7 +653,9 @@ class TestNewStockOptimizations(unittest.TestCase):
             "stop": 92.0,
             "tp1": 115.0,
             "tp2": 125.0,
-            "shares": 50
+            "shares": 50,
+            "capital_deployed": 5000.0,     # 50 shares * $100.00
+            "actual_risk_dollars": 400.0    # 50 shares * ($100.00 - $92.00)
         }]
         fin_rec = [{
             "ticker": "JPM",
@@ -662,7 +666,9 @@ class TestNewStockOptimizations(unittest.TestCase):
             "stop": 110.0,
             "tp1": 135.0,
             "tp2": 145.0,
-            "shares": 40
+            "shares": 40,
+            "capital_deployed": 4800.0,     # 40 shares * $120.00
+            "actual_risk_dollars": 400.0    # 40 shares * ($120.00 - $110.00)
         }]
 
         import tempfile

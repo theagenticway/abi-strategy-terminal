@@ -19,7 +19,13 @@ class TestFunctionalPipeline(unittest.TestCase):
         dates = pd.date_range("2026-03-01", "2026-09-04", freq="B")
         
         sample_tickers = [
-            "SPY", "QQQ", "GDX", "IBB", "XLE", "IGV", "XBI", "XME", "XLV", "XLK", "XLF",
+            # RSP and IWM are required alongside SPY/QQQ: calculate_benchmark_matrix
+            # needs all 4 benchmark indices with >= 50 bars, or the regime is (correctly)
+            # marked DATA_DEFICIENT and this end-to-end test would generate zero new
+            # candidates - which would still pass the assertions below vacuously, but
+            # would no longer actually exercise the candidate-generation path this test
+            # is meant to cover.
+            "SPY", "QQQ", "RSP", "IWM", "GDX", "IBB", "XLE", "IGV", "XBI", "XME", "XLV", "XLK", "XLF",
             "AAPL", "NVDA", "MSFT", "AMZN", "GOOGL", "META", "DOCU", "RKT", "MS", "PNC",
             "FISV", "CRCL", "GRAL", "CEG", "XOM", "DVN", "JPM", "DELL", "HSAI"
         ]
@@ -103,8 +109,6 @@ class TestFunctionalPipeline(unittest.TestCase):
         dumped = json.dumps(payload)
         self.assertGreater(len(dumped), 1000)
 
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
     def test_unfinalized_bar_resilience_and_broader_ingestion(self):
         # Append a trailing unfinalized row with NaNs in Close and Volume=0
         today_date = pd.date_range("2026-09-05", periods=1, freq="D")
@@ -136,6 +140,7 @@ if __name__ == "__main__":
         self.assertGreater(len(payload["all_subsectors"]), 0)
         self.assertIn("stock_recommendations", payload)
         self.assertIn("core_stocks", payload)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
