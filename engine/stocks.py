@@ -1142,13 +1142,14 @@ def update_stock_trades_log(
             # calculate_stock_position_size() always sets stop/shares/capital_deployed/
             # actual_risk_dollars on every candidate this pipeline structures - a missing
             # value means something upstream is broken, not a case to paper over with a
-            # fixed -8% stop / 4500/price shares / derived-risk assumption.
-            for _required_field in ("stop", "shares", "capital_deployed", "actual_risk_dollars"):
-                if s_rec.get(_required_field) is None:
-                    raise ValueError(
-                        f"{ticker}: candidate is missing required position-sizing field '{_required_field}'; "
-                        f"refusing to substitute a hardcoded default."
-                    )
+            # fixed -8% stop / 4500/price shares / derived-risk assumption. A hard raise
+            # here was also wrong: it would abort this whole function call, including the
+            # audit_stock_positions() work already done above for every OTHER open
+            # position. Reject just this one malformed candidate and keep going.
+            _missing_fields = [f for f in ("stop", "shares", "capital_deployed", "actual_risk_dollars") if s_rec.get(f) is None]
+            if _missing_fields:
+                print(f"[!] REJECTED candidate {ticker}: missing required sizing field(s) {_missing_fields}. Refusing to ingest without explicit sizing.")
+                continue
             st_price = float(s_rec["stop"])
             shs = int(s_rec["shares"])
             cap_dep = float(s_rec["capital_deployed"])

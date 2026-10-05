@@ -27,6 +27,7 @@ def calculate_benchmark_matrix(raw_data, sample_date_str=None):
     indices = ["SPY", "QQQ", "RSP", "IWM"]
     matrix = {}
     composite_score = 0
+    missing_indices = []
     from indicators import calculate_ema
 
     for sym in indices:
@@ -53,16 +54,37 @@ def calculate_benchmark_matrix(raw_data, sample_date_str=None):
             # This benchmark matrix drives the entire macro regime classification
             # (BROAD_EXPANSION/SECTOR_ROTATION/THIN_MASKING/SYSTEMIC_LIQUIDATION), which
             # in turn gates position tier capacity and the executive action verdict
-            # (AGGRESSIVE BUY / DEFENSIVE HEDGE / etc.) everywhere downstream. Previously,
-            # a missing quote for any one of these 4 indices silently substituted a fixed,
-            # stale price/EMA50/status/slope for that index - fabricating a specific
-            # bullish-or-bearish verdict for an index the system never actually observed
-            # today, and inheriting that fabrication into every scoring/tier decision.
-            raise ValueError(
-                f"calculate_benchmark_matrix: no usable price history for benchmark index '{sym}' "
-                f"(need >= 50 bars with a 'Close' column). Refusing to substitute a fixed placeholder "
-                f"quote for a benchmark index that drives every downstream regime/tier decision."
-            )
+            # everywhere downstream. Previously this silently substituted a fixed, stale
+            # price/EMA50/status/slope - fabricating a specific bullish-or-bearish verdict
+            # for an index never actually observed today. A hard raise here was also wrong:
+            # it took down the entire scan (including auditing of already-open positions)
+            # over a single dropped index quote. Missing telemetry is recorded explicitly
+            # via missing_indices/data_status below instead of either extreme.
+            missing_indices.append(sym)
+            matrix[sym] = {
+                "symbol": sym,
+                "price": None,
+                "ema50": None,
+                "vs_ema50_pct": None,
+                "status": None,
+                "slope": None
+            }
+
+    if missing_indices:
+        print(f"[!] calculate_benchmark_matrix: missing/insufficient price history for benchmark index(es) {missing_indices} "
+              f"(need >= 50 bars with a 'Close' column). Marking regime DATA_DEFICIENT rather than fabricating a quote "
+              f"or crashing the scan - new trade generation should be paused by the caller until this clears.")
+        return {
+            "composite_score": None,
+            "score": None,
+            "composite_max": 4,
+            "regime": "DATA_DEFICIENT",
+            "regime_badge": "⚠️ DATA DEFICIENT (Missing Benchmark Telemetry)",
+            "actionable_bias": "DATA_DEFICIENT_PAUSE",
+            "data_status": "DATA_DEFICIENT",
+            "missing_indices": missing_indices,
+            "indices": matrix
+        }
 
     # Dynamic Regime Classification
     qqq_above = (matrix["QQQ"]["status"] == "ABOVE")
@@ -98,6 +120,8 @@ def calculate_benchmark_matrix(raw_data, sample_date_str=None):
         "regime": regime,
         "regime_badge": regime_badge,
         "actionable_bias": actionable_bias,
+        "data_status": "VALID",
+        "missing_indices": [],
         "indices": matrix
     }
 
@@ -108,6 +132,29 @@ def generate_market_commentary(benchmark_matrix, macro_breadth, all_25_etfs, top
     and clear action directive (AGGRESSIVE BUY, CAUTIOUS BUY, HOLD / PRESERVE, DEFENSIVE / HEDGE).
     Zero hardcoded strings — derived dynamically from underlying data.
     """
+    if benchmark_matrix.get("data_status") == "DATA_DEFICIENT" or benchmark_matrix.get("regime") == "DATA_DEFICIENT":
+        # composite_score is None here - every branch below does numeric comparisons against
+        # it, so this must be handled before any of that runs rather than woven into it.
+        missing = benchmark_matrix.get("missing_indices", [])
+        missing_str = ", ".join(missing) if missing else "one or more benchmark indices"
+        return {
+            "action_verdict": "DATA DEFICIENT",
+            "action_badge": "⏸️ DEFENSIVE PAUSE: Benchmark telemetry incomplete. New tactical entries restricted.",
+            "directive_type": "DATA_DEFICIENT_PAUSE",
+            "macro_narrative": (
+                f"Key benchmark telemetry ({missing_str}) is unavailable from the upstream data feed. "
+                f"Capital deployment is paused to protect against unobserved market drift until full "
+                f"SPY/QQQ/RSP/IWM telemetry is restored."
+            ),
+            "sector_flow_narrative": "Sector capital flow analysis suspended until full benchmark telemetry is restored.",
+            "subsector_directive": "No new sub-sector directives issued while benchmark data is deficient.",
+            "execution_mandates": [
+                "100% FREEZE on all new Long Calls, Stock Swings, and Strategic LEAPS entries.",
+                "Continue managing and auditing existing open positions per their existing stops/targets.",
+                "Resume normal capital deployment only once SPY/QQQ/RSP/IWM telemetry is fully available."
+            ]
+        }
+
     score = benchmark_matrix.get("composite_score", 3)
     regime = benchmark_matrix.get("regime", "SECTOR_ROTATION")
     indices = benchmark_matrix.get("indices", {})

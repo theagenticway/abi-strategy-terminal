@@ -611,14 +611,13 @@ def process_universe(raw_data=None, sample_date_str=None):
         for day_item in s_hist[:14]:
             missing = [f for f in required_activity_fields if f not in day_item]
             if missing:
-                # Previously substituted plausible-looking counts (later softened to 0,
-                # then silently logged at debug level and skipped) instead of surfacing
-                # that summary.json contains a malformed/legacy record. Per policy this
-                # must fail explicitly rather than degrade the daily activity feed.
-                raise ValueError(
-                    f"Malformed summary.json record for date={day_item.get('date', '<unknown>')}: "
-                    f"missing required field(s) {missing}. Refusing to substitute fabricated activity counts."
-                )
+                # A single malformed/legacy historical record must not take down the whole
+                # daily scan (a prior version raised here, which crashed the live scanner on
+                # any old summary.json entry from before this field was tracked) - nor should
+                # it be silently patched with a plausible-looking fabricated count. Skip just
+                # this one record and say so.
+                logger.warning("Skipping malformed summary.json record for date=%s: missing %s", day_item.get("date", "<unknown>"), missing)
+                continue
             daily_activity.append({
                 "date": day_item["date"],
                 "ema50": day_item["retrace_ema50"],
@@ -633,14 +632,13 @@ def process_universe(raw_data=None, sample_date_str=None):
     # 10. Macro Breadth Calculation
     top_sectors = sorted(sector_counts.items(), key=lambda x: x[1], reverse=True)[:3]
     if not top_sectors:
-        # Previously substituted a fabricated "FINANCIALS, TECH, ENERGY" placeholder,
-        # then softened to the sentinel string "DATA_UNAVAILABLE" - still a hardcoded
-        # fallback value standing in for a genuine computation failure. An empty
-        # sector_counts here means effectively zero tickers were processed, which is
-        # already a fatal condition elsewhere in the pipeline (see the ticker_count==0
-        # circuit breaker in persistence.py) - so raising here is consistent, not novel.
-        raise ValueError("No sector data available to compute top_sectors; refusing to substitute a fabricated sector list.")
-    top_sectors_str = ", ".join([f"{s}({c})" for s, c in top_sectors])
+        # An empty sector_counts is an honest "quiet session, zero alerts triggered" outcome,
+        # not a failure - it must not crash the scan, and must not be papered over with a
+        # fabricated sector list (previously "FINANCIALS, TECH, ENERGY", then "DATA_UNAVAILABLE"
+        # - still standing in for real data either way). Report it as exactly what it is.
+        top_sectors_str = "NONE (Quiet Session)"
+    else:
+        top_sectors_str = ", ".join([f"{s}({c})" for s, c in top_sectors])
 
     # Cumulative alerts/reclaims/win-rate previously used hardcoded seed values (1012, 385,
     # "38.0%") whenever the session count was small, and winrate_cumulative was *always*
@@ -657,13 +655,11 @@ def process_universe(raw_data=None, sample_date_str=None):
             if _d.get("date") == today_str:
                 continue  # avoid double-counting a same-day re-run
             if "total_alerts" not in _d or "reclaims" not in _d:
-                # Previously swallowed via a bare except and silently kept whatever partial
-                # sum had accumulated so far - understating the cumulative totals with no
-                # indication anything was wrong.
-                raise ValueError(
-                    f"Malformed summary.json record for date={_d.get('date', '<unknown>')}: "
-                    f"missing 'total_alerts' or 'reclaims'. Refusing to silently under-count cumulative totals."
-                )
+                # Same principle as above: skip this one malformed historical record with an
+                # explicit warning rather than crashing every future daily scan over it, or
+                # silently understating the cumulative totals as the original bare except did.
+                logger.warning("Skipping malformed summary.json record for date=%s: missing 'total_alerts' or 'reclaims'", _d.get("date", "<unknown>"))
+                continue
             cumulative_alerts += int(_d["total_alerts"])
             cumulative_reclaims += int(_d["reclaims"])
 
@@ -724,6 +720,18 @@ def process_universe(raw_data=None, sample_date_str=None):
 
     # 12. Benchmark Matrix, Market Commentary & Downside Hedges
     benchmark_matrix = calculate_benchmark_matrix(raw_data, sample_date_str)
+    if benchmark_matrix.get("data_status") == "DATA_DEFICIENT":
+        # Benchmark telemetry (SPY/QQQ/RSP/IWM) drives the entire regime/tier-capacity
+        # system - with it missing, we have no reliable basis for issuing new trades. Halt
+        # NEW candidate generation only; ticker_records (and therefore payload["tickers"],
+        # which persistence.py uses to audit already-open positions) is left untouched so
+        # existing stops/targets/health-tier tracking keeps running normally.
+        _missing = benchmark_matrix.get("missing_indices", [])
+        print(f"[!] process_universe: benchmark data deficient (missing {_missing}). "
+              f"Halting new trade/candidate generation for this scan; existing open positions will still be audited.")
+        qualified_candidates = []
+        qualified_stock_candidates = []
+        core_stock_candidates = []
     market_commentary = generate_market_commentary(benchmark_matrix, macro_breadth, all_25_etfs, top_subsectors, funnel)
 
     # Downside Hedge Scanning: Detect stocks in bottom sectors / Stage 4 downtrend failing overhead resistance
@@ -942,7 +950,9 @@ def process_universe(raw_data=None, sample_date_str=None):
         if e.get("etf"):
             sector_mom_map[e["etf"].upper()] = spread
 
-    macro_confluence = benchmark_matrix.get("composite_score", benchmark_matrix.get("score", 2))
+    macro_confluence = benchmark_matrix.get("composite_score")
+    if macro_confluence is None:
+        macro_confluence = benchmark_matrix.get("score", 2)
 
     for s_cand in qualified_stock_candidates:
         s_sec = (s_cand.get("sector") or "").upper()
@@ -1113,28 +1123,35 @@ def process_universe(raw_data=None, sample_date_str=None):
         except Exception as e:
             logger.warning(f"Failed to load recommendations_archive.json for streak computation: {e}")
 
-    high_risk_stocks_radar, high_risk_options_radar = build_high_risk_radars(
-        ticker_records=ticker_records,
-        qualified_stock_candidates=qualified_stock_candidates,
-        qualified_candidates=qualified_candidates,
-        raw_data=raw_data,
-        top_quartile_sectors=top_quartile_sectors,
-        macro_confluence=macro_confluence,
-        sector_mom_map=sector_mom_map,
-        now_utc=now_utc,
-        date_str=today_str,
-        archive_records=archive_records,
-    )
+    if benchmark_matrix.get("data_status") == "DATA_DEFICIENT":
+        # Same halt as above: these radars issue fresh "BUY" actions with live order
+        # tickets pulled straight from ticker_records (not from the qualified_* lists
+        # already emptied above), so they need their own explicit gate.
+        high_risk_stocks_radar, high_risk_options_radar = [], []
+        near_miss_candidates = []
+    else:
+        high_risk_stocks_radar, high_risk_options_radar = build_high_risk_radars(
+            ticker_records=ticker_records,
+            qualified_stock_candidates=qualified_stock_candidates,
+            qualified_candidates=qualified_candidates,
+            raw_data=raw_data,
+            top_quartile_sectors=top_quartile_sectors,
+            macro_confluence=macro_confluence,
+            sector_mom_map=sector_mom_map,
+            now_utc=now_utc,
+            date_str=today_str,
+            archive_records=archive_records,
+        )
 
-    # Feature 4: Near-Miss Watchlist (Candidates that failed exactly 1 gatekeeper filter)
-    near_miss_candidates = build_near_miss_candidates(
-        ticker_records=ticker_records,
-        qualified_candidates=qualified_candidates,
-        qualified_stock_candidates=qualified_stock_candidates,
-        top_quartile_sectors=top_quartile_sectors,
-        macro_confluence=macro_confluence,
-        sector_mom_map=sector_mom_map,
-    )
+        # Feature 4: Near-Miss Watchlist (Candidates that failed exactly 1 gatekeeper filter)
+        near_miss_candidates = build_near_miss_candidates(
+            ticker_records=ticker_records,
+            qualified_candidates=qualified_candidates,
+            qualified_stock_candidates=qualified_stock_candidates,
+            top_quartile_sectors=top_quartile_sectors,
+            macro_confluence=macro_confluence,
+            sector_mom_map=sector_mom_map,
+        )
 
     return {
         "macro_breadth": macro_breadth,
