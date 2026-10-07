@@ -1,7 +1,7 @@
 [
   {
     "date": "2026-10-07",
-    "timestamp": "2026-10-07 20:26:18",
+    "timestamp": "2026-10-07 21:24:59",
     "total_alerts": 527,
     "reclaims": 34,
     "confirmed": 34,
@@ -11,10 +11,10 @@
     "retrace_db": 151,
     "retrace_ema50": 169,
     "retrace_ma150": 20,
-    "beta_lt_1": 363,
+    "beta_lt_1": 364,
     "beta_1_to_1_5": 72,
-    "beta_gt_1_5": 92,
-    "top_sectors": "FINANCIALS(69), HEALTHCARE(65), INDUSTRIALS(63)",
+    "beta_gt_1_5": 91,
+    "top_sectors": "FINANCIALS(70), HEALTHCARE(65), INDUSTRIALS(63)",
     "macro_ratio": 0.06,
     "total_alerts_session": 527,
     "total_alerts_cumulative": 115867,
@@ -24,8 +24,8 @@
     "winrate_cumulative": "34.2%",
     "funnel_diagnostic": {
       "scanned": 540,
-      "below_floor": 350,
-      "stale_reclaim": 143,
+      "below_floor": 349,
+      "stale_reclaim": 144,
       "wrong_retrace": 0,
       "low_runway": 5,
       "pending_eod": 0,
