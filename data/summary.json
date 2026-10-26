@@ -1,7 +1,7 @@
 [
   {
     "date": "2026-10-26",
-    "timestamp": "2026-10-26 20:19:49",
+    "timestamp": "2026-10-26 21:07:25",
     "total_alerts": 527,
     "reclaims": 26,
     "confirmed": 26,
@@ -32,7 +32,7 @@
       "illiquid_options": 8,
       "qualified": 18
     },
-    "offense_pct": 45,
+    "offense_pct": 50,
     "regime": "MIXED",
     "regime_desc": "MIXED \u2014 No clear rotation"
   },
