@@ -1,7 +1,7 @@
 [
   {
     "date": "2026-11-10",
-    "timestamp": "2026-11-10 00:20:41",
+    "timestamp": "2026-11-10 14:01:18",
     "total_alerts": 527,
     "reclaims": 62,
     "confirmed": 62,
@@ -29,7 +29,7 @@
       "wrong_retrace": 7,
       "low_runway": 9,
       "pending_eod": 0,
-      "illiquid_options": 1,
+      "illiquid_options": 0,
       "qualified": 43
     },
     "offense_pct": 60,
