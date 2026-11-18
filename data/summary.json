@@ -1,5 +1,42 @@
 [
   {
+    "date": "2026-11-18",
+    "timestamp": "2026-11-18 14:01:04",
+    "total_alerts": 526,
+    "reclaims": 4,
+    "confirmed": 4,
+    "below": 522,
+    "dead": 0,
+    "retrace_ote": 40,
+    "retrace_db": 61,
+    "retrace_ema50": 172,
+    "retrace_ma150": 22,
+    "beta_lt_1": 373,
+    "beta_1_to_1_5": 66,
+    "beta_gt_1_5": 87,
+    "top_sectors": "FINANCIALS(70), HEALTHCARE(65), INDUSTRIALS(63)",
+    "macro_ratio": 0.01,
+    "total_alerts_session": 526,
+    "total_alerts_cumulative": 118524,
+    "reclaims_session": 4,
+    "reclaims_cumulative": 36676,
+    "winrate_session": "0.8%",
+    "winrate_cumulative": "30.9%",
+    "funnel_diagnostic": {
+      "scanned": 540,
+      "below_floor": 272,
+      "stale_reclaim": 250,
+      "wrong_retrace": 0,
+      "low_runway": 1,
+      "pending_eod": 0,
+      "illiquid_options": 0,
+      "qualified": 1
+    },
+    "offense_pct": 25,
+    "regime": "RISK-OFF",
+    "regime_desc": "RISK-OFF \u2014 Defensive capital rotation"
+  },
+  {
     "date": "2026-11-17",
     "timestamp": "2026-11-17 23:35:51",
     "total_alerts": 527,
@@ -7324,25 +7361,6 @@
     "beta_gt_1_5": 82,
     "top_sectors": "FINANCIALS(67), INDUSTRIALS(57), HEALTHCARE(57)",
     "macro_ratio": 0.22,
-    "regime": "MIXED"
-  },
-  {
-    "date": "2025-11-17",
-    "timestamp": "2026-09-06 20:09:06",
-    "total_alerts": 454,
-    "reclaims": 93,
-    "confirmed": 93,
-    "below": 361,
-    "dead": 0,
-    "retrace_ote": 36,
-    "retrace_db": 94,
-    "retrace_ema50": 303,
-    "retrace_ma150": 21,
-    "beta_lt_1": 298,
-    "beta_1_to_1_5": 71,
-    "beta_gt_1_5": 85,
-    "top_sectors": "FINANCIALS(67), INDUSTRIALS(57), HEALTHCARE(57)",
-    "macro_ratio": 0.2,
     "regime": "MIXED"
   }
 ]
