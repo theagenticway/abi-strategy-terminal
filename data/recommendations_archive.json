@@ -996,6 +996,42 @@
     }
   },
   {
+    "id": "2026-11-24_MPWR_BALANCED_SWING_BCS",
+    "date": "2026-11-24",
+    "asset_type": "OPTION",
+    "category": "BALANCED_SWING",
+    "ticker": "MPWR",
+    "company_name": "MPWR",
+    "sector": "TECH SEMIS",
+    "sub_industry": "Unknown",
+    "entry_price": 1333.88,
+    "alpha_score": 58.8,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 52.32,
+      "macd_hist": 0.0,
+      "rvol": 1.17,
+      "retrace_type": "EMA50",
+      "reclaim_days": 2,
+      "market_structure": "CONSOLIDATION_BASE",
+      "beta": 3.06,
+      "adr_pct": 6.6,
+      "iv_rank": 100.0
+    },
+    "structure": {
+      "strategy": "Bull Call Spread (45-60 DTE)",
+      "expiration": "2026-11-20",
+      "dte": 75,
+      "long_strike": 1325.0,
+      "short_strike": 1625.0,
+      "net_debit": 95.0,
+      "stop_price": 1227.17,
+      "tp1": 1600.66,
+      "tp2": 1707.37,
+      "shares": null
+    }
+  },
+  {
     "id": "2026-11-24_TXN_BALANCED_SWING_BCS",
     "date": "2026-11-24",
     "asset_type": "OPTION",
@@ -1182,6 +1218,42 @@
     }
   },
   {
+    "id": "2026-11-24_ZETA_BALANCED_SWING_BCS",
+    "date": "2026-11-24",
+    "asset_type": "OPTION",
+    "category": "BALANCED_SWING",
+    "ticker": "ZETA",
+    "company_name": "ZETA",
+    "sector": "TECH SOFTWARE",
+    "sub_industry": "Unknown",
+    "entry_price": 32.43,
+    "alpha_score": 55.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 48.39,
+      "macd_hist": 0.0,
+      "rvol": 1.17,
+      "retrace_type": "EMA50",
+      "reclaim_days": 2,
+      "market_structure": "CONSOLIDATION_BASE",
+      "beta": 2.03,
+      "adr_pct": 6.38,
+      "iv_rank": 84.7
+    },
+    "structure": {
+      "strategy": "Bull Call Spread (45-60 DTE)",
+      "expiration": "2026-11-20",
+      "dte": 75,
+      "long_strike": 30.0,
+      "short_strike": 40.0,
+      "net_debit": 2.88,
+      "stop_price": 29.84,
+      "tp1": 38.91,
+      "tp2": 41.49,
+      "shares": null
+    }
+  },
+  {
     "id": "2026-11-24_TYL_CORE_ACCUMULATION_LEAPS",
     "date": "2026-11-24",
     "asset_type": "OPTION",
@@ -1289,6 +1361,42 @@
       "stop_price": 236.83,
       "tp1": 294.43,
       "tp2": 320.04,
+      "shares": null
+    }
+  },
+  {
+    "id": "2026-11-24_NXPI_BALANCED_SWING_BCS",
+    "date": "2026-11-24",
+    "asset_type": "OPTION",
+    "category": "BALANCED_SWING",
+    "ticker": "NXPI",
+    "company_name": "NXPI",
+    "sector": "TECH SEMIS",
+    "sub_industry": "Unknown",
+    "entry_price": 256.03,
+    "alpha_score": 52.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 53.03,
+      "macd_hist": 0.0,
+      "rvol": 1.04,
+      "retrace_type": "DB",
+      "reclaim_days": 2,
+      "market_structure": "CONSOLIDATION_BASE",
+      "beta": 1.73,
+      "adr_pct": 5.14,
+      "iv_rank": 50.2
+    },
+    "structure": {
+      "strategy": "Bull Call Spread (45-60 DTE)",
+      "expiration": "2026-11-20",
+      "dte": 75,
+      "long_strike": 250.0,
+      "short_strike": 310.0,
+      "net_debit": 19.99,
+      "stop_price": 235.55,
+      "tp1": 307.23,
+      "tp2": 327.71,
       "shares": null
     }
   },
@@ -1577,6 +1685,42 @@
       "stop_price": 177.16,
       "tp1": 231.06,
       "tp2": 246.46,
+      "shares": null
+    }
+  },
+  {
+    "id": "2026-11-24_PANW_BALANCED_SWING_BCS",
+    "date": "2026-11-24",
+    "asset_type": "OPTION",
+    "category": "BALANCED_SWING",
+    "ticker": "PANW",
+    "company_name": "PANW",
+    "sector": "TECH SOFTWARE",
+    "sub_industry": "Unknown",
+    "entry_price": 353.43,
+    "alpha_score": 43.1,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 51.79,
+      "macd_hist": 0.0,
+      "rvol": 1.27,
+      "retrace_type": "EMA50",
+      "reclaim_days": 2,
+      "market_structure": "CONSOLIDATION_BASE",
+      "beta": 1.03,
+      "adr_pct": 5.4,
+      "iv_rank": 79.4
+    },
+    "structure": {
+      "strategy": "Bull Call Spread (45-60 DTE)",
+      "expiration": "2026-11-20",
+      "dte": 75,
+      "long_strike": 350.0,
+      "short_strike": 430.0,
+      "net_debit": 28.09,
+      "stop_price": 325.16,
+      "tp1": 424.11,
+      "tp2": 452.38,
       "shares": null
     }
   },
@@ -2008,7 +2152,7 @@
       "dte": 45,
       "long_strike": 47.5,
       "short_strike": 40.0,
-      "net_debit": 1.78,
+      "net_debit": 2.07,
       "stop_price": 46.58,
       "tp1": 39.79,
       "tp2": 37.08,
@@ -2048,6 +2192,78 @@
       "stop_price": 110.51,
       "tp1": 94.42,
       "tp2": 87.98,
+      "shares": null
+    }
+  },
+  {
+    "id": "2026-11-24_KLAC_DOWNSIDE_HEDGE_BPS",
+    "date": "2026-11-24",
+    "asset_type": "OPTION",
+    "category": "DOWNSIDE_HEDGE",
+    "ticker": "KLAC",
+    "company_name": "KLAC",
+    "sector": "TECH SEMIS",
+    "sub_industry": "Unknown",
+    "entry_price": 145.85,
+    "alpha_score": 0.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 0.0,
+      "macd_hist": 0.0,
+      "rvol": 1.0,
+      "retrace_type": "Resistance_Rejection",
+      "reclaim_days": 0,
+      "market_structure": "NEUTRAL",
+      "beta": 1.0,
+      "adr_pct": 2.0,
+      "iv_rank": 60.0
+    },
+    "structure": {
+      "strategy": "Bear Put Spread",
+      "expiration": "N/A",
+      "dte": 45,
+      "long_strike": 150.0,
+      "short_strike": 130.0,
+      "net_debit": 19.38,
+      "stop_price": 150.23,
+      "tp1": 128.35,
+      "tp2": 119.6,
+      "shares": null
+    }
+  },
+  {
+    "id": "2026-11-24_VRT_DOWNSIDE_HEDGE_BPS",
+    "date": "2026-11-24",
+    "asset_type": "OPTION",
+    "category": "DOWNSIDE_HEDGE",
+    "ticker": "VRT",
+    "company_name": "VRT",
+    "sector": "INDUSTRIALS",
+    "sub_industry": "Unknown",
+    "entry_price": 186.35,
+    "alpha_score": 0.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 0.0,
+      "macd_hist": 0.0,
+      "rvol": 1.0,
+      "retrace_type": "Resistance_Rejection",
+      "reclaim_days": 0,
+      "market_structure": "NEUTRAL",
+      "beta": 1.0,
+      "adr_pct": 2.0,
+      "iv_rank": 60.0
+    },
+    "structure": {
+      "strategy": "Bear Put Spread",
+      "expiration": "N/A",
+      "dte": 45,
+      "long_strike": 190.0,
+      "short_strike": 165.0,
+      "net_debit": 9.15,
+      "stop_price": 191.94,
+      "tp1": 163.99,
+      "tp2": 152.81,
       "shares": null
     }
   },
