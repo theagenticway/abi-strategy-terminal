@@ -44,17 +44,17 @@
     "company_name": "VDC",
     "sector": "INDEX",
     "sub_industry": "Unknown",
-    "entry_price": 252.05,
+    "entry_price": 252.39,
     "alpha_score": 78.0,
     "technical_snapshot": {
-      "ema50": 240.02,
-      "rsi": 63.07,
+      "ema50": 240.04,
+      "rsi": 63.48,
       "macd_hist": 0.0,
-      "rvol": 0.32,
+      "rvol": 0.44,
       "retrace_type": "EMA50",
       "reclaim_days": 0,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 0.02,
+      "beta": 0.01,
       "adr_pct": 1.36,
       "iv_rank": 40.0
     },
@@ -66,9 +66,45 @@
       "short_strike": null,
       "net_debit": null,
       "stop_price": 224.33,
-      "tp1": 315.06,
-      "tp2": 378.08,
-      "shares": 18
+      "tp1": 315.49,
+      "tp2": 378.58,
+      "shares": 17
+    }
+  },
+  {
+    "id": "2026-11-25_AAPL_CORE_ACCUMULATION_EQUITY",
+    "date": "2026-11-25",
+    "asset_type": "EQUITY",
+    "category": "CORE_ACCUMULATION",
+    "ticker": "AAPL",
+    "company_name": "AAPL",
+    "sector": "TECH CORE",
+    "sub_industry": "Unknown",
+    "entry_price": 348.21,
+    "alpha_score": 78.0,
+    "technical_snapshot": {
+      "ema50": 341.81,
+      "rsi": 51.11,
+      "macd_hist": 0.0,
+      "rvol": 0.32,
+      "retrace_type": "EMA50",
+      "reclaim_days": 0,
+      "market_structure": "BULLISH_HH_HL",
+      "beta": 0.54,
+      "adr_pct": 2.38,
+      "iv_rank": 40.0
+    },
+    "structure": {
+      "strategy": "Common Shares",
+      "expiration": "N/A",
+      "dte": 0,
+      "long_strike": null,
+      "short_strike": null,
+      "net_debit": null,
+      "stop_price": 295.24,
+      "tp1": 435.26,
+      "tp2": 522.31,
+      "shares": 9
     }
   },
   {
@@ -80,13 +116,13 @@
     "company_name": "VHT",
     "sector": "INDEX",
     "sub_industry": "Unknown",
-    "entry_price": 337.3,
+    "entry_price": 337.35,
     "alpha_score": 77.0,
     "technical_snapshot": {
       "ema50": 331.51,
-      "rsi": 50.79,
+      "rsi": 50.83,
       "macd_hist": 0.0,
-      "rvol": 0.45,
+      "rvol": 0.54,
       "retrace_type": "EMA50",
       "reclaim_days": 0,
       "market_structure": "CONSOLIDATION_BASE",
@@ -102,45 +138,9 @@
       "short_strike": null,
       "net_debit": null,
       "stop_price": 291.89,
-      "tp1": 421.62,
-      "tp2": 505.95,
-      "shares": 11
-    }
-  },
-  {
-    "id": "2026-11-25_AAPL_CORE_ACCUMULATION_EQUITY",
-    "date": "2026-11-25",
-    "asset_type": "EQUITY",
-    "category": "CORE_ACCUMULATION",
-    "ticker": "AAPL",
-    "company_name": "AAPL",
-    "sector": "TECH CORE",
-    "sub_industry": "Unknown",
-    "entry_price": 346.39,
-    "alpha_score": 76.0,
-    "technical_snapshot": {
-      "ema50": 341.74,
-      "rsi": 49.6,
-      "macd_hist": 0.0,
-      "rvol": 0.27,
-      "retrace_type": "EMA50",
-      "reclaim_days": 0,
-      "market_structure": "BULLISH_HH_HL",
-      "beta": 0.55,
-      "adr_pct": 2.38,
-      "iv_rank": 40.0
-    },
-    "structure": {
-      "strategy": "Common Shares",
-      "expiration": "N/A",
-      "dte": 0,
-      "long_strike": null,
-      "short_strike": null,
-      "net_debit": null,
-      "stop_price": 295.23,
-      "tp1": 432.99,
-      "tp2": 519.59,
-      "shares": 9
+      "tp1": 421.69,
+      "tp2": 506.03,
+      "shares": 10
     }
   },
   {
@@ -152,13 +152,13 @@
     "company_name": "VTR",
     "sector": "REAL ESTATE",
     "sub_industry": "Unknown",
-    "entry_price": 87.65,
+    "entry_price": 87.73,
     "alpha_score": 74.0,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 51.48,
+      "rsi": 51.81,
       "macd_hist": 0.0,
-      "rvol": 0.21,
+      "rvol": 0.25,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
       "market_structure": "BULLISH_HH_HL",
@@ -174,8 +174,8 @@
       "short_strike": null,
       "net_debit": null,
       "stop_price": 85.6,
-      "tp1": 92.78,
-      "tp2": 94.83,
+      "tp1": 93.06,
+      "tp2": 95.19,
       "shares": 68
     }
   },
@@ -252,6 +252,42 @@
     }
   },
   {
+    "id": "2026-11-25_HPQ_BALANCED_SWING_EQUITY",
+    "date": "2026-11-25",
+    "asset_type": "EQUITY",
+    "category": "BALANCED_SWING",
+    "ticker": "HPQ",
+    "company_name": "HPQ",
+    "sector": "TECH CORE",
+    "sub_industry": "Unknown",
+    "entry_price": 31.15,
+    "alpha_score": 70.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 57.44,
+      "macd_hist": 0.0,
+      "rvol": 1.03,
+      "retrace_type": "EMA50",
+      "reclaim_days": 2,
+      "market_structure": "BULLISH_HH_HL",
+      "beta": 0.31,
+      "adr_pct": 4.37,
+      "iv_rank": 40.0
+    },
+    "structure": {
+      "strategy": "Common Shares",
+      "expiration": "N/A",
+      "dte": 0,
+      "long_strike": null,
+      "short_strike": null,
+      "net_debit": null,
+      "stop_price": 29.29,
+      "tp1": 35.8,
+      "tp2": 37.66,
+      "shares": 188
+    }
+  },
+  {
     "id": "2026-11-25_ADP_CORE_ACCUMULATION_LEAPS",
     "date": "2026-11-25",
     "asset_type": "OPTION",
@@ -260,19 +296,19 @@
     "company_name": "ADP",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 314.62,
+    "entry_price": 314.79,
     "alpha_score": 69.3,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 65.12,
+      "rsi": 65.23,
       "macd_hist": 0.0,
-      "rvol": 0.16,
+      "rvol": 0.32,
       "retrace_type": "Stage2_Stack",
       "reclaim_days": 1,
       "market_structure": "NEUTRAL",
       "beta": -0.16,
       "adr_pct": 2.02,
-      "iv_rank": 23.9
+      "iv_rank": 24.0
     },
     "structure": {
       "strategy": "Deep-ITM Call LEAPS",
@@ -280,10 +316,10 @@
       "dte": 502,
       "long_strike": 250.0,
       "short_strike": null,
-      "net_debit": 89.79,
+      "net_debit": 89.97,
       "stop_price": 238.29,
-      "tp1": 482.55,
-      "tp2": 581.77,
+      "tp1": 483.09,
+      "tp2": 582.54,
       "shares": null
     }
   },
@@ -296,13 +332,13 @@
     "company_name": "TYL",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 414.89,
+    "entry_price": 415.76,
     "alpha_score": 69.3,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 59.91,
+      "rsi": 60.34,
       "macd_hist": 0.0,
-      "rvol": 0.12,
+      "rvol": 0.14,
       "retrace_type": "Stage2_Stack",
       "reclaim_days": 1,
       "market_structure": "NEUTRAL",
@@ -316,10 +352,10 @@
       "dte": 502,
       "long_strike": 330.0,
       "short_strike": null,
-      "net_debit": 118.08,
+      "net_debit": 119.02,
       "stop_price": 328.02,
-      "tp1": 606.0,
-      "tp2": 718.93,
+      "tp1": 608.79,
+      "tp2": 722.85,
       "shares": null
     }
   },
@@ -404,18 +440,18 @@
     "company_name": "DXCM",
     "sector": "HEALTHCARE",
     "sub_industry": "Unknown",
-    "entry_price": 84.67,
+    "entry_price": 84.32,
     "alpha_score": 68.0,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 55.04,
+      "rsi": 54.23,
       "macd_hist": 0.0,
-      "rvol": 0.01,
+      "rvol": 0.14,
       "retrace_type": "EMA50",
       "reclaim_days": 3,
       "market_structure": "BULLISH_HH_HL",
-      "beta": 0.6,
-      "adr_pct": 3.57,
+      "beta": 0.59,
+      "adr_pct": 3.65,
       "iv_rank": 40.0
     },
     "structure": {
@@ -425,10 +461,10 @@
       "long_strike": null,
       "short_strike": null,
       "net_debit": null,
-      "stop_price": 81.26,
-      "tp1": 93.2,
-      "tp2": 96.61,
-      "shares": 70
+      "stop_price": 81.24,
+      "tp1": 92.02,
+      "tp2": 95.1,
+      "shares": 71
     }
   },
   {
@@ -465,6 +501,78 @@
       "tp1": 308.44,
       "tp2": 320.04,
       "shares": 21
+    }
+  },
+  {
+    "id": "2026-11-25_MOH_BALANCED_SWING_EQUITY",
+    "date": "2026-11-25",
+    "asset_type": "EQUITY",
+    "category": "BALANCED_SWING",
+    "ticker": "MOH",
+    "company_name": "MOH",
+    "sector": "HEALTHCARE",
+    "sub_industry": "Unknown",
+    "entry_price": 205.97,
+    "alpha_score": 68.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 49.32,
+      "macd_hist": 0.0,
+      "rvol": 0.15,
+      "retrace_type": "EMA50",
+      "reclaim_days": 2,
+      "market_structure": "CONSOLIDATION_BASE",
+      "beta": 0.19,
+      "adr_pct": 5.35,
+      "iv_rank": 40.0
+    },
+    "structure": {
+      "strategy": "Common Shares",
+      "expiration": "N/A",
+      "dte": 0,
+      "long_strike": null,
+      "short_strike": null,
+      "net_debit": null,
+      "stop_price": 201.55,
+      "tp1": 217.02,
+      "tp2": 221.44,
+      "shares": 29
+    }
+  },
+  {
+    "id": "2026-11-25_BLDR_BALANCED_SWING_EQUITY",
+    "date": "2026-11-25",
+    "asset_type": "EQUITY",
+    "category": "BALANCED_SWING",
+    "ticker": "BLDR",
+    "company_name": "BLDR",
+    "sector": "CONSUMER DISC",
+    "sub_industry": "Unknown",
+    "entry_price": 60.3,
+    "alpha_score": 68.0,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 51.71,
+      "macd_hist": 0.0,
+      "rvol": 0.26,
+      "retrace_type": "EMA50",
+      "reclaim_days": 2,
+      "market_structure": "CONSOLIDATION_BASE",
+      "beta": 0.66,
+      "adr_pct": 5.35,
+      "iv_rank": 40.0
+    },
+    "structure": {
+      "strategy": "Common Shares",
+      "expiration": "N/A",
+      "dte": 0,
+      "long_strike": null,
+      "short_strike": null,
+      "net_debit": null,
+      "stop_price": 59.08,
+      "tp1": 63.35,
+      "tp2": 64.57,
+      "shares": 99
     }
   },
   {
@@ -612,42 +720,6 @@
     }
   },
   {
-    "id": "2026-11-25_HPQ_BALANCED_SWING_EQUITY",
-    "date": "2026-11-25",
-    "asset_type": "EQUITY",
-    "category": "BALANCED_SWING",
-    "ticker": "HPQ",
-    "company_name": "HPQ",
-    "sector": "TECH CORE",
-    "sub_industry": "Unknown",
-    "entry_price": 31.05,
-    "alpha_score": 65.0,
-    "technical_snapshot": {
-      "ema50": 0.0,
-      "rsi": 57.06,
-      "macd_hist": 0.0,
-      "rvol": 0.89,
-      "retrace_type": "EMA50",
-      "reclaim_days": 2,
-      "market_structure": "BULLISH_HH_HL",
-      "beta": 0.32,
-      "adr_pct": 4.37,
-      "iv_rank": 40.0
-    },
-    "structure": {
-      "strategy": "Common Shares",
-      "expiration": "N/A",
-      "dte": 0,
-      "long_strike": null,
-      "short_strike": null,
-      "net_debit": null,
-      "stop_price": 29.28,
-      "tp1": 35.48,
-      "tp2": 37.25,
-      "shares": 193
-    }
-  },
-  {
     "id": "2026-11-25_XRAY_BALANCED_SWING_BCS",
     "date": "2026-11-25",
     "asset_type": "OPTION",
@@ -656,19 +728,19 @@
     "company_name": "XRAY",
     "sector": "HEALTHCARE",
     "sub_industry": "Unknown",
-    "entry_price": 9.64,
+    "entry_price": 9.68,
     "alpha_score": 61.4,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 56.06,
+      "rsi": 56.46,
       "macd_hist": 0.0,
-      "rvol": 0.19,
+      "rvol": 0.28,
       "retrace_type": "EMA50",
       "reclaim_days": 2,
       "market_structure": "CONSOLIDATION_BASE",
-      "beta": 0.71,
-      "adr_pct": 5.43,
-      "iv_rank": 72.3
+      "beta": 0.7,
+      "adr_pct": 5.48,
+      "iv_rank": 72.6
     },
     "structure": {
       "strategy": "Bull Call Spread (45-60 DTE)",
@@ -676,10 +748,10 @@
       "dte": 75,
       "long_strike": 9.0,
       "short_strike": 12.0,
-      "net_debit": 0.47,
-      "stop_price": 8.87,
-      "tp1": 11.57,
-      "tp2": 12.34,
+      "net_debit": 0.5,
+      "stop_price": 8.91,
+      "tp1": 11.61,
+      "tp2": 12.38,
       "shares": null
     }
   },
@@ -692,19 +764,19 @@
     "company_name": "ROP",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 482.43,
+    "entry_price": 483.68,
     "alpha_score": 61.3,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 65.25,
+      "rsi": 65.7,
       "macd_hist": 0.0,
-      "rvol": 0.17,
+      "rvol": 0.22,
       "retrace_type": "Stage2_Stack",
       "reclaim_days": 1,
       "market_structure": "NEUTRAL",
-      "beta": -0.1,
-      "adr_pct": 2.39,
-      "iv_rank": 48.0
+      "beta": -0.11,
+      "adr_pct": 2.4,
+      "iv_rank": 48.2
     },
     "structure": {
       "strategy": "Deep-ITM Call LEAPS",
@@ -712,10 +784,10 @@
       "dte": 502,
       "long_strike": 380.0,
       "short_strike": null,
-      "net_debit": 141.02,
-      "stop_price": 362.34,
-      "tp1": 746.63,
-      "tp2": 902.75,
+      "net_debit": 142.37,
+      "stop_price": 362.35,
+      "tp1": 750.61,
+      "tp2": 908.34,
       "shares": null
     }
   },
@@ -728,19 +800,19 @@
     "company_name": "PAYX",
     "sector": "TECH SOFTWARE",
     "sub_industry": "Unknown",
-    "entry_price": 117.41,
+    "entry_price": 117.66,
     "alpha_score": 61.3,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 57.85,
+      "rsi": 58.28,
       "macd_hist": 0.0,
-      "rvol": 0.25,
+      "rvol": 0.29,
       "retrace_type": "Stage2_Stack",
       "reclaim_days": 1,
       "market_structure": "NEUTRAL",
-      "beta": -0.23,
-      "adr_pct": 2.39,
-      "iv_rank": 41.6
+      "beta": -0.24,
+      "adr_pct": 2.4,
+      "iv_rank": 42.4
     },
     "structure": {
       "strategy": "Deep-ITM Call LEAPS",
@@ -748,10 +820,10 @@
       "dte": 502,
       "long_strike": 90.0,
       "short_strike": null,
-      "net_debit": 36.8,
+      "net_debit": 37.07,
       "stop_price": 101.37,
-      "tp1": 152.7,
-      "tp2": 173.55,
+      "tp1": 153.5,
+      "tp2": 174.68,
       "shares": null
     }
   },
@@ -867,6 +939,78 @@
     }
   },
   {
+    "id": "2026-11-25_BXP_BALANCED_SWING_BCS",
+    "date": "2026-11-25",
+    "asset_type": "OPTION",
+    "category": "BALANCED_SWING",
+    "ticker": "BXP",
+    "company_name": "BXP",
+    "sector": "REAL ESTATE",
+    "sub_industry": "Unknown",
+    "entry_price": 63.04,
+    "alpha_score": 57.4,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 51.26,
+      "macd_hist": 0.0,
+      "rvol": 0.23,
+      "retrace_type": "EMA50",
+      "reclaim_days": 2,
+      "market_structure": "CONSOLIDATION_BASE",
+      "beta": 0.4,
+      "adr_pct": 2.55,
+      "iv_rank": 53.8
+    },
+    "structure": {
+      "strategy": "Bull Call Spread (45-60 DTE)",
+      "expiration": "2026-11-20",
+      "dte": 75,
+      "long_strike": 60.0,
+      "short_strike": 80.0,
+      "net_debit": 4.05,
+      "stop_price": 58.0,
+      "tp1": 75.64,
+      "tp2": 80.68,
+      "shares": null
+    }
+  },
+  {
+    "id": "2026-11-25_MOH_BALANCED_SWING_BCS",
+    "date": "2026-11-25",
+    "asset_type": "OPTION",
+    "category": "BALANCED_SWING",
+    "ticker": "MOH",
+    "company_name": "MOH",
+    "sector": "HEALTHCARE",
+    "sub_industry": "Unknown",
+    "entry_price": 205.97,
+    "alpha_score": 56.8,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 49.32,
+      "macd_hist": 0.0,
+      "rvol": 0.15,
+      "retrace_type": "EMA50",
+      "reclaim_days": 2,
+      "market_structure": "CONSOLIDATION_BASE",
+      "beta": 0.19,
+      "adr_pct": 5.35,
+      "iv_rank": 52.4
+    },
+    "structure": {
+      "strategy": "Bull Call Spread (45-60 DTE)",
+      "expiration": "2026-11-20",
+      "dte": 75,
+      "long_strike": 205.0,
+      "short_strike": 250.0,
+      "net_debit": 15.7,
+      "stop_price": 189.49,
+      "tp1": 247.17,
+      "tp2": 263.65,
+      "shares": null
+    }
+  },
+  {
     "id": "2026-11-25_PAYX_BALANCED_SWING_BCS",
     "date": "2026-11-25",
     "asset_type": "OPTION",
@@ -975,42 +1119,6 @@
     }
   },
   {
-    "id": "2026-11-25_BXP_BALANCED_SWING_BCS",
-    "date": "2026-11-25",
-    "asset_type": "OPTION",
-    "category": "BALANCED_SWING",
-    "ticker": "BXP",
-    "company_name": "BXP",
-    "sector": "REAL ESTATE",
-    "sub_industry": "Unknown",
-    "entry_price": 63.18,
-    "alpha_score": 53.9,
-    "technical_snapshot": {
-      "ema50": 0.0,
-      "rsi": 51.78,
-      "macd_hist": 0.0,
-      "rvol": 0.01,
-      "retrace_type": "EMA50",
-      "reclaim_days": 2,
-      "market_structure": "CONSOLIDATION_BASE",
-      "beta": 0.4,
-      "adr_pct": 2.52,
-      "iv_rank": 54.0
-    },
-    "structure": {
-      "strategy": "Bull Call Spread (45-60 DTE)",
-      "expiration": "2026-11-20",
-      "dte": 75,
-      "long_strike": 60.0,
-      "short_strike": 80.0,
-      "net_debit": 6.9,
-      "stop_price": 58.13,
-      "tp1": 75.81,
-      "tp2": 80.86,
-      "shares": null
-    }
-  },
-  {
     "id": "2026-11-25_PARA_BALANCED_SWING_BCS",
     "date": "2026-11-25",
     "asset_type": "OPTION",
@@ -1019,18 +1127,18 @@
     "company_name": "PARA",
     "sector": "COMM SERVICES",
     "sub_industry": "Unknown",
-    "entry_price": 2.8,
+    "entry_price": 2.85,
     "alpha_score": 53.4,
     "technical_snapshot": {
       "ema50": 0.0,
-      "rsi": 67.69,
+      "rsi": 67.97,
       "macd_hist": 0.0,
       "rvol": 0.0,
       "retrace_type": "OTE",
       "reclaim_days": 2,
       "market_structure": "CONSOLIDATION_BASE",
-      "beta": -308.98,
-      "adr_pct": 45.26,
+      "beta": -317.12,
+      "adr_pct": 45.25,
       "iv_rank": 100.0
     },
     "structure": {
@@ -1041,8 +1149,44 @@
       "short_strike": 8.0,
       "net_debit": 5.03,
       "stop_price": 0.94,
-      "tp1": 7.45,
-      "tp2": 9.31,
+      "tp1": 7.62,
+      "tp2": 9.54,
+      "shares": null
+    }
+  },
+  {
+    "id": "2026-11-25_RKT_CORE_ACCUMULATION_LEAPS",
+    "date": "2026-11-25",
+    "asset_type": "OPTION",
+    "category": "CORE_ACCUMULATION",
+    "ticker": "RKT",
+    "company_name": "RKT",
+    "sector": "FINANCIALS",
+    "sub_industry": "Unknown",
+    "entry_price": 14.66,
+    "alpha_score": 53.3,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 63.31,
+      "macd_hist": 0.0,
+      "rvol": 0.41,
+      "retrace_type": "Stage2_Stack",
+      "reclaim_days": 1,
+      "market_structure": "NEUTRAL",
+      "beta": 0.12,
+      "adr_pct": 4.3,
+      "iv_rank": 58.6
+    },
+    "structure": {
+      "strategy": "Deep-ITM Call LEAPS",
+      "expiration": "2028-01-21",
+      "dte": 502,
+      "long_strike": 11.0,
+      "short_strike": null,
+      "net_debit": 4.83,
+      "stop_price": 12.9,
+      "tp1": 18.53,
+      "tp2": 20.82,
       "shares": null
     }
   },
@@ -1055,13 +1199,13 @@
     "company_name": "RSP",
     "sector": "INDEX",
     "sub_industry": "Unknown",
-    "entry_price": 212.21,
+    "entry_price": 212.19,
     "alpha_score": 53.0,
     "technical_snapshot": {
       "ema50": 215.75,
-      "rsi": 43.58,
+      "rsi": 43.56,
       "macd_hist": 0.0,
-      "rvol": 0.41,
+      "rvol": 0.46,
       "retrace_type": "EMA50",
       "reclaim_days": 0,
       "market_structure": "BEARISH_LH_LL",
@@ -1077,8 +1221,8 @@
       "short_strike": null,
       "net_debit": null,
       "stop_price": 203.11,
-      "tp1": 265.26,
-      "tp2": 318.31,
+      "tp1": 265.24,
+      "tp2": 318.28,
       "shares": 28
     }
   },
@@ -1091,18 +1235,18 @@
     "company_name": "VFH",
     "sector": "INDEX",
     "sub_industry": "Unknown",
-    "entry_price": 134.63,
+    "entry_price": 134.49,
     "alpha_score": 53.0,
     "technical_snapshot": {
-      "ema50": 136.86,
-      "rsi": 44.17,
+      "ema50": 136.85,
+      "rsi": 43.89,
       "macd_hist": 0.0,
-      "rvol": 0.16,
+      "rvol": 0.27,
       "retrace_type": "EMA50",
       "reclaim_days": 0,
       "market_structure": "BEARISH_LH_LL",
       "beta": 0.55,
-      "adr_pct": 1.6,
+      "adr_pct": 1.61,
       "iv_rank": 40.0
     },
     "structure": {
@@ -1113,8 +1257,8 @@
       "short_strike": null,
       "net_debit": null,
       "stop_price": 128.14,
-      "tp1": 168.29,
-      "tp2": 201.94,
+      "tp1": 168.11,
+      "tp2": 201.74,
       "shares": 44
     }
   },
@@ -1194,6 +1338,42 @@
       "tp1": 448.15,
       "tp2": 485.66,
       "shares": 15
+    }
+  },
+  {
+    "id": "2026-11-25_NVR_BALANCED_SWING_BCS",
+    "date": "2026-11-25",
+    "asset_type": "OPTION",
+    "category": "BALANCED_SWING",
+    "ticker": "NVR",
+    "company_name": "NVR",
+    "sector": "CONSUMER DISC",
+    "sub_industry": "Unknown",
+    "entry_price": 5997.79,
+    "alpha_score": 47.3,
+    "technical_snapshot": {
+      "ema50": 0.0,
+      "rsi": 53.43,
+      "macd_hist": 0.0,
+      "rvol": 0.29,
+      "retrace_type": "EMA50",
+      "reclaim_days": 2,
+      "market_structure": "CONSOLIDATION_BASE",
+      "beta": 0.17,
+      "adr_pct": 3.44,
+      "iv_rank": 97.2
+    },
+    "structure": {
+      "strategy": "Bull Call Spread (45-60 DTE)",
+      "expiration": "2026-11-20",
+      "dte": 75,
+      "long_strike": 5975.0,
+      "short_strike": 7200.0,
+      "net_debit": 465.5,
+      "stop_price": 5517.97,
+      "tp1": 7197.34,
+      "tp2": 7677.16,
+      "shares": null
     }
   },
   {
@@ -1748,7 +1928,7 @@
     "company_name": "TSLA",
     "sector": "CONSUMER DISC",
     "sub_industry": "Unknown",
-    "entry_price": 363.97,
+    "entry_price": 363.82,
     "alpha_score": 0.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1768,10 +1948,10 @@
       "dte": 45,
       "long_strike": 370.0,
       "short_strike": 320.0,
-      "net_debit": 17.83,
-      "stop_price": 374.89,
-      "tp1": 320.29,
-      "tp2": 298.46,
+      "net_debit": 18.57,
+      "stop_price": 374.73,
+      "tp1": 320.16,
+      "tp2": 298.33,
       "shares": null
     }
   },
@@ -1856,7 +2036,7 @@
     "company_name": "BX",
     "sector": "FINANCIALS",
     "sub_industry": "Unknown",
-    "entry_price": 115.66,
+    "entry_price": 115.56,
     "alpha_score": 0.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1877,9 +2057,9 @@
       "long_strike": 120.0,
       "short_strike": 100.0,
       "net_debit": 7.6,
-      "stop_price": 119.13,
-      "tp1": 101.78,
-      "tp2": 94.84,
+      "stop_price": 119.03,
+      "tp1": 101.69,
+      "tp2": 94.76,
       "shares": null
     }
   },
@@ -1892,7 +2072,7 @@
     "company_name": "ARE",
     "sector": "REAL ESTATE",
     "sub_industry": "Unknown",
-    "entry_price": 41.71,
+    "entry_price": 41.78,
     "alpha_score": 0.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1912,10 +2092,10 @@
       "dte": 45,
       "long_strike": 42.5,
       "short_strike": 37.5,
-      "net_debit": 2.45,
-      "stop_price": 42.96,
-      "tp1": 36.7,
-      "tp2": 34.2,
+      "net_debit": 2.12,
+      "stop_price": 43.03,
+      "tp1": 36.77,
+      "tp2": 34.26,
       "shares": null
     }
   },
@@ -1928,7 +2108,7 @@
     "company_name": "PLD",
     "sector": "REAL ESTATE",
     "sub_industry": "Unknown",
-    "entry_price": 126.46,
+    "entry_price": 126.33,
     "alpha_score": 0.0,
     "technical_snapshot": {
       "ema50": 0.0,
@@ -1949,9 +2129,9 @@
       "long_strike": 130.0,
       "short_strike": 110.0,
       "net_debit": 5.75,
-      "stop_price": 130.25,
-      "tp1": 111.28,
-      "tp2": 103.7,
+      "stop_price": 130.12,
+      "tp1": 111.17,
+      "tp2": 103.59,
       "shares": null
     }
   },
