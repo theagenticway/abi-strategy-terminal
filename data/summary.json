@@ -1,7 +1,7 @@
 [
   {
     "date": "2026-11-26",
-    "timestamp": "2026-11-26 00:33:35",
+    "timestamp": "2026-11-26 14:01:12",
     "total_alerts": 527,
     "reclaims": 60,
     "confirmed": 60,
@@ -17,9 +17,9 @@
     "top_sectors": "FINANCIALS(70), HEALTHCARE(65), INDUSTRIALS(63)",
     "macro_ratio": 0.11,
     "total_alerts_session": 527,
-    "total_alerts_cumulative": 118960,
+    "total_alerts_cumulative": 118506,
     "reclaims_session": 60,
-    "reclaims_cumulative": 36330,
+    "reclaims_cumulative": 36161,
     "winrate_session": "11.4%",
     "winrate_cumulative": "30.5%",
     "funnel_diagnostic": {
