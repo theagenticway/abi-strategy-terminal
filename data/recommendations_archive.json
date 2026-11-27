@@ -1110,7 +1110,7 @@
       "reclaim_days": 1,
       "market_structure": "NEUTRAL",
       "beta": 1.76,
-      "adr_pct": 5.06,
+      "adr_pct": 5.05,
       "iv_rank": 50.0
     },
     "structure": {
@@ -1779,7 +1779,7 @@
       "reclaim_days": 2,
       "market_structure": "CONSOLIDATION_BASE",
       "beta": 1.76,
-      "adr_pct": 5.06,
+      "adr_pct": 5.05,
       "iv_rank": 52.9
     },
     "structure": {
